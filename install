@@ -1,5 +1,0 @@
-#/bin/sh
-for f in `ls -d .??*`
-do
-    ln -s $f ../
-done
