@@ -3,6 +3,7 @@
     email = gxtfmx@gmail.com
 [alias]
     cm          = commit
+    co          = checkout
     s           = status
     st          = stash
     sm          = submodule
