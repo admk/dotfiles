@@ -9,6 +9,10 @@ PATH=/usr/local/bin:/usr/local/git/bin:$SAGE_ROOT:$MATLAB_PATH:$GTKWAVE_PATH:$PA
 export CLICOLOR=1
 
 # bash prompts
+export GIT_PS1_SHOWDIRTYSTATE=1
+export GIT_PS1_SHOWSTASHSTATE=1
+export GIT_PS1_SHOWUNTRACKEDFILES=1
+export GIT_PS1_SHOWUPSTREAM="auto"
 export PS1="\[\e[0;37m\]~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\[\e[0;30m\]\u@\h:\W\$(__git_ps1 "$s") \n> \[\e[0m\]"
 export PS2="  "
 
