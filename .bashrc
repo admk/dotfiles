@@ -13,7 +13,7 @@ export GIT_PS1_SHOWDIRTYSTATE=1
 export GIT_PS1_SHOWSTASHSTATE=1
 export GIT_PS1_SHOWUNTRACKEDFILES=1
 export GIT_PS1_SHOWUPSTREAM="auto"
-export PS1="\[\e[0;37m\]~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\[\e[0;30m\]\u@\h:\W\$(__git_ps1 "$s") \n> \[\e[0m\]"
+export PS1="\[\e[0;37m\]~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\[\e[0m\]\n\u@\h:\W\$(__git_ps1 "$s") \n> "
 export PS2="  "
 
 # use mvim instead of vim for python support
