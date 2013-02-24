@@ -34,3 +34,5 @@
 [merge]
     log     = true
     summary = true
+[push]
+    default = matching
