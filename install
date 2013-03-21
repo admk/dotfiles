@@ -15,7 +15,7 @@ if __name__ == '__main__':
     for f in glob.glob('.*'):
         if exclusion(f):
             continue
-        if os.path.exists(f):
+        if os.path.exists('~/' + f):
             print('File exists %s' % f)
             continue
         print('Installing ' + f)
