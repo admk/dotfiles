@@ -1,11 +1,4 @@
-#
-# Executes commands at the start of an interactive session.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
-#
-
-# Source Prezto.
+# Prezto
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
@@ -14,7 +7,6 @@ fi
 EDITOR=vim
 
 # Vi mode
-bindkey -v
 bindkey 'jk' vi-cmd-mode
 
 # Path
