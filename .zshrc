@@ -4,15 +4,16 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
 fi
 
 # Editor
-EDITOR=vim
+export VISUAL=`which vim`
+export EDITOR=$VISUAL
 
 # Vi mode
 bindkey 'jk' vi-cmd-mode
 
 # Path
 pathdirs=(
-    /usr/local/share/python
     /usr/local/share/python3
+    /usr/local/share/python
 )
 for d in $pathdirs; do
     if [ -d $d ]; then

@@ -2,25 +2,28 @@
     name = Xitong Gao
     email = gxtfmx@gmail.com
 [alias]
-    cm          = commit
-    co          = checkout
-    s           = status
-    st          = stash
-    sm          = submodule
-    br          = branch
-    rb          = rebase
-    un          = reset
+    br = branch
+    cm = commit
+    co = checkout
+    rb = rebase
+    s  = status
+    sm = submodule
+    st = stash
+    un = reset
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+	switch    = !legit switch \"$@\"
+	branches  = !legit branches
+	sprout    = !legit sprout \"$@\"
+	unpublish = !legit unpublish \"$@\"
+	harvest   = !legit harvest \"$@\"
+	sync      = !legit sync \"$@\"
+	publish   = !legit publish \"$@\"
+	graft     = !legit graft \"$@\"
     unstage     = reset
     unstage-all = reset --soft HEAD^
-    prune-all   = !git remote | xargs -n 1 git remote prune
-    lg          = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
-    stats       = shortlog -s -n --no-merges
-    pl          = pull origin master
-    ps          = push origin master
 [core]
     excludesfile = /Users/admko/.gitignore
     autocrlf     = input
-    editor       = /usr/bin/vim
 [color]
     ui          = true
     diff        = auto
