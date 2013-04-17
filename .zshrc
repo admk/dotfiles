@@ -1,6 +1,7 @@
 # Prezto
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+PREZTO="${ZDOTDIR:-$HOME}/.external/prezto"
+if [[ -s "$PREZTO/init.zsh" ]]; then
+  source "$PREZTO/init.zsh"
 fi
 
 # Editor
