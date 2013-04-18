@@ -4,3 +4,6 @@
 [submodule ".external/prezto"]
 	path = .external/prezto
 	url = https://github.com/admk/prezto.git
+[submodule ".external/rainbarf"]
+	path = .external/rainbarf
+	url = https://github.com/creaktive/rainbarf.git
