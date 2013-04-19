@@ -4,9 +4,12 @@ if [[ -s "$PREZTO/init.zsh" ]]; then
   source "$PREZTO/init.zsh"
 fi
 
-# Editor
+# Environment
 export VISUAL=`which vim`
 export EDITOR=$VISUAL
+if [ -z "$TMUX" ]; then
+    export TERM=xterm-256color
+fi
 
 # Auto run tmux on launch
 if [ -z "$TMUX" ]; then
