@@ -1,7 +1,10 @@
 # Prezto
 PREZTO="${ZDOTDIR:-$HOME}/.external/prezto"
 if [[ -s "$PREZTO/init.zsh" ]]; then
-  source "$PREZTO/init.zsh"
+    source "$PREZTO/init.zsh"
+    # Zstyles
+    zstyle ':prezto:module:editor:info:keymap:primary' format ' %B%F{red}>%F{yellow}>%F{green}>%f%b'
+    zstyle ':prezto:module:editor:info:keymap:alternate' format ' %B%F{green}<%F{yellow}<%F{red}<%f%b'
 fi
 
 # Environment
