@@ -8,6 +8,12 @@ fi
 export VISUAL=`which vim`
 export EDITOR=$VISUAL
 
+# Auto run tmux on launch
+if [ -z "$TMUX" ]; then
+    export TERM=xterm-256color
+    tmux attach-session -t "$USER" || tmux new-session -s "$USER"
+fi
+
 # Vi mode
 bindkey 'jk' vi-cmd-mode
 
