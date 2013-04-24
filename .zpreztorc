@@ -21,6 +21,7 @@ zstyle ':prezto:load' pmodule \
   'ruby' \
   'fasd' \
   'node' \
+  'tmux' \
   'syntax-highlighting' \
   'history-substring-search' \
   'prompt'

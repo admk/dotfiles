@@ -10,15 +10,20 @@ fi
 # Environment
 export VISUAL=`which vim`
 export EDITOR=$VISUAL
-if [ -z "$TMUX" ]; then
-    export TERM=xterm-256color
-fi
 
-# Auto run tmux on launch
-if [ -z "$TMUX" ]; then
+# tmux
+if [[ -z $TMUX ]]; then
     export TERM=xterm-256color
-    tmux attach-session -t "$USER" || tmux new-session -s "$USER"
 fi
+tmux-reattach() {
+    local session
+    if [[ -n $@ ]]; then
+        session=$@
+    else
+        session=$USER
+    fi
+    tmux attach-session -t $session || tmux new-session -s $session
+}
 
 # Vi mode
 bindkey 'jk' vi-cmd-mode
