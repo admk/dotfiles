@@ -32,6 +32,7 @@ bindkey 'jk' vi-cmd-mode
 pathdirs=(
     /usr/local/share/python3
     /usr/local/share/python
+    /usr/texbin
 )
 for d in $pathdirs; do
     if [ -d $d ]; then
