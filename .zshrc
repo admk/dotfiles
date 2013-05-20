@@ -32,7 +32,7 @@ bindkey 'jk' vi-cmd-mode
 pathdirs=(
     /usr/local/share/python3
     /usr/local/share/python
-    /usr/local/texlive/2011/bin/universal-darwin/
+    /usr/texbin
 )
 for d in $pathdirs; do
     if [ -d $d ]; then
