@@ -22,7 +22,6 @@
     unstage     = reset
     unstage-all = reset --soft HEAD^
 [core]
-    excludesfile = /Users/admko/.gitignore
     autocrlf     = input
 [color]
     ui          = true
