@@ -35,7 +35,6 @@ zstyle ':prezto:module:syntax-highlighting' color 'yes'
 zstyle ':prezto:module:syntax-highlighting' highlighters \
   'main' \
   'brackets' \
-  'pattern' \
-  'cursor'
+  'pattern'
 
 zstyle ':prezto:module:prompt' theme 'sorin'
