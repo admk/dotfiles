@@ -5,6 +5,7 @@
     br = !legit branches
     cm = commit
     co = checkout
+    d  = diff
     rb = rebase
     s  = status
     sm = submodule
