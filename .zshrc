@@ -24,6 +24,10 @@ tmux-reattach() {
     fi
     tmux attach-session -t $session || tmux new-session -s $session
 }
+ATTACHED=`tmux list-sessions | grep -e "$USER.*attached"`
+if [[ -z $SSH_CONNECTION  && -z $TMUX && -z $ATTACHED ]]; then
+    tmux-reattach
+fi
 
 # Vi mode
 bindkey 'jk' vi-cmd-mode
