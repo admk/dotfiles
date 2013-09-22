@@ -30,8 +30,6 @@ bindkey 'jk' vi-cmd-mode
 
 # Path
 pathdirs=(
-    /usr/local/share/python3
-    /usr/local/share/python
     /usr/texbin
 )
 for d in $pathdirs; do

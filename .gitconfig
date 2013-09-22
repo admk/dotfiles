@@ -2,7 +2,7 @@
     name = Xitong Gao
     email = gxtfmx@gmail.com
 [alias]
-    br = !legit branches
+    br = branch
     cm = commit
     co = checkout
     d  = diff

@@ -1,6 +1,3 @@
-[submodule ".external/powerline"]
-	path = .external/powerline
-	url = https://github.com/Lokaltog/powerline.git
 [submodule ".external/prezto"]
 	path = .external/prezto
 	url = https://github.com/admk/prezto.git
