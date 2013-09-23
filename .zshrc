@@ -41,3 +41,17 @@ for d in $pathdirs; do
         path+=$d
     fi
 done
+
+# Shortcuts
+alias py=python
+alias py3=python3
+alias ipy=ipython
+alias ipy3=ipython3
+
+# functions
+function nowrap {
+    export COLS=`tput cols`
+    cut -c-$COLS
+    unset COLS
+    echo -ne "\e[0m"
+}
