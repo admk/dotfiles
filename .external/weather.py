@@ -5,43 +5,53 @@
 import urllib.request
 import json
 
+
 location = 'London'
 celcius = True
-prec = 0
+prec = 1
 
-unit = 'metric' if celcius else 'imperial'
-weather_url = \
-    'http://api.openweathermap.org/data/2.5/weather?q=%s&units=%s' % \
-    (location, unit)
 
-f = json.loads(urllib.request.urlopen(weather_url).read().decode('utf-8'))
+def fetch(location, celcius=True):
+    unit = 'metric' if celcius else 'imperial'
+    weather_url = \
+        'http://api.openweathermap.org/data/2.5/weather?q=%s&units=%s' % \
+        (location, unit)
+    response = urllib.request.urlopen(weather_url).read()
+    return json.loads(response.decode('utf-8'))
 
-condition_code = int(f['weather'][0]['id'] / 100)
-temperature = f['main']['temp']
 
-if condition_code == 2:  # thunderstorm
-    symbol = '☈'
-elif condition_code == 3:  # drizzle
-    symbol = 'Drizzle'
-elif condition_code == 5:  # rain
-    symbol = '☔'
-elif condition_code == 6:  # snow
-    symbol = '❄'
-elif condition_code == 7:  # mist/smoke/haze/sand/fog
-    symbol = '〰'
-elif condition_code == 8:  # clouds
-    symbol = '☁'
-elif condition_code == 9:  # extreme
-    symbol = '颶'
-else:
-    symbol = '?'
+def pictograph(json_str):
+    _pictograph_dict = {
+        2: '☈',   # thunderstorm
+        3: '☂',   # drizzle
+        4: '☔',   # rain
+        6: '❄',   # snow
+        7: '〰',  # mist/smoke/haze/sand/fog
+        8: '☁',   # clouds
+        9: '颶',  # extreme
+    }
+    code = int(json_str['weather'][0]['id'] / 100)
+    try:
+        return _pictograph_dict[code]
+    except KeyError:
+        return '?'
 
-if celcius:
-    unit = '℃'
-else:
-    unit = '℉'
 
-try:
-    print(('%s %1.' + str(prec) + 'f%s') % (symbol, temperature, unit))
-except Exception as e:
-    print(e)
+def temperature(json_str):
+    return json_str['main']['temp']
+
+
+def format_weather(location, celcius=True, prec=0):
+    json_str = fetch(location, celcius)
+    if celcius:
+        unit = '℃'
+    else:
+        unit = '℉'
+    return '{pictograph}{temperature:.{prec}f}{unit}'.format(
+        pictograph=pictograph(json_str), prec=prec,
+        temperature=temperature(json_str), unit=unit)
+
+if __name__ == '__main__':
+    import sys
+    sys.stdout.write(format_weather(location, celcius, prec))
+    sys.stdout.flush()
