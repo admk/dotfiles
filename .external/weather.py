@@ -2,13 +2,16 @@
 # -*- encoding: utf-8 -*-
 
 
+import os
+import sys
 import urllib.request
 import json
 
 
 location = 'London'
 celcius = True
-prec = 1
+precision = 1
+emoji = True
 
 
 def fetch(location, celcius=True):
@@ -20,21 +23,34 @@ def fetch(location, celcius=True):
     return json.loads(response.decode('utf-8'))
 
 
-def pictograph(json_str):
+def pictograph(json_str, use_emoji):
     def is_daytime():
         from datetime import datetime
         return 6 <= datetime.now().hour < 18
-    _pictograph_dict = {
-        2: '☈',    # thunderstorm
-        3: '☂',    # drizzle
-        4: '☔',    # rain
-        6: '❄',    # snow
-        7: '〰',   # mist/smoke/haze/sand/fog
-        8: '☁',    # clouds
-        9: '颶',   # extreme
-        # specials
-        800: '☽☼'  # clear sky
-    }
+    if use_emoji:
+        _pictograph_dict = {
+            2: '⚡',    # thunderstorm
+            3: '🌂',    # drizzle
+            4: '☔',    # rain
+            6: '⛄',    # snow
+            7: '🌁',    # mist/smoke/haze/sand/fog
+            8: '⛅',    # clouds
+            9: '🌀',    # extreme
+            # specials
+            800: '🌜🌞'  # clear sky
+        }
+    else:
+        _pictograph_dict = {
+            2: '☈',    # thunderstorm
+            3: '☂',    # drizzle
+            4: '☔',    # rain
+            6: '❄',    # snow
+            7: '〰',   # mist/smoke/haze/sand/fog
+            8: '☁',    # clouds
+            9: '颶',   # extreme
+            # specials
+            800: '☽☼'  # clear sky
+        }
     code = json_str['weather'][0]['id']
     try:
         pict = _pictograph_dict[code]
@@ -43,28 +59,30 @@ def pictograph(json_str):
     try:
         pict = _pictograph_dict[code]
     except KeyError:
-        return '?'
-    if len(pict) == 1:
-        return pict
-    return pict[is_daytime()]
+        return ' '
+    if len(pict) != 1:
+        pict = pict[is_daytime()]
+    if use_emoji:
+        pict += ' '
+    return pict
 
 
 def temperature(json_str):
     return json_str['main']['temp']
 
 
-def format_weather(location, celcius=True, prec=0):
+def format_weather(location, celcius=True, precision=0):
+    location = os.environ.get('WEATHER_LOCATION') or location
+    celcius = os.environ.get('WEATHER_CELCIUS') or celcius
+    precision = os.environ.get('WEATHER_PRECISION') or precision
     json_str = fetch(location, celcius)
-    if celcius:
-        unit = '℃'
-    else:
-        unit = '℉'
-    return '{pictograph}{temperature:.{prec}f}{unit}'.format(
-        pictograph=pictograph(json_str), prec=prec,
+    unit = '℃' if celcius else '℉'
+    use_emoji = emoji and sys.platform == 'darwin'
+    return '{pictograph}{temperature:.{precision}f}{unit}'.format(
+        pictograph=pictograph(json_str, use_emoji), precision=precision,
         temperature=temperature(json_str), unit=unit)
 
 
 if __name__ == '__main__':
-    import sys
-    sys.stdout.write(format_weather(location, celcius, prec))
+    sys.stdout.write(format_weather(location, celcius, precision))
     sys.stdout.flush()
