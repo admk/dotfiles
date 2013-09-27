@@ -27,39 +27,21 @@ def pictograph(json_str, use_emoji):
     def is_daytime():
         from datetime import datetime
         return 6 <= datetime.now().hour < 18
-    if use_emoji:
-        _pictograph_dict = {
-            2: '⚡',    # thunderstorm
-            3: '🌂',    # drizzle
-            4: '☔',    # rain
-            6: '⛄',    # snow
-            7: '🌁',    # mist/smoke/haze/sand/fog
-            8: '⛅',    # clouds
-            9: '🌀',    # extreme
-            # specials
-            800: '🌜🌞'  # clear sky
-        }
-    else:
-        _pictograph_dict = {
-            2: '☈',    # thunderstorm
-            3: '☂',    # drizzle
-            4: '☔',    # rain
-            6: '❄',    # snow
-            7: '〰',   # mist/smoke/haze/sand/fog
-            8: '☁',    # clouds
-            9: '颶',   # extreme
-            # specials
-            800: '☽☼'  # clear sky
-        }
+    _pictograph_dict = {
+        2: '☈⚡',           # thunderstorm
+        3: '☂🌂',           # drizzle
+        4: '☔☔',           # rain
+        6: '❄⛄',           # snow
+        7: '〰🌁',         # mist/smoke/haze/sand/fog
+        8: '☁⛅',           # clouds
+        9: '颶🌀',         # extreme
+        # specials
+        800: ['☽☼', '🌜🌞']  # clear sky
+    }
     code = json_str['weather'][0]['id']
-    try:
-        pict = _pictograph_dict[code]
-    except KeyError:
+    if code not in json_str:
         code = int(code / 100)
-    try:
-        pict = _pictograph_dict[code]
-    except KeyError:
-        return ' '
+    pict = _pictograph_dict[code][use_emoji]
     if len(pict) != 1:
         pict = pict[is_daytime()]
     if use_emoji:
@@ -71,7 +53,7 @@ def temperature(json_str):
     return json_str['main']['temp']
 
 
-def format_weather(location, celcius=True, precision=0):
+def weather(location, celcius=True, precision=0):
     location = os.environ.get('WEATHER_LOCATION') or location
     celcius = os.environ.get('WEATHER_CELCIUS') or celcius
     precision = os.environ.get('WEATHER_PRECISION') or precision
@@ -84,5 +66,5 @@ def format_weather(location, celcius=True, precision=0):
 
 
 if __name__ == '__main__':
-    sys.stdout.write(format_weather(location, celcius, precision))
+    sys.stdout.write(weather(location, celcius, precision))
     sys.stdout.flush()
