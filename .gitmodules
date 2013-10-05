@@ -4,3 +4,6 @@
 [submodule ".external/rainbarf"]
 	path = .external/rainbarf
 	url = https://github.com/creaktive/rainbarf.git
+[submodule ".external/tmux-batteries"]
+	path = .external/tmux-batteries
+	url = https://github.com/admk/tmux-batteries.git
