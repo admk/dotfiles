@@ -47,6 +47,8 @@ alias py=python
 alias py3=python3
 alias ipy=ipython
 alias ipy3=ipython3
+alias br=brew
+alias tm=tmux
 
 # functions
 function nowrap {
