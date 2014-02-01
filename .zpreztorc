@@ -4,27 +4,28 @@ zstyle ':prezto:*:*' color 'yes'
 zstyle ':prezto:load' zmodule 'attr' 'stat'
 zstyle ':prezto:load' zfunction 'zargs' 'zmv'
 zstyle ':prezto:load' pmodule \
-  'environment' \
-  'terminal' \
-  'editor' \
-  'history' \
-  'directory' \
-  'spectrum' \
-  'gnu-utility' \
-  'utility' \
-  'completion' \
-  'git' \
   'archive' \
+  'completion' \
+  'directory' \
+  'editor' \
+  'environment' \
+  'fasd' \
+  'git' \
+  'gnu-utility' \
+  'history' \
+  'history-substring-search' \
+  'homebrew' \
+  'node' \
   'osx' \
   'perl' \
+  'prompt' \
   'python' \
   'ruby' \
-  'fasd' \
-  'node' \
-  'tmux' \
+  'spectrum' \
   'syntax-highlighting' \
-  'history-substring-search' \
-  'prompt'
+  'terminal' \
+  'tmux' \
+  'utility'
 
 zstyle ':prezto:module:editor' keymap 'vi'
 zstyle ':prezto:module:editor' dot-expansion 'yes'
