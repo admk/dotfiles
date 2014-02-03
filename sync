@@ -1,0 +1,19 @@
+#!/bin/sh
+
+echo '===> Syncing ko-dot'
+cd ~ && \
+    git stash && \
+    git checkout master && \
+    git pull origin master && \
+    git push origin master && \
+    git stash pop
+git submodule update --init --recursive
+
+echo '===> Syncing ko-vim'
+cd ~/.vim/ && \
+    git stash && \
+    git checkout develop && \
+    git pull origin develop && \
+    git push origin develop && \
+    git stash pop
+vim -u bundles.vim +BundleInstall +BundleClean! +qall
