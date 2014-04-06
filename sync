@@ -8,6 +8,8 @@ cd ~ && \
     git push origin master && \
     git stash pop
 git submodule update --init --recursive
+tmux source-file ~/.tmux.conf
+tmux refresh-client -S
 
 echo '===> Syncing ko-vim'
 cd ~/.vim/ && \
