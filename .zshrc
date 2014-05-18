@@ -1,14 +1,30 @@
-# Prezto
-PREZTO="${ZDOTDIR:-$HOME}/.external/prezto"
-if [[ -s "$PREZTO/init.zsh" ]]; then
-    source "$PREZTO/init.zsh"
-    zstyle ':prezto:module:editor:info:keymap:primary' format \
-      ' %B%F{red}>%F{yellow}>%F{green}>%f%b'
-    zstyle ':prezto:module:editor:info:keymap:alternate' format \
-      ' %B%F{green}<%F{yellow}<%F{red}<%f%b'
-fi
+# oh-my-zsh
+export ZSH=$HOME/.external/oh-my-zsh
+export ZSH_CUSTOM=$HOME/.external/oh-my-zsh-custom
 
-# Environment
+ZSH_THEME="sorin"
+COMPLETION_WAITING_DOTS="true"
+HIST_STAMPS="dd.mm.yyyy"
+
+plugins=(
+    autojump
+    autopep8
+    brew
+    fasd
+    git
+    git-flow
+    history-substring-search
+    osx
+    pep8
+    pip
+    python
+    tmux
+    zsh-syntax-highlighting
+)
+
+source $ZSH/oh-my-zsh.sh
+
+# environment
 export VISUAL=`which vim`
 export EDITOR=$VISUAL
 
@@ -30,10 +46,7 @@ if [[ -z $SSH_CONNECTION  && -z $TMUX && -z $ATTACHED ]]; then
     tmux-reattach
 fi
 
-# Vi mode
-bindkey 'jk' vi-cmd-mode
-
-# Path
+# paths
 pathdirs=(
     /usr/texbin
 )
@@ -43,13 +56,14 @@ for d in $pathdirs; do
     fi
 done
 
-# Shortcuts
+# shortcuts
 alias py=python
 alias py3=python3
 alias ipy=ipython
 alias ipy3=ipython3
 alias br=brew
 alias tm=tmux
+alias e=vim
 
 # functions
 function nowrap {
