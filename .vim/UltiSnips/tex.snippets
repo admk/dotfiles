@@ -1,0 +1,24 @@
+# Beamer Frame
+snippet "fr(ame)?" "Frame" br
+\begin{frame}
+	\frametitle{${1:frame title}}
+	${0:${VISUAL}}
+\end{frame}
+endsnippet
+
+# Beamer Block
+snippet "bl(ock)?" "Block" br
+\begin{block}{${1:block title}}
+	${0:${VISUAL}}
+\end{block}
+endsnippet
+
+# Beamer Columns
+snippet "col(umns)?" "Columns" br
+\begin{columns}[${1:c}]
+	\column{${2:0.5\textwidth}}
+	${0:${VISUAL}}
+	\column{${3:0.5\textwidth}}
+	${4}
+\end{columns}
+endsnippet

@@ -1,11 +1,9 @@
 # oh-my-zsh
 export ZSH=$HOME/.external/oh-my-zsh
-export ZSH_CUSTOM=$HOME/.external/oh-my-zsh-custom
-
+ZSH_CUSTOM=$HOME/.external/oh-my-zsh-custom
 ZSH_THEME="sorin"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="dd.mm.yyyy"
-
 plugins=(
     autojump
     autopep8
@@ -19,10 +17,15 @@ plugins=(
     pip
     python
     tmux
+    vi-mode
     zsh-syntax-highlighting
 )
-
 source $ZSH/oh-my-zsh.sh
+
+# vi-mode
+bindkey 'jk' vi-cmd-mode
+bindkey '\e[A' history-substring-search-up
+bindkey '\e[B' history-substring-search-down
 
 # environment
 export VISUAL=`which vim`
