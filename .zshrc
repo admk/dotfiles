@@ -75,3 +75,35 @@ function nowrap {
     unset COLS
     echo -ne "\e[0m"
 }
+
+# sync
+function sync {
+    function error {
+        echo "! Failed to $1" 1>&2
+    }
+
+    cd $HOME
+
+    echo '===> Fetching admk/ko-dot'
+    git stash \
+        && git checkout master \
+        && git pull origin master \
+        && git push origin master \
+        && git stash pop \
+        || error 'update admk/ko-dot'
+
+    echo '===> Updating submodules'
+    git submodule update --init --recursive \
+        || error 'update submodules'
+
+    echo '===> Refreshing Tmux preferences'
+    tmux source-file ~/.tmux.conf > /dev/null \
+        && tmux refresh-client -S \
+        || error 'refresh Tmux preferences'
+
+    echo '===> Updating Vim plugins'
+    vim -u .vim/bundles.vim +BundleInstall +BundleClean! +qall \
+        || error 'update Vim plugins'
+
+    echo 'All done!'
+}
