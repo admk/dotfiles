@@ -4,40 +4,40 @@
         set nocompatible
         filetype off
         set runtimepath+=~/.vim/bundle/vundle
-        call vundle#rc()
+        call vundle#begin()
     " }
     " Bundles {
-        Bundle 'admk/vim-best-colors'
-        Bundle 'davidhalter/jedi-vim'
-        Bundle 'bling/vim-airline'
-        Bundle 'ehamberg/vim-cute-python'
-        Bundle 'admk/vim-isort'
-        Bundle 'gmarik/vundle'
-        Bundle 'godlygeek/tabular'
-        Bundle 'hdima/python-syntax'
-        Bundle 'kien/ctrlp.vim'
-        Bundle 'mhinz/vim-signify'
-        Bundle 'michaeljsmith/vim-indent-object'
-        Bundle 'nelstrom/vim-visual-star-search'
-        Bundle 'scrooloose/nerdcommenter'
-        Bundle 'scrooloose/nerdtree'
-        Bundle 'scrooloose/syntastic'
-        Bundle 'SirVer/ultisnips'
-        Bundle 'sjl/gundo.vim'
-        Bundle 'sjl/vitality.vim'
-        Bundle 'tpope/vim-abolish'
-        Bundle 'tpope/vim-dispatch'
-        Bundle 'tpope/vim-fugitive'
-        Bundle 'tpope/vim-markdown'
-        Bundle 'tpope/vim-repeat'
-        Bundle 'tpope/vim-surround'
-        Bundle 'tpope/vim-unimpaired'
-        Bundle 'Valloric/YouCompleteMe'
-        Bundle 'indentpython.vim'
-        Bundle 'matchit.zip'
-        Bundle 'YankRing.vim'
+        Plugin 'admk/vim-best-colors'
+        Plugin 'admk/vim-isort'
+        Plugin 'davidhalter/jedi-vim'
+        Plugin 'bling/vim-airline'
+        Plugin 'ehamberg/vim-cute-python'
+        Plugin 'gmarik/vundle'
+        Plugin 'godlygeek/tabular'
+        Plugin 'honza/vim-snippets'
+        Plugin 'kien/ctrlp.vim'
+        Plugin 'mhinz/vim-signify'
+        Plugin 'michaeljsmith/vim-indent-object'
+        Plugin 'nelstrom/vim-visual-star-search'
+        Plugin 'scrooloose/nerdcommenter'
+        Plugin 'scrooloose/nerdtree'
+        Plugin 'scrooloose/syntastic'
+        Plugin 'sheerun/vim-polyglot'
+        Plugin 'SirVer/ultisnips'
+        Plugin 'sjl/gundo.vim'
+        Plugin 'sjl/vitality.vim'
+        Plugin 'tpope/vim-abolish'
+        Plugin 'tpope/vim-dispatch'
+        Plugin 'tpope/vim-fugitive'
+        Plugin 'tpope/vim-repeat'
+        Plugin 'tpope/vim-surround'
+        Plugin 'tpope/vim-unimpaired'
+        Plugin 'Valloric/YouCompleteMe'
+        Plugin 'matchit.zip'
+        Plugin 'YankRing.vim'
     " }
     " Finalisation {
+        call vundle#end()
         filetype plugin indent on
         let mapleader=","
     " }
