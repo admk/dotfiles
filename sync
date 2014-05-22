@@ -1,21 +1,32 @@
 #!/bin/sh
 
-echo '===> Syncing ko-dot'
-cd ~ && \
-    git stash && \
-    git checkout master && \
-    git pull origin master && \
-    git push origin master && \
-    git stash pop
-git submodule update --init --recursive
-tmux source-file ~/.tmux.conf
-tmux refresh-client -S
+function error
+{
+    echo $1 1>&2
+    exit 1
+}
 
-echo '===> Syncing ko-vim'
-cd ~/.vim/ && \
-    git stash && \
-    git checkout develop && \
-    git pull origin develop && \
-    git push origin develop && \
-    git stash pop
-vim -u bundles.vim +BundleInstall +BundleClean! +qall
+cd $HOME
+
+echo '===> Fetching admk/ko-dot'
+git stash \
+    && git checkout master \
+    && git pull origin master \
+    && git push origin master \
+    && git stash pop \
+    || error 'Failed to update admk/ko-dot'
+
+echo '===> Updating submodules'
+git submodule update --init --recursive \
+    || error 'Failed to update submodules'
+
+echo '===> Refreshing Tmux preferences'
+tmux source-file ~/.tmux.conf > /dev/null \
+    && tmux refresh-client -S \
+    || error 'Failed to refresh Tmux preferences'
+
+echo '===> Updating Vim plugins'
+vim -u .vim/bundles.vim +BundleInstall +BundleClean! +qall \
+    || error 'Failed to update Vim plugins'
+
+echo 'All done!'
