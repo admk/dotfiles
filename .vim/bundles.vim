@@ -43,8 +43,13 @@
     " }
 " }
 " Configurations {
+    " Solarized {
+        let g:solarized_visibility="low"
+        let g:solarized_menu=0
+        let g:solarized_termcolors=256
+    " }
     " Airline {
-        let g:airline_theme='pencil'
+        let g:airline_theme='tomorrow'
         let g:airline_left_sep=''
         let g:airline_right_sep=''
         let g:airline_section_b='%{airline#util#wrap(airline#extensions#branch#get_head(),0)}'

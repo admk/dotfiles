@@ -87,12 +87,8 @@
     " Colorscheme {
         if has("gui_running")
             set guifont=Cousine:h16
-            let g:solarized_visibility="low"
-            let g:solarized_menu=0
-        else
-            let g:solarized_termcolors=256
         endif
-        colorscheme pencil
+        colorscheme base16-mocha
     " }
 " }
 " Shortcuts {
