@@ -30,6 +30,7 @@ bindkey '\e[B' history-substring-search-down
 # environment
 export VISUAL=`which vim`
 export EDITOR=$VISUAL
+export LESS='-F -g -i -M -R -S -w -z-4'
 
 # tmux
 if [[ -z $TMUX ]]; then
