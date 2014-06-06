@@ -61,13 +61,14 @@ for d in $pathdirs; do
 done
 
 # shortcuts
+alias e=vim
+alias o=open
+alias br=brew
+alias tm=tmux
 alias py=python
 alias py3=python3
 alias ipy=ipython
 alias ipy3=ipython3
-alias br=brew
-alias tm=tmux
-alias e=vim
 
 # functions
 function nowrap {
