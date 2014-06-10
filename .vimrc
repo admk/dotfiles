@@ -74,6 +74,9 @@
             set guioptions-=r
             set guioptions-=L
             set guioptions-=T
+            set guicursor=n:blinkon0
+            set lines=39
+            set columns=83
         endif
         if !exists('$SSH_CLIENT')
             set cursorline

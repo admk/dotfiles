@@ -9,12 +9,13 @@
     " Bundles {
         Plugin 'admk/vim-best-colors'
         Plugin 'admk/vim-isort'
-        Plugin 'davidhalter/jedi-vim'
         Plugin 'bling/vim-airline'
         Plugin 'ehamberg/vim-cute-python'
         Plugin 'gmarik/vundle'
         Plugin 'godlygeek/tabular'
+        Plugin 'hdima/python-syntax'
         Plugin 'honza/vim-snippets'
+        Plugin 'junegunn/goyo.vim'
         Plugin 'kien/ctrlp.vim'
         Plugin 'mhinz/vim-signify'
         Plugin 'michaeljsmith/vim-indent-object'
@@ -22,17 +23,18 @@
         Plugin 'scrooloose/nerdcommenter'
         Plugin 'scrooloose/nerdtree'
         Plugin 'scrooloose/syntastic'
-        Plugin 'sheerun/vim-polyglot'
         Plugin 'SirVer/ultisnips'
         Plugin 'sjl/gundo.vim'
         Plugin 'sjl/vitality.vim'
         Plugin 'tpope/vim-abolish'
         Plugin 'tpope/vim-dispatch'
         Plugin 'tpope/vim-fugitive'
+        Plugin 'tpope/vim-markdown'
         Plugin 'tpope/vim-repeat'
         Plugin 'tpope/vim-surround'
         Plugin 'tpope/vim-unimpaired'
         Plugin 'Valloric/YouCompleteMe'
+        Plugin 'indentpython.vim'
         Plugin 'matchit.zip'
         Plugin 'YankRing.vim'
     " }
@@ -52,7 +54,8 @@
         let g:airline_theme='tomorrow'
         let g:airline_left_sep=''
         let g:airline_right_sep=''
-        let g:airline_section_b='%{airline#util#wrap(airline#extensions#branch#get_head(),0)}'
+        let g:airline_section_b=
+            \ '%{airline#util#wrap(airline#extensions#branch#get_head(),0)}'
         let g:airline_section_y=''
         let g:airline_section_z='%3p%%:%3l'
         let g:airline#extensions#tabline#enabled = 1
@@ -83,8 +86,7 @@
     " Syntastic {
         let g:syntastic_error_symbol='X'
         let g:syntastic_warning_symbol='!'
-        let g:syntastic_enable_highlighting=0
-        let g:syntastic_python_checkers = ['pylint']
+        let g:syntastic_python_checkers = ['flake8']
     " }
     " Gundo {
         nnoremap <leader>gt :GundoToggle<CR>
