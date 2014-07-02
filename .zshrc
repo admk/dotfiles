@@ -24,8 +24,15 @@ source $ZSH/oh-my-zsh.sh
 
 # vi-mode
 bindkey 'jk' vi-cmd-mode
-bindkey '\e[A' history-substring-search-up
-bindkey '\e[B' history-substring-search-down
+bindkey ' ' magic-space 
+bindkey -M vicmd "gg" beginning-of-history
+bindkey -M vicmd "G" end-of-history
+bindkey -M vicmd "?" history-incremental-search-backward
+bindkey -M vicmd "/" history-incremental-search-forward
+bindkey -M viins "^W" backward-kill-word
+bindkey -M viins "^?" backward-delete-char
+bindkey -M viins "^A" beginning-of-line
+bindkey -M viins "^E" end-of-line
 
 # environment
 export VISUAL=`which vim`

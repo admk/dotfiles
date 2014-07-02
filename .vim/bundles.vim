@@ -51,7 +51,7 @@
         let g:solarized_termcolors=256
     " }
     " Airline {
-        let g:airline_theme='tomorrow'
+        let g:airline_theme='base16'
         let g:airline_left_sep=''
         let g:airline_right_sep=''
         let g:airline_section_b=
@@ -101,10 +101,6 @@
     " }
     " Python Syntax {
         let python_highlight_all = 1
-    " }
-    " jedi-vim {
-        let g:jedi#popup_on_dot = 0
-        let g:jedi#popup_select_first = 0
     " }
 " }
 " vim: set fdm=marker fmr={,}:
