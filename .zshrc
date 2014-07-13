@@ -1,7 +1,7 @@
 # oh-my-zsh
 export ZSH=$HOME/.external/oh-my-zsh
 ZSH_CUSTOM=$HOME/.external/oh-my-zsh-custom
-ZSH_THEME="sorin"
+ZSH_THEME="sorin-fixed"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="dd.mm.yyyy"
 VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
@@ -24,7 +24,6 @@ plugins=(
     zsh-syntax-highlighting
 )
 source $ZSH/oh-my-zsh.sh
-RPS1='$(virtualenv_prompt_info)$(vi_mode_prompt_info)'$RPS1
 
 # vi-mode
 bindkey 'jk' vi-cmd-mode
