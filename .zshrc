@@ -4,6 +4,7 @@ ZSH_CUSTOM=$HOME/.external/oh-my-zsh-custom
 ZSH_THEME="sorin"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="dd.mm.yyyy"
+VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
 plugins=(
     autojump
     autopep8
@@ -18,13 +19,18 @@ plugins=(
     python
     tmux
     vi-mode
+    virtualenv
+    virtualenvwrapper
     zsh-syntax-highlighting
 )
 source $ZSH/oh-my-zsh.sh
+RPS1='$(virtualenv_prompt_info)$(vi_mode_prompt_info)'$RPS1
 
 # vi-mode
 bindkey 'jk' vi-cmd-mode
-bindkey ' ' magic-space 
+bindkey ' ' magic-space
+bindkey -M vicmd 'j' history-substring-search-down
+bindkey -M vicmd 'k' history-substring-search-up
 bindkey -M vicmd "gg" beginning-of-history
 bindkey -M vicmd "G" end-of-history
 bindkey -M vicmd "?" history-incremental-search-backward

@@ -86,6 +86,7 @@
         if has("gui_macvim")
             set macmeta
         endif
+        set diffopt+=vertical
     " }
     " Colorscheme {
         if has("gui_running")
