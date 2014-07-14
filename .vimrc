@@ -88,11 +88,14 @@
         endif
         set diffopt+=vertical
     " }
-    " Colorscheme {
+    " Font {
         if has("gui_running")
-            set guifont=Cousine:h16
+            let &guifont="M+ 1m light:h16"
+            set linespace=-3
         endif
-        colorscheme base16-mocha
+    " }
+    " Colorscheme {
+        colorscheme base16-ocean
     " }
 " }
 " Shortcuts {

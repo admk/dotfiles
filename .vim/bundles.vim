@@ -63,8 +63,8 @@
         let g:airline#extensions#tabline#tab_min_count = 2
     " }
     " CtrlP {
-        nnoremap <leader>cp :CtrlP<cr>
-        nnoremap <leader>mr :CtrlPMRUFiles<cr>
+        nnoremap <C-M> :CtrlPMRUFiles<cr>
+        nnoremap <C-Q> :CtrlP<cr>
     " }
     " yankring {
         nnoremap <leader>yy :YRShow<CR>
