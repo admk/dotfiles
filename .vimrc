@@ -25,14 +25,29 @@
         set backspace=indent,eol,start
         set laststatus=2
         set mouse=a
+        autocmd FocusLost * :silent! wall
+        set undofile
+        set undodir=~/.vim/tmp/undo//
+        set backup
+        set backupdir=~/.vim/tmp/backup//
     " }
     " Visual {
+        syntax on
         set hlsearch
         set showmatch
         set showcmd
         set noshowmode
         set scrolloff=3
-        syntax on
+        set lazyredraw
+        set list
+        set listchars=tab:▸\ ,extends:❯,precedes:❮
+        augroup trailing
+            autocmd!
+            autocmd InsertEnter * :set listchars-=trail:␣
+            autocmd InsertLeave * :set listchars+=trail:␣
+        augroup END
+        let &showbreak='↳ '
+        autocmd VimResized * :wincmd =
     " }
     " Command line {
         set wildchar=<TAB>
@@ -102,16 +117,19 @@
     " Essential {
         nnoremap ; :
         vnoremap ; :
-        inoremap jk <ESC>
         nnoremap j gj
         nnoremap k gk
         nnoremap Y y$
+        inoremap jk <ESC>
         inoremap £ x<BS>#
         inoremap # x<BS>#
     " }
     " General {
         noremap / q/i
         noremap ? q?i
+        nnoremap <tab> %
+        nnoremap H ^
+        nnoremap L $
         let mapleader=","
         nnoremap <leader><space> :nohlsearch<CR>
         nnoremap <leader>w :%s/\s\+$//<cr>:let @/=''<CR>  " strip spaces
@@ -159,7 +177,6 @@
     " Highlight {
         highlight! link SignColumn ColorColumn
         highlight! link Conceal Keyword
-        highlight MatchParen ctermbg=NONE guibg=NONE
     " }
 " }
 " vim: set fdm=marker fmr={,}:
