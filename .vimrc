@@ -11,8 +11,9 @@
         set termencoding=utf-8
         set fileencoding=utf-8
         autocmd FileType markdown,rst,tex,latex setlocal spell
-        autocmd FileType tex,latex setlocal iskeyword+=_ cole=2 nocursorline
-        let g:tex_conceal = 'admgs'
+        autocmd FileType tex,latex setlocal iskeyword+=_ conceallevel=2
+        let g:tex_conceal='admgs'
+        autocmd FocusLost * :silent! wall
     " }
     " Functional {
         set nocompatible
@@ -25,13 +26,8 @@
         set backspace=indent,eol,start
         set laststatus=2
         set mouse=a
-        autocmd FocusLost * :silent! wall
-        set undofile
-        set undodir=~/.vim/tmp/undo//
-        set backup
-        set backupdir=~/.vim/tmp/backup//
     " }
-    " Visual {
+    " Display {
         syntax on
         set hlsearch
         set showmatch
@@ -41,7 +37,7 @@
         set lazyredraw
         set list
         set listchars=tab:▸\ ,extends:❯,precedes:❮
-        augroup trailing
+        augroup trailing_space
             autocmd!
             autocmd InsertEnter * :set listchars-=trail:␣
             autocmd InsertLeave * :set listchars+=trail:␣
@@ -57,6 +53,31 @@
     " }
 " }
 " Editing {
+    " File {
+        set undofile
+        set backup
+        set undodir=~/.vim/tmp/undo//
+        set backupdir=~/.vim/tmp/backup//
+        set dictionary=/usr/share/dict/words
+        set spellfile=~/.vim/spell/en.utf-8.add
+        if !isdirectory(expand(&undodir))
+            call mkdir(expand(&undodir), "p")
+        endif
+        if !isdirectory(expand(&backupdir))
+            call mkdir(expand(&backupdir), "p")
+        endif
+        if !isdirectory(expand(&directory))
+            call mkdir(expand(&directory), "p")
+        endif
+        augroup line_return_on_open
+            autocmd!
+            autocmd BufReadPost *
+                \ if line("'\"") > 0 && line("'\"") <= line("$") |
+                \     execute 'normal! g`"zvzz' |
+                \ endif
+        augroup END
+        set virtualedit+=block
+    " }
     " Text flow {
         set wrap
         set linebreak
@@ -96,6 +117,10 @@
         if !exists('$SSH_CLIENT')
             set cursorline
             set colorcolumn=+1
+        else
+            set notimeout
+            set ttimeout
+            set ttimeoutlen=10
         endif
         " Mac specific
         if has("gui_macvim")
@@ -125,16 +150,26 @@
         inoremap # x<BS>#
     " }
     " General {
+        " Search
         noremap / q/i
         noremap ? q?i
+        " Leader related
+        let mapleader=","
+        nnoremap <leader><space> :nohlsearch<CR>
+        nnoremap <leader>f :let &fen = !&fen<CR>
+    " }
+    " Editing {
+        " Cursor jumps
         nnoremap <tab> %
         nnoremap H ^
         nnoremap L $
-        let mapleader=","
-        nnoremap <leader><space> :nohlsearch<CR>
-        nnoremap <leader>w :%s/\s\+$//<cr>:let @/=''<CR>  " strip spaces
-        nnoremap <leader>f :let &fen = !&fen<CR>
+        " Formatting
+        nnoremap Q gqip
+        vnoremap Q gq
         inoremap <C-c> <Esc>[s1z=`]a
+        nnoremap <leader>w :%s/\s\+$//<cr>:let @/=''<CR>
+        " Joining lines
+        nnoremap J mzJ`z
     " }
     " Visual mode {
         nnoremap gp `[v`]
@@ -142,9 +177,13 @@
         vnoremap > >gv
     " }
     " Command line {
+        " Sudo
+        cnoremap w!! w !sudo tee % >/dev/null
+        " Emacs-like
         cnoremap <C-a> <Home>
         cnoremap <C-e> <End>
         cnoremap <C-k> <C-u>
+        " Shortcuts
         cnoremap cd. lcd %:p:h
     " }
     " File switching {
