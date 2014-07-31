@@ -136,6 +136,7 @@
     " }
     " Colorscheme {
         colorscheme base16-ocean
+        set background=dark
     " }
 " }
 " Shortcuts {
@@ -166,7 +167,7 @@
         " Formatting
         nnoremap Q gqip
         vnoremap Q gq
-        inoremap <C-c> <Esc>[s1z=`]a
+        inoremap <C-c> <Esc>[s1z=`]i
         nnoremap <leader>w :%s/\s\+$//<cr>:let @/=''<CR>
         " Joining lines
         nnoremap J mzJ`z
