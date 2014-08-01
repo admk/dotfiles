@@ -56,6 +56,7 @@
     " File {
         set undofile
         set backup
+        set directory=~/.vim/tmp/swap//
         set undodir=~/.vim/tmp/undo//
         set backupdir=~/.vim/tmp/backup//
         set dictionary=/usr/share/dict/words
@@ -161,11 +162,11 @@
     " }
     " Editing {
         " Cursor jumps
-        nnoremap <tab> %
+        nnoremap ` %
         nnoremap H ^
         nnoremap L $
         " Formatting
-        nnoremap Q gqip
+        nnoremap Q mzgqip`z
         vnoremap Q gq
         inoremap <C-c> <Esc>[s1z=`]i
         nnoremap <leader>w :%s/\s\+$//<cr>:let @/=''<CR>
