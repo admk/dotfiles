@@ -11,7 +11,8 @@
         set termencoding=utf-8
         set fileencoding=utf-8
         autocmd FileType markdown,rst,tex,latex setlocal spell
-        let g:tex_flavor="latex"
+        autocmd FileType tex,latex setlocal iskeyword+=_ conceallevel=2
+        let g:tex_flavor = "latex"
         let g:tex_conceal='admgs'
         autocmd FocusLost * :silent! wall
     " }
@@ -170,8 +171,6 @@
         vnoremap Q gq
         inoremap <C-c> <Esc>[s1z=`]i
         nnoremap <leader>w :%s/\s\+$//<cr>:let @/=''<CR>
-        " Joining lines
-        nnoremap J mzJ`z
     " }
     " Visual mode {
         nnoremap gp `[v`]
