@@ -12,7 +12,8 @@
         set fileencoding=utf-8
         autocmd FileType markdown,rst,tex,latex setlocal spell
         autocmd FileType tex,latex setlocal iskeyword+=_ conceallevel=2
-        let g:tex_flavor = "latex"
+        let g:tex_fast=""
+        let g:tex_flavor="latex"
         let g:tex_conceal='admgs'
         autocmd FocusLost * :silent! wall
     " }
