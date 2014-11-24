@@ -1,8 +1,92 @@
 " Xitong Gao's vimrc
-" General {
-    " Vundle {
-        runtime bundles.vim
+" Plugins {
+    " Pre {
+    call plug#begin('~/.vim/plugged')
+    let mapleader=","
     " }
+    " Cosmetic {
+        Plug 'admk/vim-best-colors'
+        let g:solarized_visibility="low"
+        let g:solarized_menu=0
+        let g:solarized_termcolors=256
+        Plug 'bling/vim-airline'
+        let g:airline_theme='base16'
+        let g:airline_left_sep=''
+        let g:airline_right_sep=''
+        let g:airline_section_b=
+            \ '%{airline#util#wrap(airline#extensions#branch#get_head(),0)}'
+        let g:airline_section_y=''
+        let g:airline_section_z='%3p%%:%3l'
+        let g:airline#extensions#tabline#enabled = 1
+        let g:airline#extensions#tabline#show_buffers = 0
+        let g:airline#extensions#tabline#tab_min_count = 2
+        Plug 'ehamberg/vim-cute-python', {'for': 'python'}
+    " }
+    " Visual {
+        Plug 'hdima/python-syntax', {'for': 'python'}
+        let python_highlight_all = 1
+        Plug 'junegunn/goyo.vim', {'on': 'Goyo'}
+        Plug 'mhinz/vim-signify'
+    " }
+    " Editing {
+        Plug 'admk/vim-isort', {'for': 'python'}
+        Plug 'godlygeek/tabular', {'on': 'Tabularize'}
+        nnoremap <leader>= :Tabularize /=<CR>
+        Plug 'honza/vim-snippets'
+        Plug 'michaeljsmith/vim-indent-object'
+        Plug 'scrooloose/nerdcommenter'
+        let NERDSpaceDelims = 1
+        let NERDRemoveExtraSpaces = 1
+        Plug 'SirVer/ultisnips'
+        let g:UltiSnipsExpandTrigger = '<c-h>'
+        let g:UltiSnipsJumpForwardTrigger = '<c-h>'
+        let g:UltiSnipsJumpBackwardTrigger = '<c-l>'
+        Plug 'sjl/gundo.vim', {'on': 'GundoToggle'}
+        nnoremap <leader>gt :GundoToggle<CR>
+        Plug 'tpope/vim-abolish'
+        Plug 'tpope/vim-markdown', {'for': 'markdown'}
+        Plug 'tpope/vim-repeat'
+        Plug 'tpope/vim-surround'
+        Plug 'tpope/vim-unimpaired'
+        function! BuildYCM(info)
+          " info is a dictionary with 3 fields
+          " - name:   name of the plugin
+          " - status: 'installed', 'updated', or 'unchanged'
+          " - force:  set on PlugInstall! or PlugUpdate!
+          if a:info.status == 'installed' || a:info.force
+            !./install.sh
+          endif
+        endfunction
+        Plug 'Valloric/YouCompleteMe', {'do': function('BuildYCM')}
+        Plug 'indentpython.vim', {'for': 'python'}
+        Plug 'YankRing.vim'
+        nnoremap <leader>yy :YRShow<CR>
+        let g:yankring_history_file = '.yankring_history'
+    " }
+    " Navigation {
+        Plug 'kien/ctrlp.vim'
+        let g:ctrlp_map = '<C-T>'
+        nnoremap <C-M> :CtrlPMRUFiles<cr>
+        Plug 'nelstrom/vim-visual-star-search'
+        Plug 'scrooloose/nerdtree', {'on': 'NERDTreeToggle'}
+        nnoremap <leader>nt :NERDTreeToggle<cr>
+        let NERDTreeIgnore=['\.py[co]$', '\~$', '__pycache__']
+        Plug 'matchit.zip'
+    " }
+    " Other {
+        Plug 'scrooloose/syntastic'
+        let g:syntastic_error_symbol='X'
+        let g:syntastic_warning_symbol='!'
+        let g:syntastic_python_checkers = ['flake8']
+        Plug 'sjl/vitality.vim'
+        Plug 'tpope/vim-dispatch'
+        Plug 'tpope/vim-fugitive'
+    " }
+    " Post {
+    call plug#end()
+    " }
+" }
+" General {
     " File {
         set noswapfile
         set hidden
@@ -10,12 +94,14 @@
         set encoding=utf-8
         set termencoding=utf-8
         set fileencoding=utf-8
+        autocmd FocusLost * :silent! wall
         autocmd FileType markdown,rst,tex,latex setlocal spell
-        autocmd FileType tex,latex setlocal iskeyword+=_ conceallevel=2
+        autocmd FileType tex,latex
+            \ setlocal nocursorline iskeyword+=_
+            \ conceallevel=2 foldmethod=manual
         let g:tex_fast=""
         let g:tex_flavor="latex"
-        let g:tex_conceal='admgs'
-        autocmd FocusLost * :silent! wall
+        let g:tex_conceal="admgs"
     " }
     " Functional {
         set nocompatible
@@ -150,6 +236,7 @@
         nnoremap k gk
         nnoremap Y y$
         inoremap jk <ESC>
+        inoremap kj <ESC>
         inoremap £ x<BS>#
         inoremap # x<BS>#
     " }
@@ -158,7 +245,6 @@
         noremap / q/i
         noremap ? q?i
         " Leader related
-        let mapleader=","
         nnoremap <leader><space> :nohlsearch<CR>
         nnoremap <leader>f :let &fen = !&fen<CR>
     " }
