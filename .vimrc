@@ -1,8 +1,14 @@
 " Xitong Gao's vimrc
 " Plugins {
     " Pre {
-    call plug#begin('~/.vim/plugged')
-    let mapleader=","
+        if empty(glob('~/.vim/autoload/plug.vim'))
+            silent !mkdir -p ~/.vim/autoload
+            silent !curl -fLo ~/.vim/autoload/plug.vim
+                        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+            autocmd VimEnter * PlugInstall
+        endif
+        call plug#begin('~/.vim/plugged')
+        let mapleader=","
     " }
     " Cosmetic {
         Plug 'admk/vim-best-colors'
