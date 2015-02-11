@@ -4,7 +4,7 @@
         if empty(glob('~/.vim/autoload/plug.vim'))
             silent !mkdir -p ~/.vim/autoload
             silent !curl -fLo ~/.vim/autoload/plug.vim
-                        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
             autocmd VimEnter * PlugInstall
         endif
         call plug#begin('~/.vim/plugged')
@@ -33,12 +33,14 @@
         let python_highlight_all = 1
         Plug 'junegunn/goyo.vim', {'on': 'Goyo'}
         Plug 'mhinz/vim-signify'
+        Plug 'junegunn/rainbow_parentheses.vim', {'on': 'RainbowParentheses'}
     " }
     " Editing {
         Plug 'admk/vim-isort', {'for': 'python'}
         Plug 'godlygeek/tabular', {'on': 'Tabularize'}
         nnoremap <leader>= :Tabularize /=<CR>
         Plug 'honza/vim-snippets'
+        Plug 'junegunn/vim-peekaboo'
         Plug 'michaeljsmith/vim-indent-object'
         Plug 'scrooloose/nerdcommenter'
         let NERDSpaceDelims = 1
@@ -49,6 +51,7 @@
         let g:UltiSnipsJumpBackwardTrigger = '<c-l>'
         Plug 'sjl/gundo.vim', {'on': 'GundoToggle'}
         nnoremap <leader>gt :GundoToggle<CR>
+        Plug 'tommcdo/vim-exchange'
         Plug 'tpope/vim-abolish'
         Plug 'tpope/vim-markdown', {'for': 'markdown'}
         Plug 'tpope/vim-repeat'
@@ -65,9 +68,6 @@
         endfunction
         Plug 'Valloric/YouCompleteMe', {'do': function('BuildYCM')}
         Plug 'indentpython.vim', {'for': 'python'}
-        Plug 'YankRing.vim'
-        nnoremap <leader>yy :YRShow<CR>
-        let g:yankring_history_file = '.yankring_history'
     " }
     " Navigation {
         Plug 'kien/ctrlp.vim'
