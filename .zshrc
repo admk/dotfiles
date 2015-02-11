@@ -1,5 +1,10 @@
 # oh-my-zsh
 export ZSH=$HOME/.external/oh-my-zsh
+if [[ ! -d $ZSH ]]; then
+    echo '==> Installing oh-my-zsh...'
+    git clone -b master --recursive \
+        https://github.com/robbyrussell/oh-my-zsh.git $ZSH
+fi
 ZSH_CUSTOM=$HOME/.external/oh-my-zsh-custom
 ZSH_THEME="sorin-fixed"
 COMPLETION_WAITING_DOTS="true"
