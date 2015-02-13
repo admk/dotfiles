@@ -11,26 +11,13 @@ COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="dd.mm.yyyy"
 VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
 plugins=(
-    autojump
-    autopep8
-    brew
-    fasd
-    git
-    git-flow
-    history-substring-search
-    osx
-    pep8
-    pip
-    python
-    tmux
-    vi-mode
-    virtualenv
-    virtualenvwrapper
+    autojump autopep8 brew fasd git git-flow history-substring-search
+    osx pep8 pip python tmux vi-mode virtualenv virtualenvwrapper
     zsh-syntax-highlighting
 )
 source $ZSH/oh-my-zsh.sh
 
-# vi-mode
+# vi-mode fix
 bindkey 'jk' vi-cmd-mode
 bindkey ' ' magic-space
 bindkey -M vicmd 'j' history-substring-search-down
@@ -43,6 +30,10 @@ bindkey -M viins "^W" backward-kill-word
 bindkey -M viins "^?" backward-delete-char
 bindkey -M viins "^A" beginning-of-line
 bindkey -M viins "^E" end-of-line
+
+# arrow keys fix
+bindkey "$terminfo[cuu1]" history-substring-search-up
+bindkey "$terminfo[cud1]" history-substring-search-down
 
 # environment
 export VISUAL=`which vim`
@@ -78,14 +69,18 @@ for d in $pathdirs; do
 done
 
 # shortcuts
-alias e=vim
+alias c=clear
 alias o=open
+alias e=vim
+alias v=vim
+alias nv=nvim
 alias br=brew
 alias tm=tmux
 alias py=python
 alias py3=python3
 alias ipy=ipython
 alias ipy3=ipython3
+alias gs="git status --short"
 
 # functions
 function nowrap {

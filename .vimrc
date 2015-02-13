@@ -70,6 +70,7 @@
         Plug 'indentpython.vim', {'for': 'python'}
     " }
     " Navigation {
+        Plug 'christoomey/vim-tmux-navigator'
         Plug 'kien/ctrlp.vim'
         let g:ctrlp_map = '<C-T>'
         nnoremap <C-M> :CtrlPMRUFiles<cr>
@@ -280,9 +281,8 @@
         " Shortcuts
         cnoremap cd. lcd %:p:h
     " }
-    " File switching {
-        for l in [['h'], ['j'], ['k'], ['l'], ['w'],
-                \ ['-'], ['=', '+'], [',', '<'], ['.', '>']]
+    " Window resizing {
+        for l in [['-'], ['=', '+'], [',', '<'], ['.', '>']]
             if len(l) == 1
                 let s:l = l + l
             else
