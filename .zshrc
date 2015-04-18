@@ -106,6 +106,9 @@ function sync {
         && git stash pop \
         || error 'update admk/ko-dot'
 
+    echo '===> Updating oh-my-zsh'
+    upgrade_oh_my_zsh
+
     echo '===> Updating submodules'
     git submodule update --init --recursive \
         || error 'update submodules'
@@ -116,8 +119,11 @@ function sync {
         || error 'refresh Tmux preferences'
 
     echo '===> Updating Vim plugins'
-    vim -u .vim/bundles.vim +BundleInstall +BundleClean! +qall \
+    vim +PlugUpdate +qall \
         || error 'update Vim plugins'
 
     echo 'All done!'
 }
+
+# brew update
+alias brewup="brew update && brew upgrade && brew reinstall --HEAD neovim"

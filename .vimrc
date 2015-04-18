@@ -106,7 +106,6 @@
         autocmd FileType tex,latex
             \ setlocal nocursorline iskeyword+=_
             \ conceallevel=2 foldmethod=manual
-        let g:tex_fast=""
         let g:tex_flavor="latex"
         let g:tex_conceal="admgs"
     " }
@@ -311,5 +310,10 @@
         highlight! link SignColumn ColorColumn
         highlight! link Conceal Keyword
     " }
+" }
+" Post {
+    if !empty(glob('~/.vimrc.custom'))
+        source ~/.vimrc.custom
+    endif
 " }
 " vim: set fdm=marker fmr={,}:
