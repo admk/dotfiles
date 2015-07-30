@@ -11,8 +11,8 @@ COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="dd.mm.yyyy"
 VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
 plugins=(
-    autojump autopep8 brew fasd git git-flow history-substring-search
-    osx pep8 pip python tmux vi-mode virtualenv virtualenvwrapper
+    autojump autopep8 brew docker fasd fzf git git-flow
+    history-substring-search osx pep8 pip python tmux vi-mode
     zsh-syntax-highlighting
 )
 source $ZSH/oh-my-zsh.sh
@@ -39,6 +39,7 @@ bindkey "$terminfo[cud1]" history-substring-search-down
 export VISUAL=`which vim`
 export EDITOR=$VISUAL
 export LESS='-F -g -i -M -R -S -w -X -z-4'
+export HOMEBREW_CASK_OPTS="--appdir=/Applications"
 
 # tmux
 if [[ -z $TMUX ]]; then
@@ -58,15 +59,9 @@ if [[ -z $SSH_CONNECTION  && -z $TMUX && -z $ATTACHED ]]; then
     tmux-reattach
 fi
 
-# paths
-pathdirs=(
-    /usr/texbin
-)
-for d in $pathdirs; do
-    if [ -d $d ]; then
-        path+=$d
-    fi
-done
+# neovim
+export NVIM_TUI_ENABLE_TRUE_COLOR=1
+export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
 
 # shortcuts
 alias c=clear
@@ -81,17 +76,40 @@ alias py3=python3
 alias ipy=ipython
 alias ipy3=ipython3
 alias gs="git status --short"
+alias brewup="brew update && brew upgrade && brew reinstall --HEAD neovim && brew cask update"
 
 # functions
 function nowrap {
+    # trim outputs
     export COLS=`tput cols`
     cut -c-$COLS
     unset COLS
     echo -ne "\e[0m"
 }
-
-# sync
+function cdf {
+    # cd to the path of the active Finder window
+    target=`osascript -e 'tell application "Finder" to if (count of Finder windows) > 0 then get POSIX path of (target of front Finder window as text)'`
+    if [ "$target" != "" ]; then
+        cd "$target"; pwd
+    else
+        echo 'No Finder window found' >&2
+    fi
+}
+function man {
+    # colored manpages
+    env \
+    LESS_TERMCAP_mb=$(printf "\e[1;31m") \
+    LESS_TERMCAP_md=$(printf "\e[1;31m") \
+    LESS_TERMCAP_me=$(printf "\e[0m") \
+    LESS_TERMCAP_se=$(printf "\e[0m") \
+    LESS_TERMCAP_so=$(printf "\e[1;44;33m") \
+    LESS_TERMCAP_ue=$(printf "\e[0m") \
+    LESS_TERMCAP_us=$(printf "\e[1;32m") \
+    man "$@"
+}
 function sync {
+    # sync and update configs
+
     function error {
         echo "! Failed to $1" 1>&2
     }
@@ -124,6 +142,3 @@ function sync {
 
     echo 'All done!'
 }
-
-# brew update
-alias brewup="brew update && brew upgrade && brew reinstall --HEAD neovim"
