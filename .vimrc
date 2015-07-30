@@ -124,6 +124,8 @@
     " Display {
         syntax on
         set hlsearch
+        set number
+        set relativenumber
         set showmatch
         set showcmd
         set noshowmode
@@ -196,7 +198,7 @@
         set foldnestmax=2
     " }
     " Other {
-        set completeopt=menuone,longest,preview
+        set completeopt=menuone,longest
     " }
 " }
 " User interface {
@@ -222,12 +224,6 @@
             set macmeta
         endif
         set diffopt+=vertical
-    " }
-    " Font {
-        if has("gui_running")
-            let &guifont="M+ 1m light:h16"
-            set linespace=-3
-        endif
     " }
     " Colorscheme {
         colorscheme base16-ocean
