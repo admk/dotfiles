@@ -307,7 +307,7 @@
         highlight! link Conceal Keyword
     " }
 " }
-" Post {
+" Overrides {
     if !empty(glob('~/.vimrc.custom'))
         source ~/.vimrc.custom
     endif
