@@ -117,11 +117,13 @@ function sync {
     cd $HOME
 
     echo '===> Fetching admk/ko-dot'
-    git stash \
+    touch .__sync \
+        && git stash -u \
         && git checkout master \
         && git pull origin master \
         && git push origin master \
         && git stash pop \
+        && rm .__sync \
         || error 'update admk/ko-dot'
 
     echo '===> Updating oh-my-zsh'
