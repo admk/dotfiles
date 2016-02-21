@@ -15,7 +15,10 @@
         let g:solarized_visibility="low"
         let g:solarized_menu=0
         let g:solarized_termcolors=256
-        Plug 'bling/vim-airline'
+        Plug 'AlessandroYorba/Alduin'
+        Plug 'ehamberg/vim-cute-python', {'for': 'python'}
+        Plug 'vim-airline/vim-airline'
+        Plug 'vim-airline/vim-airline-themes'
         let g:airline_theme='base16'
         let g:airline_left_sep=''
         let g:airline_right_sep=''
@@ -26,7 +29,6 @@
         let g:airline#extensions#tabline#enabled = 1
         let g:airline#extensions#tabline#show_buffers = 0
         let g:airline#extensions#tabline#tab_min_count = 2
-        Plug 'ehamberg/vim-cute-python', {'for': 'python'}
     " }
     " Visual {
         Plug 'hdima/python-syntax', {'for': 'python'}
