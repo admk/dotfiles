@@ -83,6 +83,7 @@
         Plug 'matchit.zip'
     " }
     " Other {
+        Plug 'benekastah/neomake'
         Plug 'scrooloose/syntastic'
         let g:syntastic_error_symbol='X'
         let g:syntastic_warning_symbol='!'
@@ -100,7 +101,7 @@
         set noswapfile
         set hidden
         set autoread
-        set encoding=utf-8
+        silent! set encoding=utf-8
         set termencoding=utf-8
         set fileencoding=utf-8
         autocmd FocusLost * :silent! wall

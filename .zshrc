@@ -66,9 +66,8 @@ export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
 # shortcuts
 alias c=clear
 alias o=open
-alias e=vim
-alias v=vim
-alias nv=nvim
+alias e=nvim
+alias v=nvim
 alias br=brew
 alias tm=tmux
 alias py=python
@@ -76,7 +75,7 @@ alias py3=python3
 alias ipy=ipython
 alias ipy3=ipython3
 alias gs="git status --short"
-alias brewup="brew update && brew upgrade && brew reinstall --HEAD neovim && brew cask update"
+alias brewup="brew update && brew upgrade"
 
 # functions
 function nowrap {
