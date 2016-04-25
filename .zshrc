@@ -1,3 +1,6 @@
+# path
+path+=$HOME/.external/bin/
+
 # oh-my-zsh
 export ZSH=$HOME/.external/oh-my-zsh
 if [[ ! -d $ZSH ]]; then
@@ -67,7 +70,6 @@ export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
 alias c=clear
 alias o=open
 alias e=nvim
-alias v=nvim
 alias br=brew
 alias tm=tmux
 alias py=python
@@ -75,7 +77,7 @@ alias py3=python3
 alias ipy=ipython
 alias ipy3=ipython3
 alias gs="git status --short"
-alias brewup="brew update && brew upgrade"
+alias brup="brew update && brew upgrade"
 
 # functions
 function nowrap {

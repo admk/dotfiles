@@ -2,20 +2,21 @@
 " Plugins {
     " Pre {
         if empty(glob('~/.vim/autoload/plug.vim'))
-            silent !mkdir -p ~/.vim/autoload
-            silent !curl -fLo ~/.vim/autoload/plug.vim
-    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-            autocmd VimEnter * PlugInstall
+            silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+            \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+            autocmd VimEnter * PlugInstall | source $MYVIMRC
         endif
         call plug#begin('~/.vim/plugged')
         let mapleader=","
     " }
-    " Cosmetic {
+    " Colorschemes {
         Plug 'admk/vim-best-colors'
         let g:solarized_visibility="low"
         let g:solarized_menu=0
-        let g:solarized_termcolors=256
         Plug 'AlessandroYorba/Alduin'
+        Plug 'whatyouhide/vim-gotham'
+    "}
+    " Cosmetic {
         Plug 'ehamberg/vim-cute-python', {'for': 'python'}
         Plug 'vim-airline/vim-airline'
         Plug 'vim-airline/vim-airline-themes'
@@ -29,6 +30,7 @@
         let g:airline#extensions#tabline#enabled = 1
         let g:airline#extensions#tabline#show_buffers = 0
         let g:airline#extensions#tabline#tab_min_count = 2
+        let g:airline#extensions#tabline#show_tab_nr = 0
     " }
     " Visual {
         Plug 'hdima/python-syntax', {'for': 'python'}
@@ -48,9 +50,9 @@
         let NERDSpaceDelims = 1
         let NERDRemoveExtraSpaces = 1
         Plug 'SirVer/ultisnips'
-        let g:UltiSnipsExpandTrigger = '<c-h>'
-        let g:UltiSnipsJumpForwardTrigger = '<c-h>'
-        let g:UltiSnipsJumpBackwardTrigger = '<c-l>'
+        let g:UltiSnipsExpandTrigger = '<c-j>'
+        let g:UltiSnipsJumpForwardTrigger = '<c-j>'
+        let g:UltiSnipsJumpBackwardTrigger = '<c-k>'
         Plug 'sjl/gundo.vim', {'on': 'GundoToggle'}
         nnoremap <leader>gt :GundoToggle<CR>
         Plug 'tommcdo/vim-exchange'
@@ -107,8 +109,7 @@
         autocmd FocusLost * :silent! wall
         autocmd FileType markdown,rst,tex,latex setlocal spell
         autocmd FileType tex,latex
-            \ setlocal nocursorline iskeyword+=_
-            \ conceallevel=2 foldmethod=manual
+            \ setlocal iskeyword+=_ conceallevel=2 foldmethod=manual
         let g:tex_flavor="latex"
         let g:tex_conceal="admgs"
     " }
@@ -304,15 +305,15 @@
         noremap <C-u>5 yypVr^
     " }
 " }
-" Hacks {
-    " Highlight {
-        highlight! link SignColumn ColorColumn
-        highlight! link Conceal Keyword
-    " }
-" }
 " Overrides {
     if !empty(glob('~/.vimrc.custom'))
         source ~/.vimrc.custom
     endif
+" }
+" Hacks {
+    " Highlight {
+        highlight! link SignColumn CursorLine
+        highlight! link Conceal Keyword
+    " }
 " }
 " vim: set fdm=marker fmr={,}:
