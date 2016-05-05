@@ -1,5 +1,9 @@
 # path
-path+=$HOME/.external/bin/
+typeset -U path
+path+=(
+    $HOME/.external/bin
+)
+path=($^path(N))
 
 # oh-my-zsh
 export ZSH=$HOME/.external/oh-my-zsh
@@ -72,11 +76,11 @@ alias o=open
 alias e=nvim
 alias br=brew
 alias tm=tmux
+alias gs="git status --short"
 alias py=python
 alias py3=python3
 alias ipy=ipython
 alias ipy3=ipython3
-alias gs="git status --short"
 alias brup="brew update && brew upgrade"
 
 # functions

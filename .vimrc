@@ -28,9 +28,12 @@
         let g:airline_section_y=''
         let g:airline_section_z='%3p%%:%3l'
         let g:airline#extensions#tabline#enabled = 1
+        let g:airline#extensions#tabline#show_close_button = 0
         let g:airline#extensions#tabline#show_buffers = 0
+        let g:airline#extensions#tabline#show_splits = 0
         let g:airline#extensions#tabline#tab_min_count = 2
         let g:airline#extensions#tabline#show_tab_nr = 0
+        let g:airline#extensions#tabline#show_tab_type = 0
     " }
     " Visual {
         Plug 'hdima/python-syntax', {'for': 'python'}
@@ -45,6 +48,8 @@
         nnoremap <leader>= :Tabularize /=<CR>
         Plug 'honza/vim-snippets'
         Plug 'junegunn/vim-peekaboo'
+        Plug 'justinmk/vim-sneak'
+        let g:sneak#s_next = 1
         Plug 'michaeljsmith/vim-indent-object'
         Plug 'scrooloose/nerdcommenter'
         let NERDSpaceDelims = 1
@@ -75,6 +80,7 @@
     " }
     " Navigation {
         Plug 'christoomey/vim-tmux-navigator'
+        Plug 'justinmk/vim-dirvish'
         Plug 'kien/ctrlp.vim'
         let g:ctrlp_map = '<C-T>'
         nnoremap <C-M> :CtrlPMRUFiles<cr>
@@ -82,20 +88,21 @@
         Plug 'scrooloose/nerdtree', {'on': 'NERDTreeToggle'}
         nnoremap <leader>nt :NERDTreeToggle<cr>
         let NERDTreeIgnore=['\.py[co]$', '\~$', '__pycache__']
-        Plug 'matchit.zip'
     " }
     " Other {
         Plug 'benekastah/neomake'
+        Plug 'lervag/vimtex'
         Plug 'scrooloose/syntastic'
         let g:syntastic_error_symbol='X'
         let g:syntastic_warning_symbol='!'
         let g:syntastic_python_checkers = ['flake8']
+        let g:syntastic_tex_checkers = ['chktex']
         Plug 'sjl/vitality.vim'
         Plug 'tpope/vim-dispatch'
         Plug 'tpope/vim-fugitive'
     " }
     " Post {
-    call plug#end()
+        call plug#end()
     " }
 " }
 " General {
@@ -173,7 +180,8 @@
         augroup line_return_on_open
             autocmd!
             autocmd BufReadPost *
-                \ if line("'\"") > 0 && line("'\"") <= line("$") |
+                \ if &ft != "gitcommit" && line("'\"") > 0 &&
+                \    line("'\"") <= line("$") |
                 \     execute 'normal! g`"zvzz' |
                 \ endif
         augroup END
@@ -256,13 +264,13 @@
     " }
     " Editing {
         " Cursor jumps
-        nnoremap ` %
+        map ` %
         nnoremap H ^
         nnoremap L $
         " Formatting
         nnoremap Q mzgqip`z
         vnoremap Q gq
-        inoremap <C-c> <Esc>[s1z=`]i
+        inoremap <C-c> <Esc>[s1z=`]a
         nnoremap <leader>w :%s/\s\+$//<cr>:let @/=''<CR>
     " }
     " Visual mode {
@@ -312,8 +320,20 @@
 " }
 " Hacks {
     " Highlight {
-        highlight! link SignColumn CursorLine
-        highlight! link Conceal Keyword
+        " highlight! link SignColumn CursorLine
+        " highlight! link Conceal Keyword
+    " }
+    " Neovim {
+        if has('nvim')
+            " <c-h> bug
+            nmap <BS> <c-h>
+        endif
+    " }
+    " Airline {
+        augroup airline_hack
+            autocmd!
+            autocmd WinEnter * AirlineRefresh
+        augroup END
     " }
 " }
 " vim: set fdm=marker fmr={,}:
