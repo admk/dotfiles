@@ -121,7 +121,7 @@
         let g:tex_conceal="admgs"
     " }
     " Functional {
-        set nocompatible
+        if !has('nvim') | set nocompatible | endif
         set modeline
         set incsearch
         set ignorecase
@@ -250,7 +250,7 @@
         nnoremap k gk
         nnoremap Y y$
         inoremap jk <ESC>
-        inoremap kj <ESC>
+        " inoremap kj <ESC>
         inoremap £ x<BS>#
         inoremap # x<BS>#
     " }
@@ -268,7 +268,7 @@
         nnoremap H ^
         nnoremap L $
         " Formatting
-        nnoremap Q mzgqip`z
+        nnoremap Q gqip$
         vnoremap Q gq
         inoremap <C-c> <Esc>[s1z=`]a
         nnoremap <leader>w :%s/\s\+$//<cr>:let @/=''<CR>
@@ -332,7 +332,7 @@
     " Airline {
         augroup airline_hack
             autocmd!
-            autocmd WinEnter * AirlineRefresh
+            autocmd WinLeave * if &l:laststatus != 0 | AirlineRefresh | endif
         augroup END
     " }
 " }
