@@ -2,17 +2,16 @@
 Xitong's Dot Files
 ******************
 
+.. image:: https://badges.gitter.im/admk/ko-dot.svg
+   :alt: Join the chat at https://gitter.im/admk/ko-dot
+   :target: https://gitter.im/admk/ko-dot?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 Installation
 ============
 
 Copy & paste the following line into terminal::
 
     sh <(curl -s https://raw.github.com/admk/ko-dot/bootstrap/bootstrap -L)
-
-
-.. image:: https://d2weczhvl823v0.cloudfront.net/admk/ko-dot/trend.png
-   :alt: Bitdeli badge
-   :target: https://bitdeli.com/free
 
 
 License
