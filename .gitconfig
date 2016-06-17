@@ -5,39 +5,44 @@
     br = branch
     cm = commit
     co = checkout
-    d  = diff
+    d = diff
     rb = rebase
-    s  = status
+    s = status
     sm = submodule
     st = stash
     un = reset
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
-    switch    = !legit switch \"$@\"
-    branches  = !legit branches
-    sprout    = !legit sprout \"$@\"
+    switch = !legit switch \"$@\"
+    branches = !legit branches
+    sprout = !legit sprout \"$@\"
     unpublish = !legit unpublish \"$@\"
-    harvest   = !legit harvest \"$@\"
-    sync      = !legit sync \"$@\"
-    publish   = !legit publish \"$@\"
-    graft     = !legit graft \"$@\"
-    unstage     = reset
+    harvest = !legit harvest \"$@\"
+    sync = !legit sync \"$@\"
+    publish = !legit publish \"$@\"
+    graft = !legit graft \"$@\"
+    unstage = reset
     unstage-all = reset --soft HEAD^
 [core]
-    autocrlf     = input
+    autocrlf = input
+    pager = diff-so-fancy | less --tabs=4 -RFX
 [color]
-    ui          = true
-    diff        = auto
-    status      = auto
-    branch      = auto
+    ui = true
+    diff = auto
+    status = auto
+    branch = auto
     interactive = auto
-    grep        = auto
+    grep = auto
 [branch]
-    autosetupmerge  = always
+    autosetupmerge = always
     autosetuprebase = always
 [merge]
-    log     = true
+    log = true
     summary = true
 [push]
     default = matching
 [credential]
     helper = osxkeychain
+[filter "lfs"]
+    clean = git-lfs clean %f
+    smudge = git-lfs smudge %f
+    required = true

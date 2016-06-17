@@ -47,7 +47,7 @@
         Plug 'godlygeek/tabular', {'on': 'Tabularize'}
         nnoremap <leader>= :Tabularize /=<CR>
         Plug 'honza/vim-snippets'
-        Plug 'junegunn/vim-peekaboo'
+        " Plug 'junegunn/vim-peekaboo'
         Plug 'justinmk/vim-sneak'
         let g:sneak#s_next = 1
         Plug 'michaeljsmith/vim-indent-object'
@@ -241,6 +241,26 @@
         colorscheme base16-ocean
         set background=dark
     " }
+    " Flash cursorline
+    if has("gui_running")
+        function! s:Pulse()
+            setlocal cursorline
+            redraw
+            sleep 100m
+            setlocal nocursorline
+            redraw
+            sleep 100m
+            setlocal cursorline
+            redraw
+            sleep 100m
+            setlocal nocursorline
+            redraw
+        endfunction
+        augroup pulse_cursorline
+            autocmd!
+            autocmd FocusGained * call s:Pulse()
+        augroup END
+    endif
 " }
 " Shortcuts {
     " Essential {
@@ -250,17 +270,20 @@
         nnoremap k gk
         nnoremap Y y$
         inoremap jk <ESC>
-        " inoremap kj <ESC>
         inoremap £ x<BS>#
         inoremap # x<BS>#
-    " }
-    " General {
         " Search
-        noremap / q/i
-        noremap ? q?i
-        " Leader related
         nnoremap <leader><space> :nohlsearch<CR>
         nnoremap <leader>f :let &fen = !&fen<CR>
+        " Command window
+        noremap / q/i
+        noremap ? q?i
+        augroup command_window
+            autocmd!
+            autocmd CmdwinEnter * nnoremap <buffer> <CR> <CR>
+            autocmd CmdwinEnter * inoremap <buffer> <C-c> <Esc>:q<CR>
+            autocmd CmdwinEnter * noremap <buffer> <C-c> :q<CR>
+        augroup END
     " }
     " Editing {
         " Cursor jumps
@@ -319,10 +342,6 @@
     endif
 " }
 " Hacks {
-    " Highlight {
-        " highlight! link SignColumn CursorLine
-        " highlight! link Conceal Keyword
-    " }
     " Neovim {
         if has('nvim')
             " <c-h> bug
@@ -334,6 +353,9 @@
             autocmd!
             autocmd WinLeave * if &l:laststatus != 0 | AirlineRefresh | endif
         augroup END
+    " }
+    " vimtex
+        inoremap `` ``
     " }
 " }
 " vim: set fdm=marker fmr={,}:

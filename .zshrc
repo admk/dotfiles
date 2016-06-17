@@ -148,4 +148,6 @@ function sync {
         || error 'update Vim plugins'
 
     echo 'All done!'
+
+    exec zsh
 }
