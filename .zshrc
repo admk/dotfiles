@@ -2,6 +2,7 @@
 typeset -U path
 path+=(
     $HOME/.external/bin
+    /usr/local/m-cli
 )
 path=($^path(N))
 

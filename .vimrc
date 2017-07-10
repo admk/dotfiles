@@ -15,6 +15,7 @@
         let g:solarized_menu=0
         Plug 'AlessandroYorba/Alduin'
         Plug 'whatyouhide/vim-gotham'
+        Plug 'rakr/vim-one'
     "}
     " Cosmetic {
         Plug 'ehamberg/vim-cute-python', {'for': 'python'}
@@ -76,7 +77,7 @@
           endif
         endfunction
         Plug 'Valloric/YouCompleteMe', {'do': function('BuildYCM')}
-        Plug 'indentpython.vim', {'for': 'python'}
+        " Plug 'indentpython.vim', {'for': 'python'}
     " }
     " Navigation {
         Plug 'christoomey/vim-tmux-navigator'
