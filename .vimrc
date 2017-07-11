@@ -55,10 +55,10 @@
         Plug 'scrooloose/nerdcommenter'
         let NERDSpaceDelims = 1
         let NERDRemoveExtraSpaces = 1
-        Plug 'SirVer/ultisnips'
-        let g:UltiSnipsExpandTrigger = '<c-j>'
-        let g:UltiSnipsJumpForwardTrigger = '<c-j>'
-        let g:UltiSnipsJumpBackwardTrigger = '<c-k>'
+        " Plug 'SirVer/ultisnips'
+        " let g:UltiSnipsExpandTrigger = '<c-j>'
+        " let g:UltiSnipsJumpForwardTrigger = '<c-j>'
+        " let g:UltiSnipsJumpBackwardTrigger = '<c-k>'
         Plug 'sjl/gundo.vim', {'on': 'GundoToggle'}
         nnoremap <leader>gt :GundoToggle<CR>
         Plug 'tommcdo/vim-exchange'
@@ -67,17 +67,18 @@
         Plug 'tpope/vim-repeat'
         Plug 'tpope/vim-surround'
         Plug 'tpope/vim-unimpaired'
-        function! BuildYCM(info)
-          " info is a dictionary with 3 fields
-          " - name:   name of the plugin
-          " - status: 'installed', 'updated', or 'unchanged'
-          " - force:  set on PlugInstall! or PlugUpdate!
-          if a:info.status == 'installed' || a:info.force
-            !./install.sh
-          endif
-        endfunction
-        Plug 'Valloric/YouCompleteMe', {'do': function('BuildYCM')}
+        " function! BuildYCM(info)
+        "   " info is a dictionary with 3 fields
+        "   " - name:   name of the plugin
+        "   " - status: 'installed', 'updated', or 'unchanged'
+        "   " - force:  set on PlugInstall! or PlugUpdate!
+        "   if a:info.status == 'installed' || a:info.force
+        "     !./install.sh
+        "   endif
+        " endfunction
+        " Plug 'Valloric/YouCompleteMe', {'do': function('BuildYCM')}
         " Plug 'indentpython.vim', {'for': 'python'}
+        Plug 'ervandew/supertab'
     " }
     " Navigation {
         Plug 'christoomey/vim-tmux-navigator'
@@ -238,10 +239,6 @@
         endif
         set diffopt+=vertical
     " }
-    " Colorscheme {
-        colorscheme base16-ocean
-        set background=dark
-    " }
     " Flash cursorline
     if has("gui_running")
         function! s:Pulse()
@@ -355,7 +352,7 @@
             autocmd WinLeave * if &l:laststatus != 0 | AirlineRefresh | endif
         augroup END
     " }
-    " vimtex
+    " vimtex {
         inoremap `` ``
     " }
 " }

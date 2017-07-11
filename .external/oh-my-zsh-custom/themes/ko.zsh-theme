@@ -5,13 +5,16 @@ then
 
   EMOJI=(🐶 🐱 🐭 🐹 🐰 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐙 🐵 )
   function random_emoji {
-    echo -n "$EMOJI[$RANDOM%$#EMOJI+1]"
+    if [[ ! -z "$USE_EMOJI" ]];
+    then
+        echo -n "$EMOJI[$RANDOM%$#EMOJI+1]  "
+    fi
   }
 
   MODE_INDICATOR="%{$fg[red]%}<<<%{$reset_color%}"
   local return_status="%{$fg[red]%}%(?..x )%{$reset_color%}"
 
-  PROMPT='$(random_emoji)  %{$fg[cyan]%}%c$(git_prompt_info) %(!.%{$fg_bold[red]%}#.%{$fg_bold[green]%}>)%{$reset_color%} '
+  PROMPT='$(random_emoji)%{$fg[cyan]%}%c$(git_prompt_info) %(!.%{$fg_bold[red]%}#.%{$fg_bold[green]%}>)%{$reset_color%} '
 
   ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg[red]%} "
   ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%}"

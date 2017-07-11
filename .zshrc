@@ -14,7 +14,7 @@ if [[ ! -d $ZSH ]]; then
         https://github.com/robbyrussell/oh-my-zsh.git $ZSH
 fi
 ZSH_CUSTOM=$HOME/.external/oh-my-zsh-custom
-ZSH_THEME="sorin-fixed"
+ZSH_THEME="ko"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="dd.mm.yyyy"
 VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
@@ -60,10 +60,10 @@ tmux-reattach() {
     else
         session=$USER
     fi
-    tmux attach-session -t $session || tmux new-session -s $session
+    tmux attach-session -t $session 2>/dev/null || tmux new-session -s $session
 }
-ATTACHED=`tmux list-sessions | grep -e "$USER.*attached"`
-if [[ -z $SSH_CONNECTION  && -z $TMUX && -z $ATTACHED ]]; then
+ATTACHED=`tmux list-sessions 2>/dev/null | grep -e "$USER.*attached"`
+if [[ -z $SSH_CONNECTION && -z $TMUX && -z $ATTACHED ]]; then
     tmux-reattach
 fi
 
@@ -152,3 +152,9 @@ function sync {
 
     exec zsh
 }
+
+# custom
+ZSHRC_CUSTOM="$HOME/.zshrc.custom"
+if [[ -f $ZSHRC_CUSTOM ]]; then
+    source $ZSHRC_CUSTOM
+fi
