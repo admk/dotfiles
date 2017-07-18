@@ -1,6 +1,7 @@
 # path
 typeset -U path
 path+=(
+    /usr/local/opt/curl/bin
     $HOME/.external/bin
     /usr/local/m-cli
 )
@@ -44,7 +45,7 @@ bindkey "$terminfo[cuu1]" history-substring-search-up
 bindkey "$terminfo[cud1]" history-substring-search-down
 
 # environment
-export VISUAL=`which vim`
+export VISUAL=`which nvim`
 export EDITOR=$VISUAL
 export LESS='-F -g -i -M -R -S -w -X -z-4'
 export HOMEBREW_CASK_OPTS="--appdir=/Applications"
@@ -67,10 +68,6 @@ if [[ -z $SSH_CONNECTION && -z $TMUX && -z $ATTACHED ]]; then
     tmux-reattach
 fi
 
-# neovim
-export NVIM_TUI_ENABLE_TRUE_COLOR=1
-export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
-
 # shortcuts
 alias c=clear
 alias o=open
@@ -82,6 +79,7 @@ alias py=python
 alias py3=python3
 alias ipy=ipython
 alias ipy3=ipython3
+alias pc=proxychains4
 alias brup="brew update && brew upgrade"
 
 # functions

@@ -21,7 +21,6 @@
         Plug 'ehamberg/vim-cute-python', {'for': 'python'}
         Plug 'vim-airline/vim-airline'
         Plug 'vim-airline/vim-airline-themes'
-        let g:airline_theme='base16'
         let g:airline_left_sep=''
         let g:airline_right_sep=''
         let g:airline_section_b=
@@ -55,10 +54,10 @@
         Plug 'scrooloose/nerdcommenter'
         let NERDSpaceDelims = 1
         let NERDRemoveExtraSpaces = 1
-        " Plug 'SirVer/ultisnips'
-        " let g:UltiSnipsExpandTrigger = '<c-j>'
-        " let g:UltiSnipsJumpForwardTrigger = '<c-j>'
-        " let g:UltiSnipsJumpBackwardTrigger = '<c-k>'
+        Plug 'SirVer/ultisnips'
+        let g:UltiSnipsExpandTrigger = '<c-j>'
+        let g:UltiSnipsJumpForwardTrigger = '<c-j>'
+        let g:UltiSnipsJumpBackwardTrigger = '<c-k>'
         Plug 'sjl/gundo.vim', {'on': 'GundoToggle'}
         nnoremap <leader>gt :GundoToggle<CR>
         Plug 'tommcdo/vim-exchange'
@@ -67,18 +66,18 @@
         Plug 'tpope/vim-repeat'
         Plug 'tpope/vim-surround'
         Plug 'tpope/vim-unimpaired'
-        " function! BuildYCM(info)
-        "   " info is a dictionary with 3 fields
-        "   " - name:   name of the plugin
-        "   " - status: 'installed', 'updated', or 'unchanged'
-        "   " - force:  set on PlugInstall! or PlugUpdate!
-        "   if a:info.status == 'installed' || a:info.force
-        "     !./install.sh
-        "   endif
-        " endfunction
-        " Plug 'Valloric/YouCompleteMe', {'do': function('BuildYCM')}
+        function! BuildYCM(info)
+          " info is a dictionary with 3 fields
+          " - name:   name of the plugin
+          " - status: 'installed', 'updated', or 'unchanged'
+          " - force:  set on PlugInstall! or PlugUpdate!
+          if a:info.status == 'installed' || a:info.force
+            !./install.sh
+          endif
+        endfunction
+        Plug 'Valloric/YouCompleteMe', {'do': function('BuildYCM')}
+        " Plug 'ervandew/supertab'
         " Plug 'indentpython.vim', {'for': 'python'}
-        Plug 'ervandew/supertab'
     " }
     " Navigation {
         Plug 'christoomey/vim-tmux-navigator'
@@ -238,6 +237,9 @@
             set macmeta
         endif
         set diffopt+=vertical
+        if has("termguicolors")
+            set termguicolors
+        endif
     " }
     " Flash cursorline
     if has("gui_running")
@@ -354,6 +356,11 @@
     " }
     " vimtex {
         inoremap `` ``
+    " }
+    " YouCompleteMe {
+        let g:ycm_filetype_blacklist={
+            \ 'notes': 1, 'unite': 1, 'tagbar': 1, 'pandoc': 1,
+            \ 'qf': 1, 'vimwiki': 1, 'text': 1, 'infolog': 1, 'mail': 1}
     " }
 " }
 " vim: set fdm=marker fmr={,}:
