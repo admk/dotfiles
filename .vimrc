@@ -43,7 +43,7 @@
         Plug 'junegunn/rainbow_parentheses.vim', {'on': 'RainbowParentheses'}
     " }
     " Editing {
-        Plug 'admk/vim-isort', {'for': 'python'}
+        Plug 'tweekmonster/impsort.vim', {'for': 'python'}
         Plug 'godlygeek/tabular', {'on': 'Tabularize'}
         nnoremap <leader>= :Tabularize /=<CR>
         Plug 'honza/vim-snippets'
@@ -77,7 +77,7 @@
         endfunction
         Plug 'Valloric/YouCompleteMe', {'do': function('BuildYCM')}
         " Plug 'ervandew/supertab'
-        " Plug 'indentpython.vim', {'for': 'python'}
+        Plug 'vim-scripts/indentpython.vim', {'for': 'python'}
     " }
     " Navigation {
         Plug 'christoomey/vim-tmux-navigator'
