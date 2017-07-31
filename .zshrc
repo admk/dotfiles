@@ -7,26 +7,40 @@ path+=(
 )
 path=($^path(N))
 
-# oh-my-zsh
-export ZSH=$HOME/.external/oh-my-zsh
-if [[ ! -d $ZSH ]]; then
-    echo '==> Installing oh-my-zsh...'
-    git clone -b master --recursive \
-        https://github.com/robbyrussell/oh-my-zsh.git $ZSH
+# zplug
+if [[ ! -d ~/.zplug ]];then
+    git clone https://github.com/b4b4r07/zplug ~/.zplug
 fi
-ZSH_CUSTOM=$HOME/.external/oh-my-zsh-custom
-ZSH_THEME="ko"
-COMPLETION_WAITING_DOTS="true"
-HIST_STAMPS="dd.mm.yyyy"
-VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
-plugins=(
-    autojump autopep8 brew docker fasd fzf git git-flow
-    history-substring-search osx pep8 pip python tmux vi-mode
-    zsh-syntax-highlighting
-)
-source $ZSH/oh-my-zsh.sh
+source ~/.zplug/init.zsh
 
-# vi-mode fix
+zplug 'zplug/zplug', hook-build:'zplug --self-manage'
+zplug "mafredri/zsh-async", defer:0
+zplug "sindresorhus/pure", use:pure.zsh, as:theme
+zplug "plugins/git", from:oh-my-zsh
+zplug "plugins/vi-mode", from:oh-my-zsh
+zplug "zsh-users/zsh-syntax-highlighting", defer:3
+zplug "zsh-users/zsh-history-substring-search", defer:3
+zplug "zsh-users/zsh-autosuggestions", defer:3
+zplug "lib/completion", from:oh-my-zsh
+zplug "b4b4r07/enhancd", use:init.sh
+zplug "MichaelAquilina/zsh-autoswitch-virtualenv"
+
+zplug load
+
+# configs
+COMPLETION_WAITING_DOTS="true"
+VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
+source =virtualenvwrapper.sh
+
+# history
+HISTSIZE=5000
+HISTFILE=~/.zsh_history
+SAVEHIST=5000
+setopt appendhistory
+setopt sharehistory
+setopt incappendhistory
+
+# vi-mode
 bindkey 'jk' vi-cmd-mode
 bindkey ' ' magic-space
 bindkey -M vicmd 'j' history-substring-search-down
@@ -39,10 +53,8 @@ bindkey -M viins "^W" backward-kill-word
 bindkey -M viins "^?" backward-delete-char
 bindkey -M viins "^A" beginning-of-line
 bindkey -M viins "^E" end-of-line
-
-# arrow keys fix
-bindkey "$terminfo[cuu1]" history-substring-search-up
-bindkey "$terminfo[cud1]" history-substring-search-down
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
 
 # environment
 export VISUAL=`which nvim`
