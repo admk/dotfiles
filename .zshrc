@@ -1,4 +1,4 @@
-# path
+# path {
 typeset -U path
 path+=(
     /usr/local/opt/curl/bin
@@ -6,13 +6,14 @@ path+=(
     /usr/local/m-cli
 )
 path=($^path(N))
-
-# zplug
+# }
+# zplug {
+# initialization
 if [[ ! -d ~/.zplug ]];then
     git clone https://github.com/b4b4r07/zplug ~/.zplug
 fi
 source ~/.zplug/init.zsh
-
+# plugins
 zplug 'zplug/zplug', hook-build:'zplug --self-manage'
 zplug "mafredri/zsh-async", defer:0
 zplug "sindresorhus/pure", use:pure.zsh, as:theme
@@ -24,23 +25,22 @@ zplug "zsh-users/zsh-autosuggestions", defer:3
 zplug "lib/completion", from:oh-my-zsh
 zplug "b4b4r07/enhancd", use:init.sh
 zplug "MichaelAquilina/zsh-autoswitch-virtualenv"
-
+# install if plugin not installed
+if ! zplug check --verbose; then
+    zplug install
+fi
+# finalize
 zplug load
-
-# configs
-COMPLETION_WAITING_DOTS="true"
-VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
-source =virtualenvwrapper.sh
-
-# history
+# }
+# history {
 HISTSIZE=5000
 HISTFILE=~/.zsh_history
 SAVEHIST=5000
 setopt appendhistory
 setopt sharehistory
 setopt incappendhistory
-
-# vi-mode
+# }
+# vi-mode {
 bindkey 'jk' vi-cmd-mode
 bindkey ' ' magic-space
 bindkey -M vicmd 'j' history-substring-search-down
@@ -55,14 +55,22 @@ bindkey -M viins "^A" beginning-of-line
 bindkey -M viins "^E" end-of-line
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
-
-# environment
+# }
+# environment {
 export VISUAL=`which nvim`
 export EDITOR=$VISUAL
+export CLICOLOR=1
+export LSCOLORS=gxfxcxdxbxegedabagacad
+export LS_COLORS='di=36:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
+export GREP_OPTIONS='--color=auto'
 export LESS='-F -g -i -M -R -S -w -X -z-4'
 export HOMEBREW_CASK_OPTS="--appdir=/Applications"
-
-# tmux
+VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
+if which =virtualenvwrapper.sh > /dev/null; then
+    source =virtualenvwrapper.sh
+fi
+# }
+# tmux {
 if [[ -z $TMUX ]]; then
     export TERM=xterm-256color
 fi
@@ -73,14 +81,15 @@ tmux-reattach() {
     else
         session=$USER
     fi
-    tmux attach-session -t $session 2>/dev/null || tmux new-session -s $session
+    tmux attach-session -t $session 2>/dev/null \
+        || tmux new-session -s $session
 }
 ATTACHED=`tmux list-sessions 2>/dev/null | grep -e "$USER.*attached"`
 if [[ -z $SSH_CONNECTION && -z $TMUX && -z $ATTACHED ]]; then
     tmux-reattach
 fi
-
-# shortcuts
+# }
+# shortcuts {
 alias c=clear
 alias o=open
 alias e=nvim
@@ -93,8 +102,8 @@ alias ipy=ipython
 alias ipy3=ipython3
 alias pc=proxychains4
 alias brup="brew update && brew upgrade"
-
-# functions
+# }
+# functions {
 function nowrap {
     # trim outputs
     export COLS=`tput cols`
@@ -162,9 +171,11 @@ function sync {
 
     exec zsh
 }
-
-# custom
+# }
+# custom {
 ZSHRC_CUSTOM="$HOME/.zshrc.custom"
 if [[ -f $ZSHRC_CUSTOM ]]; then
     source $ZSHRC_CUSTOM
 fi
+# }
+# vim: set fdm=marker fmr={,}:
