@@ -151,8 +151,8 @@ function sync {
         && rm .__sync \
         || error 'update admk/ko-dot'
 
-    echo '===> Updating oh-my-zsh'
-    upgrade_oh_my_zsh
+    echo '===> Updating zplug'
+    zplug update || error 'update zplug'
 
     echo '===> Updating submodules'
     git submodule update --init --recursive \
@@ -164,11 +164,10 @@ function sync {
         || error 'refresh Tmux preferences'
 
     echo '===> Updating Vim plugins'
-    vim +PlugUpdate +qall \
+    $EDITOR +PlugUpdate +qall \
         || error 'update Vim plugins'
 
     echo 'All done!'
-
     exec zsh
 }
 # }
