@@ -1,6 +1,3 @@
-[submodule ".external/tmux-batteries"]
-	path = .external/tmux-batteries
-	url = https://github.com/admk/tmux-batteries.git
 [submodule ".external/oh-my-zsh-custom/plugins/zsh-syntax-highlighting"]
 	path = .external/oh-my-zsh-custom/plugins/zsh-syntax-highlighting
 	url = git://github.com/zsh-users/zsh-syntax-highlighting.git
