@@ -27,6 +27,8 @@
             \ '%{airline#util#wrap(airline#extensions#branch#get_head(),0)}'
         let g:airline_section_y=''
         let g:airline_section_z='%3p%%:%3l'
+        let g:airline#extensions#tabline#left_sep = ''
+        let g:airline#extensions#tabline#left_alt_sep = ''
         let g:airline#extensions#tabline#enabled = 1
         let g:airline#extensions#tabline#show_close_button = 0
         let g:airline#extensions#tabline#show_buffers = 0
@@ -91,13 +93,13 @@
         let NERDTreeIgnore=['\.py[co]$', '\~$', '__pycache__']
     " }
     " Other {
-        Plug 'benekastah/neomake'
+        Plug 'w0rp/ale'
+        let g:ale_linters={
+        \   'python': ['flake8'],
+        \ }
+        let g:ale_python_flake8_options='--ignore=E731'
+        let g:airline#extensions#ale#enabled=1
         Plug 'lervag/vimtex'
-        Plug 'scrooloose/syntastic'
-        let g:syntastic_error_symbol='X'
-        let g:syntastic_warning_symbol='!'
-        let g:syntastic_python_checkers = ['flake8']
-        let g:syntastic_tex_checkers = ['chktex']
         Plug 'sjl/vitality.vim'
         Plug 'tpope/vim-dispatch'
         Plug 'tpope/vim-fugitive'
@@ -342,22 +344,11 @@
     endif
 " }
 " Hacks {
-    " Neovim {
-        if has('nvim')
-            " <c-h> bug
-            nmap <BS> <c-h>
-        endif
-    " }
-    " Airline {
-        augroup airline_hack
-            autocmd!
-            autocmd WinLeave * if &l:laststatus != 0 | AirlineRefresh | endif
-        augroup END
-    " }
     " vimtex {
         inoremap `` ``
     " }
     " YouCompleteMe {
+        " we want auto-completion in markdown
         let g:ycm_filetype_blacklist={
             \ 'notes': 1, 'unite': 1, 'tagbar': 1, 'pandoc': 1,
             \ 'qf': 1, 'vimwiki': 1, 'text': 1, 'infolog': 1, 'mail': 1}
