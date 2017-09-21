@@ -96,6 +96,7 @@ alias e=nvim
 alias br=brew
 alias tm=tmux
 alias gs="git status --short"
+alias gds="git diff --staged"
 alias py=python
 alias py3=python3
 alias ipy=ipython
