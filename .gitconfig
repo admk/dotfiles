@@ -6,7 +6,9 @@
     cm = commit
     co = checkout
     d = diff
+    ds = diff --staged
     rb = rebase
+    mg = merge
     s = status
     sm = submodule
     st = stash
@@ -26,12 +28,15 @@
     autocrlf = input
     pager = diff-so-fancy | less --tabs=4 -RFX
 [color]
-    ui = true
+    ui = auto
     ; diff = auto
     status = auto
     branch = auto
     interactive = auto
     grep = auto
+    pager = true
+    decorate = auto
+    showbranch = auto
 [branch]
     autosetupmerge = always
     autosetuprebase = always
@@ -43,9 +48,10 @@
 [credential]
     helper = osxkeychain
 [filter "lfs"]
-    clean = git-lfs clean %f
-    smudge = git-lfs smudge %f
     required = true
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
 [color "diff-highlight"]
     oldNormal = red bold
     oldHighlight = red bold 52
