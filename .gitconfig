@@ -13,7 +13,7 @@
     sm = submodule
     st = stash
     un = reset
-    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+    lg = log --graph --date-order --pretty=format:'%C(bold red)%h%Creset%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
     switch = !legit switch \"$@\"
     branches = !legit branches
     sprout = !legit sprout \"$@\"
