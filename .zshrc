@@ -173,6 +173,7 @@ function sync {
 }
 # }
 # custom {
+prompt_newline=$(echo -n "\u200B")
 ZSHRC_CUSTOM="$HOME/.zshrc.custom"
 if [[ -f $ZSHRC_CUSTOM ]]; then
     source $ZSHRC_CUSTOM
