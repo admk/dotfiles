@@ -226,9 +226,9 @@
             set lines=39
             set columns=83
         endif
+        set colorcolumn=+1
         if !exists('$SSH_CLIENT')
             set cursorline
-            set colorcolumn=+1
         else
             set notimeout
             set ttimeout

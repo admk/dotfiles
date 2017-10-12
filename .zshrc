@@ -24,7 +24,6 @@ zplug "zsh-users/zsh-history-substring-search", defer:3
 zplug "zsh-users/zsh-autosuggestions", defer:3
 zplug "lib/completion", from:oh-my-zsh
 zplug "b4b4r07/enhancd", use:init.sh
-zplug "MichaelAquilina/zsh-autoswitch-virtualenv"
 # install if plugin not installed
 if ! zplug check --verbose; then
     zplug install
@@ -65,10 +64,6 @@ export LS_COLORS='di=36:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46
 export GREP_OPTIONS='--color=auto'
 export LESS='-F -g -i -M -R -S -w -X -z-4'
 export HOMEBREW_CASK_OPTS="--appdir=/Applications"
-VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
-if which =virtualenvwrapper.sh > /dev/null; then
-    source =virtualenvwrapper.sh
-fi
 # }
 # tmux {
 if [[ -z $TMUX ]]; then
@@ -173,6 +168,7 @@ function sync {
 }
 # }
 # custom {
+prompt_newline=$(echo -n "\u200B")
 ZSHRC_CUSTOM="$HOME/.zshrc.custom"
 if [[ -f $ZSHRC_CUSTOM ]]; then
     source $ZSHRC_CUSTOM
