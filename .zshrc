@@ -17,7 +17,8 @@ source ~/.zplug/init.zsh
 # plugins
 zplug 'zplug/zplug', hook-build:'zplug --self-manage'
 zplug "mafredri/zsh-async", defer:0
-zplug "sindresorhus/pure", use:pure.zsh, as:theme
+# zplug "sindresorhus/pure", use:pure.zsh, as:theme
+zplug "denysdovhan/spaceship-prompt", use:spaceship.zsh, from:github, as:theme
 zplug "plugins/git", from:oh-my-zsh
 zplug "plugins/vi-mode", from:oh-my-zsh
 zplug "zsh-users/zsh-syntax-highlighting", defer:3
@@ -62,7 +63,6 @@ export EDITOR=$VISUAL
 export CLICOLOR=1
 export LSCOLORS=gxfxcxdxbxegedabagacad
 export LS_COLORS='di=36:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
-export GREP_OPTIONS='--color=auto'
 export LESS='-F -g -i -M -R -S -w -X -z-4'
 export HOMEBREW_CASK_OPTS="--appdir=/Applications"
 # }
@@ -99,6 +99,7 @@ alias ipy=ipython
 alias ipy3=ipython3
 alias pc=proxychains4
 alias brup="brew update && brew upgrade"
+alias grep='grep --color=auto'
 # }
 # functions {
 function nowrap {
@@ -215,7 +216,7 @@ function transfer() {
 }
 # }
 # custom {
-prompt_newline=$(echo -n "\u200B")
+# prompt_newline=$(echo -n "\u200B")
 ZSHRC_CUSTOM="$HOME/.zshrc.custom"
 if [[ -f $ZSHRC_CUSTOM ]]; then
     source $ZSHRC_CUSTOM
