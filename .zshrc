@@ -1,6 +1,7 @@
 # path {
 typeset -U path
 path+=(
+    /usr/local/sbin
     /usr/local/opt/curl/bin
     $HOME/.external/bin
     /usr/local/m-cli
