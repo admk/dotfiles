@@ -5,6 +5,7 @@ path+=(
     /usr/local/opt/curl/bin
     $HOME/.external/bin
     /usr/local/m-cli
+    /Applications/Visual\ Studio\ Code\ -\ Insiders.app/Contents/Resources/app/bin
 )
 path=($^path(N))
 # }
@@ -77,12 +78,12 @@ tmux-reattach() {
     else
         session=$USER
     fi
-    tmux attach-session -t $session 2>/dev/null \
+    tmux attach-session -d -t $session 2>/dev/null \
         || tmux new-session -s $session
 }
 # ATTACHED=`tmux list-sessions 2>/dev/null | grep -e "$USER.*attached"`
 # if [[ -z $SSH_CONNECTION && -z $TMUX && -z $ATTACHED ]]; then
-#     tmux-reattach
+    # tmux-reattach
 # fi
 # }
 # shortcuts {
@@ -91,6 +92,7 @@ alias o=open
 alias e=nvim
 alias br=brew
 alias tm=tmux
+alias tmr=tmux-reattach
 alias gs="git status --short --branch --column"
 alias gds="git diff --staged"
 alias py=python

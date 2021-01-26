@@ -64,7 +64,7 @@
     whitespace = red reverse
 [rebase]
     autoStash = true
-# [http]
-#     proxy = http://127.0.0.1:1087
+[http]
+    proxy = http://127.0.0.1:7890
 [pull]
-	rebase = false
+    rebase = false
