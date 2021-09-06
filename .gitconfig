@@ -1,6 +1,7 @@
 [user]
     name = Xitong Gao
     email = gxtfmx@gmail.com
+    ; signingkey = 4273FDF8779046D8
 [alias]
     br = branch
     cm = commit
@@ -8,25 +9,21 @@
     d = diff
     ds = diff --staged
     rb = rebase
+    rs = restore
     mg = merge
     s = status
     sm = submodule
+    sw = swich
     st = stash
     un = reset
     lg = log --graph --date-order --pretty=format:'%C(bold red)%h%Creset%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
-    switch = !legit switch \"$@\"
-    branches = !legit branches
-    sprout = !legit sprout \"$@\"
-    unpublish = !legit unpublish \"$@\"
-    harvest = !legit harvest \"$@\"
-    sync = !legit sync \"$@\"
-    publish = !legit publish \"$@\"
-    graft = !legit graft \"$@\"
     unstage = reset
     unstage-all = reset --soft HEAD^
 [core]
     autocrlf = input
-    pager = diff-so-fancy | less --tabs=4 -RFX
+    pager = colordiff | less --tabs=4 -RFX
+[commit]
+    gpgSign = true
 [color]
     ui = auto
     ; diff = auto
@@ -65,7 +62,7 @@
 [rebase]
     autoStash = true
 [http]
-    proxy = http://127.0.0.1:7890
+    ; proxy = http://127.0.0.1:7890
 [pull]
     rebase = false
 [url "https://github.com/"]
@@ -73,3 +70,5 @@
     insteadOf = git@github.com:
     insteadOf = gh:
     insteadOf = github:
+[gpg]
+	program = /usr/local/bin/gpg

@@ -5,7 +5,6 @@ path+=(
     /usr/local/opt/curl/bin
     $HOME/.external/bin
     /usr/local/m-cli
-    /Applications/Visual\ Studio\ Code\ -\ Insiders.app/Contents/Resources/app/bin
 )
 path=($^path(N))
 # }
@@ -66,6 +65,9 @@ export LSCOLORS=gxfxcxdxbxegedabagacad
 export LS_COLORS='di=36:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
 export LESS='-F -g -i -M -R -S -w -X -z-4'
 export HOMEBREW_CASK_OPTS="--appdir=/Applications"
+export GPG_TTY=$(tty)
+export LC_CTYPE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 # }
 # tmux {
 if [[ -z $TMUX ]]; then
