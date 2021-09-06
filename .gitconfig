@@ -68,3 +68,8 @@
     proxy = http://127.0.0.1:7890
 [pull]
     rebase = false
+[url "https://github.com/"]
+    insteadOf = git://github.com/
+    insteadOf = git@github.com:
+    insteadOf = gh:
+    insteadOf = github:
