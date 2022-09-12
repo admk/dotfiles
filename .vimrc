@@ -38,28 +38,28 @@
         let g:airline#extensions#tabline#show_tab_type = 0
     " }
     " Visual {
-        Plug 'hdima/python-syntax', {'for': 'python'}
-        let python_highlight_all = 1
-        Plug 'junegunn/goyo.vim', {'on': 'Goyo'}
+        " Plug 'hdima/python-syntax', {'for': 'python'}
+        " let python_highlight_all = 1
+        " Plug 'junegunn/goyo.vim', {'on': 'Goyo'}
         Plug 'mhinz/vim-signify'
-        Plug 'junegunn/rainbow_parentheses.vim', {'on': 'RainbowParentheses'}
+        " Plug 'junegunn/rainbow_parentheses.vim', {'on': 'RainbowParentheses'}
     " }
     " Editing {
-        Plug 'tweekmonster/impsort.vim', {'for': 'python'}
-        Plug 'godlygeek/tabular', {'on': 'Tabularize'}
-        nnoremap <leader>= :Tabularize /=<CR>
-        Plug 'honza/vim-snippets'
+        " Plug 'tweekmonster/impsort.vim', {'for': 'python'}
+        " Plug 'godlygeek/tabular', {'on': 'Tabularize'}
+        " nnoremap <leader>= :Tabularize /=<CR>
+        " Plug 'honza/vim-snippets'
         " Plug 'junegunn/vim-peekaboo'
-        Plug 'justinmk/vim-sneak'
-        let g:sneak#s_next = 1
+        " Plug 'justinmk/vim-sneak'
+        " let g:sneak#s_next = 1
         Plug 'michaeljsmith/vim-indent-object'
         Plug 'scrooloose/nerdcommenter'
         let NERDSpaceDelims = 1
         let NERDRemoveExtraSpaces = 1
-        Plug 'SirVer/ultisnips'
-        let g:UltiSnipsExpandTrigger = '<c-j>'
-        let g:UltiSnipsJumpForwardTrigger = '<c-j>'
-        let g:UltiSnipsJumpBackwardTrigger = '<c-k>'
+        " Plug 'SirVer/ultisnips'
+        " let g:UltiSnipsExpandTrigger = '<c-j>'
+        " let g:UltiSnipsJumpForwardTrigger = '<c-j>'
+        " let g:UltiSnipsJumpBackwardTrigger = '<c-k>'
         Plug 'sjl/gundo.vim', {'on': 'GundoToggle'}
         nnoremap <leader>gt :GundoToggle<CR>
         Plug 'tommcdo/vim-exchange'
@@ -77,13 +77,13 @@
             !./install.sh
           endif
         endfunction
-        Plug 'Valloric/YouCompleteMe', {'do': function('BuildYCM')}
+        " Plug 'Valloric/YouCompleteMe', {'do': function('BuildYCM')}
         " Plug 'ervandew/supertab'
         Plug 'vim-scripts/indentpython.vim', {'for': 'python'}
     " }
     " Navigation {
-        Plug 'christoomey/vim-tmux-navigator'
-        Plug 'justinmk/vim-dirvish'
+        " Plug 'christoomey/vim-tmux-navigator'
+        " Plug 'justinmk/vim-dirvish'
         Plug 'kien/ctrlp.vim'
         let g:ctrlp_map = '<C-T>'
         nnoremap <C-M> :CtrlPMRUFiles<cr>
@@ -93,14 +93,14 @@
         let NERDTreeIgnore=['\.py[co]$', '\~$', '__pycache__']
     " }
     " Other {
-        Plug 'w0rp/ale'
-        let g:ale_linters={
-        \   'python': ['flake8'],
-        \ }
-        let g:ale_python_flake8_options='--ignore=E731'
-        let g:airline#extensions#ale#enabled=1
-        Plug 'lervag/vimtex'
-        Plug 'sjl/vitality.vim'
+        " Plug 'w0rp/ale'
+        " let g:ale_linters={
+        " \   'python': ['flake8'],
+        " \ }
+        " let g:ale_python_flake8_options='--ignore=E731'
+        " let g:airline#extensions#ale#enabled=1
+        " Plug 'lervag/vimtex'
+        " Plug 'sjl/vitality.vim'
         Plug 'tpope/vim-dispatch'
         Plug 'tpope/vim-fugitive'
     " }
@@ -349,9 +349,9 @@
     " }
     " YouCompleteMe {
         " we want auto-completion in markdown
-        let g:ycm_filetype_blacklist={
-            \ 'notes': 1, 'unite': 1, 'tagbar': 1, 'pandoc': 1,
-            \ 'qf': 1, 'vimwiki': 1, 'text': 1, 'infolog': 1, 'mail': 1}
+        " let g:ycm_filetype_blacklist={
+        "     \ 'notes': 1, 'unite': 1, 'tagbar': 1, 'pandoc': 1,
+        "     \ 'qf': 1, 'vimwiki': 1, 'text': 1, 'infolog': 1, 'mail': 1}
     " }
 " }
 " vim: set fdm=marker fmr={,}:

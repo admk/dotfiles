@@ -1,7 +1,7 @@
 [user]
     name = Xitong Gao
     email = gxtfmx@gmail.com
-    ; signingkey = 4273FDF8779046D8
+    signingkey = AAA2C4B910EC254F
 [alias]
     br = branch
     cm = commit
@@ -22,8 +22,9 @@
 [core]
     autocrlf = input
     pager = colordiff | less --tabs=4 -RFX
+	; editor = nvim
 [commit]
-    gpgSign = true
+	gpgsign = true
 [color]
     ui = auto
     ; diff = auto
@@ -62,7 +63,7 @@
 [rebase]
     autoStash = true
 [http]
-    ; proxy = http://127.0.0.1:7890
+    proxy = http://127.0.0.1:7890
 [pull]
     rebase = false
 [url "https://github.com/"]
@@ -71,4 +72,4 @@
     insteadOf = gh:
     insteadOf = github:
 [gpg]
-	program = /usr/local/bin/gpg
+    program = gpg
