@@ -25,7 +25,8 @@ zplug "zsh-users/zsh-syntax-highlighting", defer:3
 zplug "zsh-users/zsh-history-substring-search", defer:3
 zplug "zsh-users/zsh-autosuggestions", defer:3
 zplug "lib/completion", from:oh-my-zsh
-zplug "b4b4r07/enhancd", use:init.sh
+# zplug "zsh-users/zsh-completion"
+zplug "b4b4r07/enhancd", use:init.sh, defer:2
 # install if plugin not installed
 if ! zplug check --verbose; then
     zplug install
