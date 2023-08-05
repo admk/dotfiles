@@ -58,7 +58,11 @@ bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 # }
 # environment {
-export VISUAL=`which nvim`
+if command -v nvim &>/dev/null; then
+    export VISUAL=nvim
+else
+    export VISUAL=vim
+fi
 export EDITOR=$VISUAL
 export CLICOLOR=1
 export LSCOLORS=gxfxcxdxbxegedabagacad
@@ -70,6 +74,9 @@ export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 # }
 # tmux {
+if [[ ! -d ~/.tmux ]]; then
+    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+fi
 if [[ -z $TMUX ]]; then
     export TERM=xterm-256color
 fi
@@ -91,16 +98,15 @@ tmux-reattach() {
 # shortcuts {
 alias c=clear
 alias o=open
-alias e=nvim
+alias e=$EDITOR
 alias br=brew
 alias tm=tmux
 alias tmr=tmux-reattach
 alias gs="git status --short --branch --column"
 alias gds="git diff --staged"
 alias py=python
-alias py3=python3
 alias ipy=ipython
-alias ipy3=ipython3
+alias pydb="python -m debugpy --listen 5678 --wait-for-client"
 alias pc=proxychains4
 alias brup="brew update && brew upgrade"
 alias grep='grep --color=auto'
@@ -172,52 +178,6 @@ function sync {
     echo 'All done!'
     exec zsh
 }
-function transfer() {
-    # check arguments
-    if [ $# -eq 0 ];
-    then
-        echo "No arguments specified. Usage:\necho transfer /tmp/test.md\ncat /tmp/test.md | transfer test.md"
-        return 1
-    fi
-
-    # get temporarily filename, output is written to this file show progress can be showed
-    tmpfile=$( mktemp -t transferXXX )
-
-    # upload stdin or file
-    file=$1
-
-    if tty -s;
-    then
-        basefile=$(basename "$file" | sed -e 's/[^a-zA-Z0-9._-]/-/g')
-
-        if [ ! -e $file ];
-        then
-            echo "File $file doesn't exists."
-            return 1
-        fi
-
-        if [ -d $file ];
-        then
-            # zip directory and transfer
-            zipfile=$( mktemp -t transferXXX.zip )
-            cd $(dirname $file) && zip -r -q - $(basename $file) >> $zipfile
-            curl --progress-bar --upload-file "$zipfile" "https://transfer.sh/$basefile.zip" >> $tmpfile
-            rm -f $zipfile
-        else
-            # transfer file
-            curl --progress-bar --upload-file "$file" "https://transfer.sh/$basefile" >> $tmpfile
-        fi
-    else
-        # transfer pipe
-        curl --progress-bar --upload-file "-" "https://transfer.sh/$file" >> $tmpfile
-    fi
-
-    # cat output link
-    cat $tmpfile
-
-    # cleanup
-    rm -f $tmpfile
-}
 # }
 # custom {
 # prompt_newline=$(echo -n "\u200B")
@@ -227,3 +187,5 @@ if [[ -f $ZSHRC_CUSTOM ]]; then
 fi
 # }
 # vim: set fdm=marker fmr={,}:
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

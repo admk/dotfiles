@@ -243,6 +243,7 @@
             set termguicolors
         endif
     " }
+    colorscheme gotham
     " Flash cursorline
     if has("gui_running")
         function! s:Pulse()

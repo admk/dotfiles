@@ -11,7 +11,7 @@
     rb = rebase
     rs = restore
     mg = merge
-    s = status
+    s = status --short --branch --column
     sm = submodule
     sw = swich
     st = stash
@@ -22,9 +22,8 @@
 [core]
     autocrlf = input
     pager = colordiff | less --tabs=4 -RFX
-	; editor = nvim
 [commit]
-	gpgsign = true
+    gpgsign = true
 [color]
     ui = auto
     ; diff = auto
@@ -63,7 +62,9 @@
 [rebase]
     autoStash = true
 [http]
-    proxy = http://127.0.0.1:7890
+    postBuffer = 2097152000
+[https]
+    postBuffer = 2097152000
 [pull]
     rebase = false
 [url "https://github.com/"]
@@ -73,3 +74,5 @@
     insteadOf = github:
 [gpg]
     program = gpg
+[init]
+    defaultBranch = main
