@@ -59,6 +59,8 @@ bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 # }
 # environment {
+# if command -v direnv &>/dev/null; then
+# fi
 if command -v nvim &>/dev/null; then
     export VISUAL=nvim
 else
@@ -111,6 +113,17 @@ alias pydb="python -m debugpy --listen 5678 --wait-for-client"
 alias pc=proxychains4
 alias brup="brew update && brew upgrade"
 alias grep='grep --color=auto'
+alias z='zoxide'
+dynamic_alias() {
+    local cmd_new="$1"
+    local cmd_old="$2"
+    if command -v "$cmd_new" >/dev/null; then
+        alias "$cmd_old"="$cmd_new"
+    fi
+}
+dynamic_alias exa ls
+dynamic_alias bat cat
+dynamic_alias btop top
 # }
 # functions {
 function nowrap {
