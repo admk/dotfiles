@@ -16,9 +16,11 @@
     sw = swich
     st = stash
     un = reset
-    lg = log --graph --date-order --pretty=format:'%C(bold red)%h%Creset%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+    lg = log --graph --date-order --abbrev-commit --date=relative
     unstage = reset
     unstage-all = reset --soft HEAD^
+[format]
+    pretty=format:%C(bold red)%h%Creset%C(yellow)%d%Creset %s %Cgreen(%ad) %C(bold blue)<%an>%Creset
 [core]
     autocrlf = input
     pager = colordiff | less --tabs=4 -RFX
@@ -26,7 +28,7 @@
     gpgsign = true
 [color]
     ui = auto
-    ; diff = auto
+    diff = true
     status = auto
     branch = auto
     interactive = auto
@@ -42,8 +44,6 @@
     summary = true
 [push]
     default = matching
-[credential]
-    helper = osxkeychain
 [filter "lfs"]
     required = true
     clean = git-lfs clean -- %f
