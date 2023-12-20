@@ -1,0 +1,3 @@
+HTTPS_PROXY="127.0.0.1:7890"
+SOCKS_PROXY="127.0.0.1:7890"
+alias proxy="https_proxy=http://$HTTPS_PROXY http_proxy=http://$HTTPS_PROXY all_proxy=socks5://$SOCKS_PROXY"
