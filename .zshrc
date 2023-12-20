@@ -75,6 +75,8 @@ export HOMEBREW_CASK_OPTS="--appdir=/Applications"
 export GPG_TTY=$(tty)
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
 # }
 # tmux {
 if [[ ! -d ~/.tmux ]]; then
@@ -110,10 +112,13 @@ alias gds="git diff --staged"
 alias py=python
 alias ipy=ipython
 alias pydb="python -m debugpy --listen 5678 --wait-for-client"
+alias dbpy='python -m debugpy --connect 5678 --wait-for-client'
+alias hf_offline='TRANSFORMERS_OFFLINE=1 HF_DATASETS_OFFLINE=1 HF_EVALUATE_OFFLINE=1'
 alias pc=proxychains4
 alias brup="brew update && brew upgrade"
 alias grep='grep --color=auto'
 alias z='zoxide'
+alias ash="autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' -o ExitOnForwardFailure=yes -N -v"
 dynamic_alias() {
     local cmd_new="$1"
     local cmd_old="$2"
@@ -121,11 +126,21 @@ dynamic_alias() {
         alias "$cmd_old"="$cmd_new"
     fi
 }
-dynamic_alias exa ls
+dynamic_alias eza ls
 dynamic_alias bat cat
 dynamic_alias btop top
 # }
 # functions {
+send_msg() {
+    curl -w "\n" "https://api.day.app/$BARK_KEY/$1"
+    if [ $? -ne 0 ]; then
+        echo "$(date): Failed to send message '$1'"
+    fi
+}
+function pwgen {
+    pw=`cat /dev/urandom | LC_ALL=C tr -dc 'a-zA-Z0-9-_\$' | fold -w 30 | sed 1q`
+    echo $pw
+}
 function nowrap {
     # trim outputs
     export COLS=`tput cols`
@@ -201,5 +216,3 @@ if [[ -f $ZSHRC_CUSTOM ]]; then
 fi
 # }
 # vim: set fdm=marker fmr={,}:
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
