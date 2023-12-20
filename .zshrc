@@ -75,6 +75,8 @@ export HOMEBREW_CASK_OPTS="--appdir=/Applications"
 export GPG_TTY=$(tty)
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
 # }
 # tmux {
 if [[ ! -d ~/.tmux ]]; then
@@ -116,7 +118,7 @@ alias pc=proxychains4
 alias brup="brew update && brew upgrade"
 alias grep='grep --color=auto'
 alias z='zoxide'
-alias ash="autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' -N -o ExitOnForwardFailure=yes -vv"
+alias ash="autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' -o ExitOnForwardFailure=yes -N -v"
 dynamic_alias() {
     local cmd_new="$1"
     local cmd_old="$2"
