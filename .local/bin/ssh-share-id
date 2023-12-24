@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+import os
+import sys
+import subprocess
+
+
+def collect_keys(server):
+    # Check if id_rsa.pub exists on the remote server
+    key_path = '.ssh/id_rsa.pub'
+    command = f'ssh {server} "test -f {key_path} && echo exists"'
+    key_exists = subprocess.run(
+        command, shell=True, capture_output=True, text=True)
+    key_exists = key_exists.stdout.strip()
+    if key_exists != 'exists':
+        subprocess.run(
+            ['ssh', server, 'mkdir', '-p', '.ssh'])
+        # Generate new SSH key on the remote server
+        command = [
+            'ssh', server, 'ssh-keygen', '-t', 'rsa', '-b', '4096',
+            '-N', '', '-f', key_path]
+        subprocess.run(command)
+    # Collect the public key from the remote server
+    command = f'ssh {server} "cat {key_path}"'
+    result = subprocess.run(
+        command, shell=True, capture_output=True, text=True)
+    return result.stdout.strip()
+
+
+def distribute_keys(keys, servers):
+    unique_keys = set()
+    for server in servers:
+        print(f'Adding keys to {server}...')
+        command = ['ssh', server, 'cat', '~/.ssh/authorized_keys']
+        authorized_keys = subprocess.run(
+            command, capture_output=True, text=True)
+        authorized_keys = authorized_keys.stdout.split('\n')
+        unique_keys = {
+            key.strip() for key in authorized_keys if key.strip()}
+        keys = set(keys) - unique_keys
+        subprocess.run(
+            ['ssh', server, 'tee', '-a', '.ssh/authorized_keys'],
+            input='\n'.join(keys), text=True)
+
+
+if __name__ == '__main__':
+    # Check if servers are provided
+    if len(sys.argv) < 2:
+        print("Usage: ssh-share-id <server1> <server2> ...")
+        sys.exit(1)
+
+    # Get the list of servers
+    servers = sys.argv[1:]
+
+    # Collect and distribute keys for each server
+    for server in servers:
+        keys = collect_keys(server)
+    distribute_keys(keys, servers)

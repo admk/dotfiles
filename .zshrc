@@ -3,7 +3,7 @@ typeset -U path
 path+=(
     /usr/local/sbin
     /usr/local/opt/curl/bin
-    $HOME/.external/bin
+    $HOME/.local/bin
     /usr/local/m-cli
 )
 path=($^path(N))

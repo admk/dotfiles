@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Check if the required arguments are provided
+user="$1"
+server="$2"
+if [ -z "$user" ] || [ -z "$server" ]; then
+    echo "Usage: $0 <username> <server>"
+    exit 1
+fi
+
+# Create the new user on the remote server
+user_exists=$(ssh "$server" "id -u $user" 2>/dev/null)
+if [ -z "$user_exists" ]; then
+    ssh "$server" "adduser --disabled-password --gecos '' $user"
+    # Generate a random password
+    # Set the random password for the new user
+    password=$(openssl rand -base64 21)
+    ssh "$server" "echo '$user:$password' | chpasswd"
+    echo "User '$user' created on '$server' with password $password."
+else
+    echo "User '$user' already exists on '$server'."
+fi
+
+# Check if the SSH key pair exists locally, generate if not
+key_path="$HOME/.ssh/$user.id_ed25519"
+if [ ! -f "$key_path.pub" ]; then
+    ssh-keygen -t ed25519 -f $key_path -N "" -C "$user@$server"
+    echo "Key pair created for $user."
+else
+    echo "Key pair already exists for $user."
+fi
+
+# Copy the public keys to the remote server's new user
+ssh-copy-id -f -i $HOME/.ssh/id_rsa.pub $user@$server
+ssh-copy-id -f -i $key_path.pub $user@$server
+echo "ssh-copy-id -i $key_path.pub $user@$server"
+echo "Public key copied to the new account."
+
+# Open Finder with the key files selected
+open -R $key_path $key_path.pub

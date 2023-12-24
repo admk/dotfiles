@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+import sys
+
+from PIL import Image
+from sdparsers import AUTOMATIC1111Parser
+
+parser = AUTOMATIC1111Parser()
+try:
+    with Image.open(sys.argv[1]) as image:
+        print(sys.argv[1])
+        prompt_info = parser.parse(image)
+except FileNotFoundError:
+    print("File not found.")
+except IndexError:
+    print(f"Usage: {sys.argv[0]} <file_name>")
+
+print('Prompt:')
+print('  ', prompt_info.prompts[0][0].value)
+print('Negative Prompt:')
+print('  ', prompt_info.prompts[0][1].value)
+print('Model: ')
+model = prompt_info.models[0]
+print('  ', model.name, model.model_hash)
+print('Sampler: ')
+sampler = prompt_info.samplers[0]
+print('  ', sampler.name, sampler.parameters)
+print('Metadata:')
+print('  ', prompt_info.metadata)

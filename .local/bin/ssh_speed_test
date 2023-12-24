@@ -1,0 +1,35 @@
+#!/bin/sh
+
+speed_test() {
+    if [ "$#" -lt 2 ]; then
+        echo "Usage: speed_test [upload/download/both] USER@HOST [bs] [count]"
+        return 1
+    fi
+
+    local operation="$1"
+    local user_host="$2"
+    local mbs=${3:-1}  # Default bs is 1 MB
+    local bs=$((mbs * 1024 * 1024))
+    local count=${4:-5}   # Default count is 5
+
+    case "$operation" in
+        "upload")
+            dd if=/dev/urandom bs="$bs" count="$count" 2>&1 | pv -pterab -s "$((bs * count))" | ssh "$user_host" 'cat > /dev/null'
+            ;;
+        "download")
+            ssh "$user_host" "dd if=/dev/urandom bs=$bs count=$count" 2>&1 | pv -pterab -s "$((bs * count))" | dd of=/dev/null
+            ;;
+        "both")
+            echo "Testing Upload speed:"
+            speed_test upload "$user_host" "$mbs" "$count"
+            echo "Testing Download speed:"
+            speed_test download "$user_host" "$mbs" "$count"
+            ;;
+        *)
+            echo "Invalid operation. Use 'upload', 'download', or 'both'."
+            return 1
+            ;;
+    esac
+}
+
+speed_test $@

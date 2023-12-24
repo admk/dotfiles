@@ -1,0 +1,132 @@
+#!/usr/bin/env python
+import sys
+import math
+import json
+import subprocess
+from typing import Iterable, Mapping, Any, List
+
+import tabulate
+
+
+gpu_stat = 'gpustat'
+
+
+def fetch(server: str) -> 'subprocess.Popen[str]':
+    return subprocess.Popen(
+        ['ssh', server, gpu_stat, '--json'],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+
+def ip(server: str) -> str:
+    ssh = subprocess.Popen(['ssh', '-G', server], stdout=subprocess.PIPE)
+    awk = subprocess.Popen(
+        ['awk', '/^hostname / { print $2 }'],
+        stdin=ssh.stdout, stdout=subprocess.PIPE)
+    output, _ = awk.communicate()
+    return output.decode().strip()
+
+
+ResultDict = Mapping[str, Any]
+
+
+def fetch_all(servers: Iterable[str]) -> Mapping[str, ResultDict]:
+    procs: Mapping[str, 'subprocess.Popen[str]'] = {}
+    results: Mapping[str, ResultDict] = {}
+    for s in servers:
+        procs[s] = fetch(s)
+    print('Finished: ', end='')
+    for s, p in procs.items():
+        try:
+            print(s, end=' ')
+            sys.stdout.flush()
+            stdout, stderr = p.communicate(timeout=10)
+        except subprocess.TimeoutExpired as e:
+            p.kill()
+            results[s] = {'error': str(e)}
+            continue
+        if p.returncode:
+            results[s] = {
+                'error': p.returncode,
+                'stdout': stdout,
+                'stderr': stderr,
+            }
+        else:
+            results[s] = json.loads(stdout)
+    print('')
+    return results
+
+
+def gpu_name(name: str) -> str:
+    if 'V100' in name:
+        return 'v100'
+    if 'A100' in name:
+        return 'a100'
+    if 'A40' in name:
+        return 'a40'
+    if '3080 Ti' in name:
+        return '3080ti'
+    if '3090' in name:
+        return '3090'
+    return '?'
+
+
+def unit(value: float) -> str:
+    if value < 1024:
+        return '0MB'
+    units = 'MGTP'
+    base = math.floor(math.log(value, 1024))
+    value /= math.pow(1024, base)
+    return f'{value:5.2f}{units[base]}B'
+
+
+def format_processes(procs: Iterable[ResultDict]):
+    users = set(p['username'] for p in procs)
+    text: List[str] = []
+    for u in users:
+        m = sum(p['gpu_memory_usage'] for p in procs if p['username'] == u)
+        text.append(f'{u}({unit(m).strip()})')
+    return ', '.join(text)
+
+
+def format_table(results: Mapping[str, ResultDict]) -> List[List[str]]:
+    lines: List[List[str]] = []
+    for server, server_result in results.items():
+        ip_addr = ip(server)
+        if 'error' in server_result:
+            # error = stderr.decode().splitlines()[-1]
+            print(f'{server} ({ip_addr}): error code {server_result["error"]}.')
+            if stdout := server_result.get('stdout'):
+                print(stdout)
+            if stderr := server_result.get('stderr'):
+                print(stderr)
+            # lines.append([server, 'error'])
+            continue
+        for gpu in server_result['gpus']:
+            line: List[str] = [
+                f'{server}.{gpu["index"]}',
+                ip_addr,
+                gpu_name(gpu["name"]),
+                f'{gpu["utilization.gpu"]}%',
+                f'{unit(gpu["memory.used"])}',
+                f'{unit(gpu["memory.total"])}',
+                format_processes(gpu["processes"])]
+            lines.append(line)
+    return lines
+
+
+def main():
+    servers = sys.argv[1:]
+    if not servers:
+        print('No servers specified.')
+        sys.exit(-1)
+    results = fetch_all(servers)
+    table = format_table(results)
+    if not table:
+        return
+    headers = ('Server', 'IP', 'GPU', 'Usage', 'Used', 'Total', 'Users')
+    colalign = ('right', 'left', 'left') + ('right', ) * 3 + ('left', )
+    return tabulate.tabulate(table, headers=headers, colalign=colalign)
+
+
+if __name__ == '__main__':
+    print(main())
