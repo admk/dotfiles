@@ -1,0 +1,41 @@
+#!/bin/bash
+usage () {
+    echo "Usage: speed_test [u/up/upload/d/down/download/ud/updown/both] USER@HOST [bs] [count]"
+}
+
+speed_test() {
+    if [ "$#" -lt 2 ]; then
+        usage
+        return 1
+    fi
+
+    local operation="$1"
+    local user_host="$2"
+    local mbs=${3:-10}  # Default bs is 10 MB
+    local bs=$((mbs * 1024 * 1024))
+    local count=${4:-1}   # Default count is 1
+
+    local dd_rand="dd if=/dev/urandom bs=$bs count=$count"
+
+    case "$operation" in
+        "u" | "up" | "upload")
+            echo "Testing Upload speed: "
+            $dd_rand 2>&1 | pv -pterab -s "$((bs * count))" | ssh "$user_host" 'cat > /dev/null'
+            ;;
+        "d" | "down" | "download")
+            echo "Testing Download speed: "
+            ssh "$user_host" "$dd_rand" 2>&1 | pv -pterab -s "$((bs * count))" | dd of=/dev/null 2>/dev/null
+            ;;
+        "ud" | "updown" | "both")
+            speed_test upload "$user_host" "$mbs" "$count"
+            speed_test download "$user_host" "$mbs" "$count"
+            ;;
+        *)
+            echo "Invalid operation: $operation."
+            usage
+            return 1
+            ;;
+    esac
+}
+
+speed_test "$@"
