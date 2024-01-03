@@ -1,34 +1,68 @@
 #!/bin/bash
+
 usage () {
-    echo "Usage: speed_test [u/up/upload/d/down/download/ud/updown/both] USER@HOST [bs] [count]"
+    echo "Usage: speed_test [u/up/upload/d/down/download/ud/updown/both] [OPTIONS] [SSH_ARGUMENTS]"
+    echo "Options:"
+    echo "  -h, --help       Show this help message and exit"
+    echo "  -b, --bs SIZE    Set the block size in MB (default: 10 MB)"
+    echo "  -c, --count NUM  Set the number of blocks (default: 1)"
 }
 
 speed_test() {
-    if [ "$#" -lt 2 ]; then
-        usage
-        return 1
-    fi
-
     local operation="$1"
-    local user_host="$2"
-    local mbs=${3:-10}  # Default bs is 10 MB
-    local bs=$((mbs * 1024 * 1024))
-    local count=${4:-1}   # Default count is 1
+    shift
+    local bs=10
+    local count=1
+
+    while getopts ":hb:c:" opt; do
+        case $opt in
+            h | help)
+                usage
+                return 0;;
+            b | bs)
+                bs=$OPTARG;;
+            c | count)
+                count=$OPTARG;;
+            \?)
+                echo "Invalid option: -$OPTARG" >&2
+                usage
+                return 1;;
+            :)
+                echo "Option -$OPTARG requires an argument." >&2
+                usage
+                return 1;;
+        esac
+    done
+    shift "$((OPTIND-1))"
+    ssh_arguments=("$@")
+
+    local mbs="$bs"
+    bs=$((bs * 1024 * 1024))
 
     local dd_rand="dd if=/dev/urandom bs=$bs count=$count"
 
     case "$operation" in
         "u" | "up" | "upload")
             echo "Testing Upload speed: "
-            $dd_rand 2>&1 | pv -pterab -s "$((bs * count))" | ssh "$user_host" 'cat > /dev/null'
+            $dd_rand 2>&1 | \
+                pv -pterab -s "$((bs * count))" | \
+                ssh "${ssh_arguments[@]}" 'cat > /dev/null'
             ;;
         "d" | "down" | "download")
             echo "Testing Download speed: "
-            ssh "$user_host" "$dd_rand" 2>&1 | pv -pterab -s "$((bs * count))" | dd of=/dev/null 2>/dev/null
+            ssh "${ssh_arguments[@]}" "$dd_rand" 2>&1 | \
+                pv -pterab -s "$((bs * count))" | \
+                dd of=/dev/null 2>/dev/null
             ;;
         "ud" | "updown" | "both")
-            speed_test upload "$user_host" "$mbs" "$count"
-            speed_test download "$user_host" "$mbs" "$count"
+            echo "Testing Upload speed: "
+            $dd_rand 2>&1 | \
+                pv -pterab -s "$((bs * count))" | \
+                ssh "${ssh_arguments[@]}" 'cat > /dev/null'
+            echo "Testing Download speed: "
+            ssh "${ssh_arguments[@]}" "$dd_rand" 2>&1 | \
+                pv -pterab -s "$((bs * count))" | \
+                dd of=/dev/null 2>/dev/null
             ;;
         *)
             echo "Invalid operation: $operation."
