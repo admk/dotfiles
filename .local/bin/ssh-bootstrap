@@ -1,8 +1,0 @@
-#!/usr/bin/env xonsh
-tmpdir = $(mktemp -d).strip()
-git clone ~ pf"{tmpdir}"
-rsync \
-    --archive --compress --update \
-    --human-readable --partial --progress \
-    pf"{tmpdir}/" $ARG1:~/test/
-ssh $ARG1

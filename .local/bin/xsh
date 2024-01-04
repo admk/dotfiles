@@ -1,0 +1,21 @@
+#!/usr/bin/env xonsh
+gitdir = p'~/.kodot'
+if gitdir.exists():
+    cd @(gitdir)
+    git pull origin master
+    cd -
+else:
+    git clone ~ .kodot
+
+ssh_host, ssh_args = [], []
+for a in $args:
+    if a.startswith("-"):
+        ssh_args.append(a)
+    else:
+        ssh_host.append(a)
+echo @(ssh_host) @(ssh_args)
+echo rsync \
+    --archive --compress --update \
+    --human-readable --partial --progress \
+    pf"{tmpdir}/" @(ssh_host):~/.kodot/
+echo ssh $arg1 -o RemoteCommand="cd ~/.kodot && ./.config/xonsh/as_default.sh"
