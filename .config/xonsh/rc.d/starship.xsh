@@ -1,14 +1,14 @@
 from shutil import which as _which
 
-
-if not _which('starship') and not ${...}.get('NO_STARSHIP'):
-    print('Installing starship...')
-    tmp_dir = $(mktemp -d).strip()
-    tmp_path = pf"{tmp_dir}/install.sh"
-    echo "POSIXLY_CORRECT=1" > @(tmp_path)
-    curl -sS https://starship.rs/install.sh >> @(tmp_path)
-    /bin/sh @(tmp_path) -y
+import platform
 
 
-if _which('starship'):
+if platform.system() == "Darwin":
+    arch = 'aarch64-apple-darwin'
+else:
+    arch = 'x86_64-unknown-linux-musl'
+aliases['starship'] = starship_exec = f'{$HOME}/.local/bin/starship-{arch}'
+
+
+if pf'{starship_exec}'.exists():
     xontrib load prompt_starship

@@ -87,8 +87,10 @@ _register_envs_alias('hf-offline', {
     'HF_DATASETS_OFFLINE': '1',
     'HF_EVALUATE_OFFLINE': '1',
 })
+
+${...}.setdefault('PROXY', '127.0.0.1:7890')
 _register_envs_alias('proxy', {
-    'http_proxy': 'http://127.0.0.1:7890',
-    'https_proxy': 'http://127.0.0.1:7890',
-    'all_proxy': 'socks5://127.0.0.1:7890',
+    'http_proxy': f'http://{$PROXY}',
+    'https_proxy': f'http://{$PROXY}',
+    'all_proxy': f'socks5://{$PROXY}',
 })
