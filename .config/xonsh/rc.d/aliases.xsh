@@ -26,7 +26,7 @@ aliases |= {
     'ip': 'curl -s https://ifconfig.co/json' + (' | jq' if _which('jq') else ''),
 }
 dep_aliases = {
-    'cp': 'rsync --progress --recursive --archive',
+    'rcp': 'rsync --progress --recursive --archive',
     'ls': 'eza',
 }
 for a, cmd in dep_aliases.items():
