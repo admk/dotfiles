@@ -1,3 +1,4 @@
+from shutil import which as _which
 $PATH += [
     '~/.local/bin',
 ]
@@ -10,18 +11,21 @@ if platformrc.exists():
 $XONTRIB_SH_SHELLS = ['bash', 'sh']
 
 xontribs = [
-    'argcomplete',
-    'autoxsh',
-    'autojump',
     'abbrevs',
-    'sh',
-    'pipeliner',
+    'argcomplete',
+    'autojump',
+    'autoxsh',
+    'coreutils',
+    'fish_completer',
     'jedi',
-    'fish_completer'
+    'pipeliner',
+    'sh',
 ]
 xontrib load -s @(xontribs)
+if _which('starship'):
+    xontrib load prompt_starship
 
-execx($(starship init xonsh))
+
 $MULTILINE_PROMPT = ' '
 
 $AUTO_CD = True
