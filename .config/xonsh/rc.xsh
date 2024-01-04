@@ -1,4 +1,5 @@
 from shutil import which as _which
+
 $PATH += [
     '~/.local/bin',
 ]
@@ -22,9 +23,6 @@ xontribs = [
     'sh',
 ]
 xontrib load -s @(xontribs)
-if _which('starship'):
-    xontrib load prompt_starship
-
 
 $MULTILINE_PROMPT = ' '
 
