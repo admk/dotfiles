@@ -1,4 +1,34 @@
 #!/usr/bin/env xonsh
+import argparse
+
+
+def _parse_args(args):
+    parser = argparse.ArgumentParser()
+    for option in '46AaCfGgKkMNnqsTtVvXxYy':
+        parser.add_argument(f'-{option}', action='store_true')
+    for option in 'BbcDEeFIiJLlmOoPpQRSWw':
+        parser.add_argument(f'-{option}', dest=option)
+    parser.add_argument('destination')
+    return parser.parse_args(args[1:])
+
+
+def _unparse_args(parsed_args, dest=True):
+    command_line = ['ssh']  # Assuming your script is a Python script
+    for option in '46AaCfGgKkMNnqsTtVvXxYy':
+        if getattr(parsed_args, option):
+            command_line.append(f'-{option}')
+    for option in 'BbcDEeFIiJLlmOoPpQRSWw':
+        value = getattr(parsed_args, option)
+        if value is not None:
+            command_line.append(f'-{option}')
+            command_line.append(str(value))
+    if dest:
+        command_line.append(parsed_args.destination)
+    return command_line
+
+
+args = _parse_args($ARGS)
+
 gitdir = '~/.kodot'
 if pf'{gitdir}'.exists():
     cd @(gitdir)
@@ -7,20 +37,13 @@ if pf'{gitdir}'.exists():
 else:
     git clone ~ .kodot 2>&1 > /dev/null
 
-ssh_host, ssh_args = [], []
-for a in $ARGS[1:]:
-    if a.startswith("-"):
-        ssh_args.append(a)
-    else:
-        ssh_host.append(a)
-if len(ssh_host) != 1:
-    raise ValueError("Invalid arguments.")
-ssh_host = ssh_host[0]
-rsh = f"ssh {' '.join(ssh_args)}"
-rsync \
+ssh_args = _unparse_args(args, dest=False)
+execx(f"rsync \
     --archive --compress --update --human-readable --partial \
-    --progress --rsh=@(rsh) --cvs-exclude \
-    f"{gitdir}/" f"{ssh_host}:.kodot"
-ssh @(ssh_host) @(ssh_args) \
+    --progress --rsh {' '.join(ssh_args)!r} \
+    --cvs-exclude \
+    {gitdir}/ {args.destination}:.kodot")
+@(ssh_args) \
     -o RequestTTY=yes \
+    @(args.destination) \
     @("bash -c '.kodot/.config/xonsh/as_default.sh'")
