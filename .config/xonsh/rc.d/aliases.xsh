@@ -23,7 +23,7 @@ aliases |= {
     'ash':
         "autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' "
         "-o ExitOnForwardFailure=yes -nNT",
-    'ip': 'curl -s https://ifconfig.co/json' + (' | jq' if _which('jq') else ''),
+    'ip': 'curl https://ifconfig.co/json' + (' | jq' if _which('jq') else ''),
 }
 dep_aliases = {
     'rcp': 'rsync --progress --recursive --archive',
@@ -75,11 +75,13 @@ def _pydb(args):
     execx(f"python -m debugpy --listen 5678 --wait-for-client {args}")
 
 
-def _register_envs_alias(name, envs):
-    @aliases.register(name)
+def _register_envs_alias(names, envs):
     def _wrapper(args):
         with ${...}.swap(**envs):
             execx(' '.join(args))
+    names = [names] if isinstance(names, str) else names
+    for name in names:
+        aliases.register(name)(_wrapper)
 
 
 _register_envs_alias('hf-offline', {
@@ -89,7 +91,7 @@ _register_envs_alias('hf-offline', {
 })
 
 ${...}.setdefault('PROXY', '127.0.0.1:7890')
-_register_envs_alias('proxy', {
+_register_envs_alias(('px', 'proxy'), {
     'http_proxy': f'http://{$PROXY}',
     'https_proxy': f'http://{$PROXY}',
     'all_proxy': f'socks5://{$PROXY}',

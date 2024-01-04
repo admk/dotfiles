@@ -2,7 +2,7 @@
 gitdir = '~/.kodot'
 if pf'{gitdir}'.exists():
     cd @(gitdir)
-    git pull origin master 2>&1 > /dev/null
+    git pull --force origin master 2>&1 > /dev/null
     cd -
 else:
     git clone ~ .kodot 2>&1 > /dev/null
@@ -19,8 +19,8 @@ ssh_host = ssh_host[0]
 rsh = f"ssh {' '.join(ssh_args)}"
 rsync \
     --archive --compress --update --human-readable --partial \
-    --rsh=@(rsh) --cvs-exclude \
+    --progress --rsh=@(rsh) --cvs-exclude \
     f"{gitdir}/" f"{ssh_host}:.kodot"
 ssh @(ssh_host) @(ssh_args) \
     -o RequestTTY=yes \
-    @("HOME=$HOME/.kodot bash -l -c '~/.config/xonsh/as_default.sh'")
+    @("bash -c '.kodot/.config/xonsh/as_default.sh'")
