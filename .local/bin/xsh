@@ -1,6 +1,6 @@
 #!/usr/bin/env xonsh
-gitdir = p'~/.kodot'
-if gitdir.exists():
+gitdir = '~/.kodot'
+if pf'{gitdir}'.exists():
     cd @(gitdir)
     git pull origin master
     cd -
@@ -8,14 +8,18 @@ else:
     git clone ~ .kodot
 
 ssh_host, ssh_args = [], []
-for a in $args:
+for a in $ARGS[1:]:
     if a.startswith("-"):
         ssh_args.append(a)
     else:
         ssh_host.append(a)
-echo @(ssh_host) @(ssh_args)
-echo rsync \
+if len(ssh_host) != 1:
+    raise ValueError("Invalid arguments.")
+ssh_host = ssh_host[0]
+rsync \
     --archive --compress --update \
     --human-readable --partial --progress \
-    pf"{tmpdir}/" @(ssh_host):~/.kodot/
-echo ssh $arg1 -o RemoteCommand="cd ~/.kodot && ./.config/xonsh/as_default.sh"
+    f"{gitdir}/" f"{ssh_host}:.kodot"
+ssh @(ssh_host) @(ssh_args) \
+    -o RequestTTY=yes \
+    @("HOME=$HOME/.kodot bash -l -c '~/.config/xonsh/as_default.sh'")

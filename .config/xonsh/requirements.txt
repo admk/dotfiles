@@ -1,6 +1,5 @@
 xonsh[full]
 xonsh-autoxsh
-xontrib-abbrevs
 xontrib-argcomplete
 xontrib-autojump
 xontrib-back2dir
