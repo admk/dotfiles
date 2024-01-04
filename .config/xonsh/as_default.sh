@@ -10,6 +10,7 @@ if [[ -z $XONSH_VERSION ]]; then
     cd $HOME
     if ! python3 -c 'import xonsh' &>/dev/null; then
         echo "Installing xonsh..."
+        python3 -m pip install --user --upgrade pip
         python3 -m pip install --user -r $CURR_DIR/requirements.txt
     fi
     exec python3 -m xonsh
