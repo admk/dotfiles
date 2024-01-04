@@ -2,10 +2,10 @@
 gitdir = '~/.kodot'
 if pf'{gitdir}'.exists():
     cd @(gitdir)
-    git pull origin master
+    git pull origin master 2>&1 > /dev/null
     cd -
 else:
-    git clone ~ .kodot
+    git clone ~ .kodot 2>&1 > /dev/null
 
 ssh_host, ssh_args = [], []
 for a in $ARGS[1:]:
@@ -16,9 +16,10 @@ for a in $ARGS[1:]:
 if len(ssh_host) != 1:
     raise ValueError("Invalid arguments.")
 ssh_host = ssh_host[0]
+rsh = f"ssh {' '.join(ssh_args)}"
 rsync \
-    --archive --compress --update \
-    --human-readable --partial --progress \
+    --archive --compress --update --human-readable --partial \
+    --rsh=@(rsh) --cvs-exclude \
     f"{gitdir}/" f"{ssh_host}:.kodot"
 ssh @(ssh_host) @(ssh_args) \
     -o RequestTTY=yes \

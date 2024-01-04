@@ -10,6 +10,7 @@ if platformrc.exists():
     execx(f'source {platformrc}')
 
 $XONTRIB_SH_SHELLS = ['bash', 'sh']
+$XONTRIBS_AUTOLOAD_DISABLED = True
 
 xontribs = [
     'abbrevs',
