@@ -8,7 +8,6 @@ xontrib-cmd-durations
 xontrib-ergopack
 xontrib-fish-completer
 xontrib-history-encrypt
-xontrib-homebrew
 xontrib-output-search
 xontrib-pipeliner
 xontrib-prompt-starship

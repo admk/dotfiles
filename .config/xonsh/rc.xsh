@@ -15,7 +15,6 @@ $XONTRIBS_AUTOLOAD_DISABLED = True
 xontribs = [
     'abbrevs',
     'argcomplete',
-    'autojump',
     'autoxsh',
     'coreutils',
     'fish_completer',
@@ -24,6 +23,8 @@ xontribs = [
     'sh',
 ]
 xontrib load -s @(xontribs)
+if _which('autojump'):
+    xontrib load autojump
 
 $MULTILINE_PROMPT = ' '
 
