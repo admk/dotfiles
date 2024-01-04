@@ -1,4 +1,4 @@
-xonsh
+xonsh[full]
 xonsh-autoxsh
 xontrib-abbrevs
 xontrib-argcomplete

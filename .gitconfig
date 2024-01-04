@@ -61,10 +61,6 @@
     whitespace = red reverse
 [rebase]
     autoStash = true
-[http]
-    postBuffer = 2097152000
-[https]
-    postBuffer = 2097152000
 [pull]
     rebase = false
 [url "https://github.com/"]
