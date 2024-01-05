@@ -7,8 +7,15 @@ disabled = true
 
 [package]
 
+[username]
+
 [hostname]
 ssh_symbol = ''
 
 [container]
 disabled = true
+
+[directory]
+fish_style_pwd_dir_length = 1
+truncation_length = 1
+truncation_symbol = '…/'
