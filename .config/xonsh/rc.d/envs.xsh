@@ -1,5 +1,10 @@
 from shutil import which as _which
-$VISUAL = 'nvim' if _which('nvim') else 'vim'
+
+$VISUAL = 'vim'
+if _which('nvim'):
+    $VISUAL = 'nvim'
+if 'VSCODE_INJECTION' in ${...}:
+    $VISUAL = 'code --wait'
 $EDITOR = $VISUAL
 $CLICOLOR = 1
 $LSCOLORS = 'gxfxcxdxbxegedabagacad'

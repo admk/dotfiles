@@ -90,9 +90,14 @@ _register_envs_alias('hf-offline', {
     'HF_EVALUATE_OFFLINE': '1',
 })
 
+@aliases.register('px')
+def _proxy(args):
+    envs = {
+        'http_proxy': f'http://{$PROXY}',
+        'https_proxy': f'http://{$PROXY}',
+        'all_proxy': f'socks5://{$PROXY}',
+    }
+    with ${...}.swap(**envs):
+        execx(' '.join(args))
+
 ${...}.setdefault('PROXY', '127.0.0.1:7890')
-_register_envs_alias(('px', 'proxy'), {
-    'http_proxy': f'http://{$PROXY}',
-    'https_proxy': f'http://{$PROXY}',
-    'all_proxy': f'socks5://{$PROXY}',
-})

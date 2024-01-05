@@ -1,8 +1,42 @@
 #!/usr/bin/env xonsh
+import os
 import argparse
+from enum import Enum
 
 
-def _parse_args(args):
+class HermeticMode(Enum):
+    HERMETIC = 0
+    SEMI_HERMETIC = 1
+    NON_HERMETIC = 2
+
+
+def _usage():
+    print(f"""Usage:
+    xsh [-h | --help]
+        [[+h | +hermetic] | [+s | +semi-hermetic] | [+n | +non-hermetic]]
+        [ssh args] destination")
+
+Options:
+    +h, +hermetic: use hermetic mode (default).
+    +s, +semi-hermetic: use semi-hermetic mode.
+    +n, +non-hermetic: use non-hermetic mode.""")
+
+
+def _parse_xsh_args(args):
+    if not args:
+        mode = HermeticMode.HERMETIC
+    elif '+h' in args or '+hermetic' in args:
+        mode = HermeticMode.HERMETIC
+    elif '+s' in args or '+semi-hermetic' in args:
+        mode = HermeticMode.SEMI_HERMETIC
+    elif '+n' in args or '+non-hermetic' in args:
+        mode = HermeticMode.NON_HERMETIC
+    else:
+        print(f"Unknown xsh args {' '.join(args)!r}, assuming hermetic.")
+    return argparse.Namespace(hermetic_mode=mode)
+
+
+def _parse_ssh_args(args):
     parser = argparse.ArgumentParser()
     for option in '46AaCfGgKkMNnqsTtVvXxYy':
         parser.add_argument(f'-{option}', action='store_true')
@@ -12,8 +46,8 @@ def _parse_args(args):
     return parser.parse_args(args[1:])
 
 
-def _unparse_args(parsed_args, dest=True):
-    command_line = ['ssh']  # Assuming your script is a Python script
+def _unparse_ssh_args(parsed_args, dest=True):
+    command_line = ['ssh']
     for option in '46AaCfGgKkMNnqsTtVvXxYy':
         if getattr(parsed_args, option):
             command_line.append(f'-{option}')
@@ -27,7 +61,17 @@ def _unparse_args(parsed_args, dest=True):
     return command_line
 
 
-args = _parse_args($ARGS)
+xsh_args, ssh_args = [], []
+if '-h' in $ARGS or '--help' in $ARGS:
+    _usage()
+    exit(0)
+for a in $ARGS:
+    if a.startswith('+'):
+        xsh_args.append(a)
+    else:
+        ssh_args.append(a)
+xsh_args = _parse_xsh_args(xsh_args)
+ssh_args = _parse_ssh_args(ssh_args)
 
 gitdir = '~/.kodot'
 if pf'{gitdir}'.exists():
@@ -37,13 +81,15 @@ if pf'{gitdir}'.exists():
 else:
     git clone ~ .kodot 2>&1 > /dev/null
 
-ssh_args = _unparse_args(args, dest=False)
+ssh_cmd = _unparse_ssh_args(ssh_args, dest=False)
 execx(f"rsync \
     --archive --compress --update --human-readable --partial \
-    --progress --rsh {' '.join(ssh_args)!r} \
+    --progress --rsh {' '.join(ssh_cmd)!r} \
     --cvs-exclude \
-    {gitdir}/ {args.destination}:.kodot")
-@(ssh_args) \
+    {gitdir}/ {ssh_args.destination}:.kodot")
+prefix = f'XSH_MODE={xsh_args.hermetic_mode.name.lower().replace("_", "-")}'
+bootstrap = '.kodot/.config/xonsh/bootstrap.sh'
+@(ssh_cmd) \
     -o RequestTTY=yes \
-    @(args.destination) \
-    @("bash -c '.kodot/.config/xonsh/as_default.sh'")
+    @(ssh_args.destination) \
+    @(f"bash -c '{prefix} {bootstrap}'")

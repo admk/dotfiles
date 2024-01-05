@@ -3,14 +3,17 @@
 # envs
 export XSH_NAME=.kodot
 export XSH_HOME=$HOME/$XSH_NAME
-if [[ ! -z $XSH_NON_HERMETIC ]]; then
+if [[ $XSH_MODE == 'non-hermetic' ]]; then
     export XDG_HOME=$HOME
-elif [[ ! -z $XSH_SEMI_HERMETIC ]]; then
+elif [[ $XSH_MODE == 'semi-hermetic' ]]; then
     export XDG_HOME=$XSH_HOME
-else
+elif [[ $XSH_MODE == 'hermetic' ]]; then
     export XDG_HOME=$XSH_HOME
     export OLD_HOME=${HOME}
     export HOME=$XSH_HOME
+else
+    echo 'Unsupported XSH_MODE $XSH_MODE' >&2
+    exit 1
 fi
 export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
