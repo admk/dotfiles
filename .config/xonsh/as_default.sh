@@ -1,25 +1,36 @@
 #!/usr/bin/env bash
 
 # envs
-export OLD_HOME=${HOME:-$(pwd)}
+export XSH_NAME=.kodot
+export XSH_HOME=$HOME/$XSH_NAME
 if [[ -z $XSH_NON_HERMETIC ]]; then
-    export HOME=$OLD_HOME/.kodot
+    export OLD_HOME=${HOME:-$(pwd)}
+    export HOME=$XSH_HOME
+elif [[ -z $XSH_SEMI_HERMETIC ]]; then
+
 fi
-export XDG_CONFIG_HOME="$HOME/.config"
-export XDG_DATA_HOME="$HOME/.local/share"
-export XDG_CACHE_HOME="$HOME/.cache"
-export PATH="$HOME/.local/bin:$HOME/.conda/bin:$PATH"
+export XDG_CONFIG_HOME="$XSH_HOME/.config"
+export XDG_DATA_HOME="$XSH_HOME/.local/share"
+export XDG_CACHE_HOME="$XSH_HOME/.cache"
+export PATH="$XSH_HOME/.local/bin:$XSH_HOME/.conda/bin:$PATH"
 
 cd $HOME
 
 # conda
-CONDA_URL=https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda
+CONDA_SRC=https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda
 CONDA_PREFIX=$HOME/.miniconda3
 if [ ! -f "$CONDA_PREFIX/bin/conda" ]; then
     mkdir -p $XDG_CACHE_HOME
     CONDA_INSTALLER=$XDG_CACHE_HOME/miniconda3.sh
-    echo "Downloading miniconda3 to $CONDA_INSTALLER..."
-    curl -L $CONDA_URL/Miniconda3-latest-Linux-x86_64.sh -o $CONDA_INSTALLER
+    echo "Downloading miniconda3 from to $CONDA_INSTALLER..."
+    if [[ $(uname) == 'Darwin' ]]; then
+        OS='MacOSX'
+    elif [[ $(uname) == 'Linux' ]]; then
+        OS='Linux'
+    fi
+    ARCH=$(uname -m)
+    CONDA_URL=$CONDA_SRC/Miniconda3-latest-$OS-$ARCH.sh
+    curl -L $CONDA_URL -o $CONDA_INSTALLER
     echo "Installing miniconda3 to $CONDA_PREFIX..."
     sh $CONDA_INSTALLER -u -b -p $CONDA_PREFIX > /dev/null
     if [ -f $CONDA_INSTALLER ]; then
