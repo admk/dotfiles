@@ -13,27 +13,29 @@ class HermeticMode(Enum):
 def _usage():
     print(f"""Usage:
     xsh [-h | --help]
-        [[+h | +hermetic] | [+s | +semi-hermetic] | [+n | +non-hermetic]]
+        [+v | +verbose]
+        [(+h | +hermetic) | (+s | +semi-hermetic) | (+n | +non-hermetic)]
         [ssh args] destination")
 
 Options:
+    +v, +verbose: verbose mode.
     +h, +hermetic: use hermetic mode (default).
     +s, +semi-hermetic: use semi-hermetic mode.
     +n, +non-hermetic: use non-hermetic mode.""")
 
 
 def _parse_xsh_args(args):
-    if not args:
-        mode = HermeticMode.HERMETIC
-    elif '+h' in args or '+hermetic' in args:
+    ns = argparse.Namespace()
+    ns.verbose = '+v' in args or '+verbose' in args
+    mode = HermeticMode.HERMETIC
+    if '+h' in args or '+hermetic' in args:
         mode = HermeticMode.HERMETIC
     elif '+s' in args or '+semi-hermetic' in args:
         mode = HermeticMode.SEMI_HERMETIC
     elif '+n' in args or '+non-hermetic' in args:
         mode = HermeticMode.NON_HERMETIC
-    else:
-        print(f"Unknown xsh args {' '.join(args)!r}, assuming hermetic.")
-    return argparse.Namespace(hermetic_mode=mode)
+    ns.hermetic_mode = mode
+    return ns
 
 
 def _parse_ssh_args(args):
@@ -88,6 +90,8 @@ execx(f"rsync \
     --cvs-exclude \
     {gitdir}/ {ssh_args.destination}:.kodot")
 prefix = f'XSH_MODE={xsh_args.hermetic_mode.name.lower().replace("_", "-")}'
+if xsh_args.verbose:
+    prefix += f' XSH_VERBOSE={int(xsh_args.verbose)}'
 bootstrap = '.kodot/.config/xonsh/bootstrap.sh'
 @(ssh_cmd) \
     -o RequestTTY=yes \
