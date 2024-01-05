@@ -16,7 +16,6 @@ export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
 export XDG_CACHE_HOME="$XDG_HOME/.cache"
 export PATH="$XSH_HOME/.local/bin:$XSH_HOME/.conda/bin:$PATH"
-
 cd $HOME
 
 # conda
