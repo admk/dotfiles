@@ -21,6 +21,7 @@ aliases |= {
     'gd': 'git diff',
     'gds': 'git diff --staged',
     'gl': 'git lg',
+    'gw': 'git web',
     'py': 'python',
     'ipy': 'ipython',
     'grep': 'grep --color=auto',

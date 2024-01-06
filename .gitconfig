@@ -19,6 +19,7 @@
     lg = log --graph --date-order --abbrev-commit --date=relative
     unstage = reset
     unstage-all = reset --soft HEAD^
+    web = "!f() { REPO_URL=$(git config remote.origin.url); open ${REPO_URL%%.git}; }; f"
 [format]
     pretty=format:%C(bold red)%h%Creset%C(yellow)%d%Creset %s %Cgreen(%ad) %C(bold blue)<%an>%Creset
 [core]
