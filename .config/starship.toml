@@ -3,10 +3,6 @@
 [line_break]
 disabled = true
 
-[character]
-
-[package]
-
 [username]
 
 [hostname]
@@ -19,3 +15,9 @@ disabled = true
 fish_style_pwd_dir_length = 1
 truncation_length = 1
 truncation_symbol = '…/'
+
+[git_branch]
+ignore_branches = ['master', 'main']
+
+[python]
+disabled = true

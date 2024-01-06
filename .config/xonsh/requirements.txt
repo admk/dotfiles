@@ -1,5 +1,7 @@
-xonsh[full]
+prompt-toolkit
 xonsh-autoxsh
+xonsh[full]
+xontrib-abbrevs
 xontrib-argcomplete
 xontrib-autojump
 xontrib-back2dir
@@ -8,8 +10,10 @@ xontrib-cmd-durations
 xontrib-ergopack
 xontrib-fish-completer
 xontrib-history-encrypt
+xontrib-onepath
 xontrib-output-search
 xontrib-pipeliner
 xontrib-prompt-starship
+xontrib-readable-traceback
 xontrib-sh
 xxh-xxh

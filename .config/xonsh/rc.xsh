@@ -19,16 +19,28 @@ xontribs = [
     'coreutils',
     'fish_completer',
     'jedi',
+    'onepath',
+    # 'output_search',
     'pipeliner',
+    'readable-traceback',
     'sh',
 ]
 xontrib load -s @(xontribs)
-if _which('autojump'):
-    xontrib load autojump
+dep_xontribs = [
+    'auotjump',
+]
+for cmd_xtb in dep_xontribs:
+    if isinstance(cmd_xtb, str):
+        cmd, xtb = cmd_xtb, cmd_xtb
+    else:
+        cmd, xtb = cmd_xtb
+    if _which(cmd):
+        xontrib load @(xtb)
 
 $MULTILINE_PROMPT = ' '
 
 $AUTO_CD = True
 $DOTGLOB = True
 $XONSH_SHOW_TRACEBACK = True
+$XONSH_TRACEBACK_LOGFILE = f'{$XDG_CACHE_HOME}/xonsh-traceback.log'
 $SUGGEST_COMMANDS = False

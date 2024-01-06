@@ -87,7 +87,7 @@ ssh_cmd = _unparse_ssh_args(ssh_args, dest=False)
 execx(f"rsync \
     --archive --compress --update --human-readable --partial \
     --progress --rsh {' '.join(ssh_cmd)!r} \
-    --cvs-exclude \
+    --cvs-exclude --exclude .miniconda3/ --exclude .cache/ \
     {gitdir}/ {ssh_args.destination}:.kodot")
 prefix = f'XSH_MODE={xsh_args.hermetic_mode.name.lower().replace("_", "-")}'
 if xsh_args.verbose:

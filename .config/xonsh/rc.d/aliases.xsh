@@ -3,7 +3,9 @@ from shutil import which as _which
 
 aliases |= {
     '-': 'cd -',
-    'xup': 'xpip install -U pip && xpip install -U git+https://github.com/xonsh/xonsh',
+    'xup':
+        'xpip install -U pip && '
+        'xpip install -U -r $XONSH_CONFIG_DIR/requirements.txt',
     'xr': 'xonsh-reset',
     'c': 'clear',
     'o': 'open',
@@ -11,6 +13,8 @@ aliases |= {
     'br': 'brew',
     'brup': 'brew update && brew upgrade && brew cleanup',
     'g': 'git',
+    'gps': 'git push',
+    'gpl': 'git pull',
     'gc': 'git commit',
     'gs': 'git status',
     'ga': 'git add',
@@ -75,10 +79,12 @@ def _pydb(args):
     execx(f"python -m debugpy --listen 5678 --wait-for-client {args}")
 
 
-def _register_envs_alias(names, envs):
+def _register_envs_alias(names, envs, cmd=None):
     def _wrapper(args):
+        if cmd is not None:
+            args = [cmd] + args
         with ${...}.swap(**envs):
-            execx(' '.join(args))
+            ![@(args)]
     names = [names] if isinstance(names, str) else names
     for name in names:
         aliases.register(name)(_wrapper)
@@ -89,6 +95,7 @@ _register_envs_alias('hf-offline', {
     'HF_DATASETS_OFFLINE': '1',
     'HF_EVALUATE_OFFLINE': '1',
 })
+
 
 @aliases.register('px')
 def _proxy(args):
@@ -101,3 +108,8 @@ def _proxy(args):
         execx(' '.join(args))
 
 ${...}.setdefault('PROXY', '127.0.0.1:7890')
+
+
+BASH_ENV = {'SHELL': '/bin/bash'}
+_register_envs_alias('ssh', BASH_ENV, cmd='ssh')
+_register_envs_alias('sshuttle', BASH_ENV, cmd='sshuttle')

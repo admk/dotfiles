@@ -18,19 +18,20 @@ fi
 export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
 export XDG_CACHE_HOME="$XDG_HOME/.cache"
-export PATH="$XSH_HOME/.local/bin:$XSH_HOME/.conda/bin:$PATH"
-CONDA_PREFIX=$XSH_HOME/.miniconda3
+export XSH_CONDA_PREFIX=$XSH_HOME/.miniconda3
+export PATH="$XSH_HOME/.local/bin:$XSH_CONDA_PREFIX/bin:$PATH"
 if [[ ! -z $XSH_VERBOSE ]]; then
+    echo "----- xsh envs -----"
     echo "\$HOME=$HOME"
     echo "\$OLD_HOME=$OLD_HOME"
     echo "\$XSH_NAME=$XSH_NAME"
     echo "\$XSH_HOME=$XSH_HOME"
+    echo "\$XSH_CONDA_PREFIX=$XSH_CONDA_PREFIX"
     echo "\$XDG_HOME=$XDG_HOME"
     echo "\$XDG_CONFIG_HOME=$XDG_CONFIG_HOME"
     echo "\$XDG_DATA_HOME=$XDG_DATA_HOME"
     echo "\$XDG_CACHE_HOME=$XDG_CACHE_HOME"
     echo "\$PATH=$PATH"
-    echo "CONDA_PREFIX=$CONDA_PREFIX"
     OUT=/dev/stdout
     ERR=/dev/stderr
 else
@@ -41,7 +42,7 @@ cd $HOME
 
 # conda
 CONDA_SRC=https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda
-if [ ! -f "$CONDA_PREFIX/bin/conda" ]; then
+if [ ! -f "$XSH_CONDA_PREFIX/bin/conda" ]; then
     CONDA_INSTALLER=$XSH_HOME/miniconda3.sh
     if [[ $(uname) == 'Darwin' ]]; then
         OS='MacOSX'
@@ -55,27 +56,32 @@ if [ ! -f "$CONDA_PREFIX/bin/conda" ]; then
     CONDA_URL=$CONDA_SRC/Miniconda3-latest-$OS-$ARCH.sh
     echo "Downloading miniconda3 from $CONDA_URL to $CONDA_INSTALLER..."
     curl -L $CONDA_URL -o $CONDA_INSTALLER 1>$OUT 2>$ERR
-    echo "Installing miniconda3 to $CONDA_PREFIX..."
-    sh $CONDA_INSTALLER -u -b -p $CONDA_PREFIX 1>$OUT 2>$ERR
+    echo "Installing miniconda3 to $XSH_CONDA_PREFIX..."
+    sh $CONDA_INSTALLER -u -b -p $XSH_CONDA_PREFIX 1>$OUT 2>$ERR
     if [ -f $CONDA_INSTALLER ]; then
         rm $CONDA_INSTALLER
     fi
 fi
 
 # xonsh
-CONDA_PYTHON=$CONDA_PREFIX/bin/python
+export XSH_PYTHON=$XSH_CONDA_PREFIX/bin/python
+if [[ ! -z $XSH_VERBOSE ]]; then
+    echo "----- xsh conda envs -----"
+    echo "\$XSH_PYTHON=$XSH_PYTHON"
+    PYTHONNOUSERSITE=1 $XSH_PYTHON -m site
+fi
 if [[ ! -z $XONSH_VERSION ]]; then
     exec $SHELL || exit 0
 fi
-if ! $CONDA_PYTHON -c 'import xonsh' &>/dev/null; then
-    USER_BASE=$($CONDA_PYTHON -m site --user-base)
+if ! PYTHONNOUSERSITE=1 $XSH_PYTHON -c 'import xonsh' &> $OUT; then
+    USER_BASE=$(PYTHONNOUSERSITE=1 $XSH_PYTHON -m site --user-base)
     echo "Installing xonsh to $USER_BASE..."
-    $CONDA_PYTHON -m pip install --user \
+    PYTHONNOUSERSITE=1 $XSH_PYTHON -m pip install \
         -r $XDG_CONFIG_HOME/xonsh/requirements.txt 1>$OUT 2>$ERR
 fi
-if ! $CONDA_PYTHON -c 'import xonsh' &>/dev/null; then
+if ! PYTHONNOUSERSITE=1 $XSH_PYTHON -c 'import xonsh' &> $OUT; then
     echo 'Xonsh failed to install, fall back to $SHELL.'
     exec $SHELL
 else
-    $CONDA_PREFIX/bin/python -m xonsh
+    PYTHONNOUSERSITE=1 $XSH_PYTHON -m xonsh
 fi

@@ -17,3 +17,11 @@ if not p'~/.tmux'.exists():
     execx('git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm')
 if 'TMUX' in ${...}:
     $TERM="xterm-256color"
+
+try:
+    $XONTRIB_ONEPATH_ACTIONS |= {
+        'text/': $VISUAL,
+        '*.log': 'tail',
+    }
+except KeyError:
+    pass
