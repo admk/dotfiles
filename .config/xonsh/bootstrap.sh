@@ -74,8 +74,7 @@ if [[ ! -z $XONSH_VERSION ]]; then
     exec $SHELL || exit 0
 fi
 if [ ! -f $XSH_CONDA_PREFIX/bin/xonsh ]; then
-    USER_BASE=$(PYTHONNOUSERSITE=1 $XSH_PYTHON -m site --user-base)
-    echo "Installing xonsh to $USER_BASE..."
+    echo "Installing xonsh..."
     PYTHONNOUSERSITE=1 $XSH_PYTHON -m pip install \
         -r $XDG_CONFIG_HOME/xonsh/requirements.txt 1>$OUT 2>$ERR
 fi

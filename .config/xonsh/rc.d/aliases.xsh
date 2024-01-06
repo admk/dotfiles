@@ -56,7 +56,7 @@ def _refresh():
     execx("source $XONSH_CONFIG_DIR/rc.d/*.xsh")
 
 
-@aliases.register("tr")
+@aliases.register("tmr")
 @aliases.register("tmux-reattach")
 def _tmux_reattach():
     tmux attach-session -d -t $USER 2>/dev/null || tmux new-session -s $USER
