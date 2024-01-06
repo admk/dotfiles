@@ -1,3 +1,4 @@
+libtmux
 prompt-toolkit
 xonsh-autoxsh
 xonsh[full]

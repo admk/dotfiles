@@ -29,6 +29,7 @@ aliases |= {
         "autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' "
         "-o ExitOnForwardFailure=yes -nNT",
     'ip': 'curl https://ifconfig.co/json' + (' | jq' if _which('jq') else ''),
+    'xtback': 'cat $XONSH_TRACEBACK_LOGFILE | less',
 }
 dep_aliases = {
     'rcp': 'rsync --progress --recursive --archive',
@@ -56,10 +57,19 @@ def _refresh():
     execx("source $XONSH_CONFIG_DIR/rc.d/*.xsh")
 
 
-@aliases.register("tmr")
-@aliases.register("tmux-reattach")
+@aliases.register('tmux')
+def _tmux(args):
+    with ${...}.swap(XDG_CONFIG_HOME=$XDG_CONFIG_HOME):
+        return ![tmux @(args)]
+
+
+@aliases.register('tmr')
+@aliases.register('tmux-reattach')
 def _tmux_reattach():
-    tmux attach-session -d -t $USER 2>/dev/null || tmux new-session -s $USER
+    tm = $(@(_which('which')) 'tmux').strip()
+    with ${...}.swap(XDG_CONFIG_HOME=$XDG_CONFIG_HOME):
+        @(tm) attach-session -d -t $USER 2>/dev/null || \
+            @(tm) new-session -s $USER
 
 
 @aliases.register('pd')

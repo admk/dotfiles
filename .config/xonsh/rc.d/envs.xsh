@@ -13,8 +13,6 @@ $LESS = '-F -g -i -M -R -S -w -X -z-4'
 $LC_CTYPE = 'en_US.UTF-8'
 $LC_ALL = 'en_US.UTF-8'
 
-if not p'~/.tmux'.exists():
-    execx('git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm')
 if 'TMUX' in ${...}:
     $TERM="xterm-256color"
 
