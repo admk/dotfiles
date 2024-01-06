@@ -11,3 +11,14 @@ $BASH_COMPLETIONS += [
 ]
 
 $SSH_AUTH_SOCK = '/Users/ko/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh'
+
+
+$CHROMIUM = p'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
+
+aliases['chrome'] = "'$CHROMIUM'"
+
+@aliases.register('proxy-browser')
+def proxy_browser(args):
+    parallel --halt-on-error 2 --ungroup ::: \
+        f'ssh -vNT -o ControlMaster=no -D 1080 {args[0]}' \
+        "'$CHROMIUM' --proxy-server=socks5://localhost:1080"

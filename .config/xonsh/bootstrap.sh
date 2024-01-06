@@ -2,31 +2,33 @@
 
 # envs
 export XSH_NAME=${XSH_NAME:-.kodot}
-export XSH_HOME=$HOME/$XSH_NAME
+export XSH_HOME=${XSH_OLD_HOME:-$HOME}/$XSH_NAME
 if [[ $XSH_MODE == 'non-hermetic' ]]; then
     export XDG_HOME=$HOME
 elif [[ $XSH_MODE == 'semi-hermetic' ]]; then
     export XDG_HOME=$XSH_HOME
 elif [[ $XSH_MODE == 'hermetic' ]]; then
     export XDG_HOME=$XSH_HOME
-    export OLD_HOME=${HOME}
+    export XSH_OLD_HOME=${HOME}
     export HOME=$XSH_HOME
 else
     echo 'Unsupported XSH_MODE $XSH_MODE' >&2
     exit 1
 fi
+export XSH_CONDA_PREFIX=$XSH_HOME/.miniconda3
+export XSH_SHELL=$XSH_CONDA_PREFIX/bin/xonsh
 export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
 export XDG_CACHE_HOME="$XDG_HOME/.cache"
-export XSH_CONDA_PREFIX=$XSH_HOME/.miniconda3
 export PATH="$XSH_HOME/.local/bin:$XSH_CONDA_PREFIX/bin:$PATH"
 if [[ ! -z $XSH_VERBOSE ]]; then
     echo "----- xsh envs -----"
     echo "\$HOME=$HOME"
-    echo "\$OLD_HOME=$OLD_HOME"
+    echo "\$XSH_OLD_HOME=$XSH_OLD_HOME"
     echo "\$XSH_NAME=$XSH_NAME"
     echo "\$XSH_HOME=$XSH_HOME"
     echo "\$XSH_CONDA_PREFIX=$XSH_CONDA_PREFIX"
+    echo "\$XSH_SHELL=$XSH_SHELL"
     echo "\$XDG_HOME=$XDG_HOME"
     echo "\$XDG_CONFIG_HOME=$XDG_CONFIG_HOME"
     echo "\$XDG_DATA_HOME=$XDG_DATA_HOME"
@@ -73,14 +75,14 @@ fi
 if [[ ! -z $XONSH_VERSION ]]; then
     exec $SHELL || exit 0
 fi
-if [ ! -f $XSH_CONDA_PREFIX/bin/xonsh ]; then
+if [ ! -f $XSH_SHELL ]; then
     echo "Installing xonsh..."
     PYTHONNOUSERSITE=1 $XSH_PYTHON -m pip install \
         -r $XDG_CONFIG_HOME/xonsh/requirements.txt 1>$OUT 2>$ERR
 fi
-if [ ! -f $XSH_CONDA_PREFIX/bin/xonsh ]; then
+if [ ! -f $XSH_SHELL ]; then
     echo 'Xonsh failed to install, fall back to $SHELL.'
     exec $SHELL
 else
-    SHELL=$XSH_CONDA_PREFIX/bin/xonsh $SHELL
+    SHELL=$XSH_SHELL exec $XSH_SHELL
 fi
