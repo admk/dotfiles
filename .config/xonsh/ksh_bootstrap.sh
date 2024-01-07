@@ -2,20 +2,22 @@
 
 # envs
 export KSH_NAME=${KSH_NAME:-.ksh}
-export KSH_HOME=${KSH_OLD_HOME:-$HOME}/$KSH_NAME
+export KSH_OLD_HOME=${KSH_OLD_HOME:-$HOME}
+export KSH_HOME=$KSH_OLD_HOME/$KSH_NAME
+export KSH_MODE=${KSH_MODE:-non-hermetic}
 if [[ $KSH_MODE == 'non-hermetic' ]]; then
     export XDG_HOME=$HOME
 elif [[ $KSH_MODE == 'semi-hermetic' ]]; then
     export XDG_HOME=$KSH_HOME
 elif [[ $KSH_MODE == 'hermetic' ]]; then
     export XDG_HOME=$KSH_HOME
-    export KSH_OLD_HOME=${HOME}
     export HOME=$KSH_HOME
 else
     echo 'Unsupported KSH_MODE $KSH_MODE' >&2
     exit 1
 fi
 export KSH_CONDA_PREFIX=$KSH_HOME/.miniconda3
+export KSH_PYTHON=$KSH_CONDA_PREFIX/bin/python
 export KSH_SHELL=$KSH_CONDA_PREFIX/bin/xonsh
 export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
@@ -28,6 +30,7 @@ if [[ ! -z $KSH_VERBOSE ]]; then
     echo "\$KSH_NAME=$KSH_NAME"
     echo "\$KSH_HOME=$KSH_HOME"
     echo "\$KSH_CONDA_PREFIX=$KSH_CONDA_PREFIX"
+    echo "\$KSH_PYTHON=$KSH_PYTHON"
     echo "\$KSH_SHELL=$KSH_SHELL"
     echo "\$XDG_HOME=$XDG_HOME"
     echo "\$XDG_CONFIG_HOME=$XDG_CONFIG_HOME"
@@ -66,23 +69,34 @@ if [ ! -f "$KSH_CONDA_PREFIX/bin/conda" ]; then
 fi
 
 # xonsh
-export KSH_PYTHON=$KSH_CONDA_PREFIX/bin/python
 if [[ ! -z $KSH_VERBOSE ]]; then
     echo "----- xsh conda envs -----"
     echo "\$KSH_PYTHON=$KSH_PYTHON"
     PYTHONNOUSERSITE=1 $KSH_PYTHON -m site
 fi
 if [[ ! -z $XONSH_VERSION ]]; then
-    exec $SHELL || exit 0
+    exec $SHELL $@ || exit 0
 fi
 if [ ! -f $KSH_SHELL ]; then
     echo "Installing xonsh..."
     PYTHONNOUSERSITE=1 $KSH_PYTHON -m pip install \
         -r $XDG_CONFIG_HOME/xonsh/requirements.txt 1>$OUT 2>$ERR
 fi
+if [ ! -f $KSH_OLD_HOME/.local/bin/xonsh ]; then
+    echo "Linking xonsh..."
+    mkdir -p $KSH_OLD_HOME/.local/bin
+    echo <<EOF > $KSH_OLD_HOME/.local/bin/xonsh
+#!/usr/bin/env bash
+XDG_CONFIG_HOME=$XDG_CONFIG_HOME \
+XDG_DATA_HOME=$XDG_DATA_HOME \
+XDG_CACHE_HOME=$XDG_CACHE_HOME \
+SHELL=$KSH_SHELL \
+exec $KSH_SHELL \$@
+EOF
+fi
 if [ ! -f $KSH_SHELL ]; then
     echo 'Xonsh failed to install, fall back to $SHELL.'
-    exec $SHELL
+    exec $SHELL $@ || exit 0
 else
-    SHELL=$KSH_SHELL exec $KSH_SHELL
+    SHELL=$KSH_SHELL exec $KSH_SHELL $@ || exit 0
 fi

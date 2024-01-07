@@ -5,12 +5,14 @@ xonsh[full]
 xontrib-abbrevs
 xontrib-argcomplete
 xontrib-autojump
+xonsh-apt-tabcomplete ; sys_platform == 'linux'
 xontrib-back2dir
 xontrib-clp
 xontrib-cmd-durations
 xontrib-ergopack
 xontrib-fish-completer
 xontrib-history-encrypt
+xontrib-homebrew ; sys_platform == "darwin"
 xontrib-onepath
 xontrib-output-search
 xontrib-pipeliner

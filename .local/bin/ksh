@@ -4,7 +4,7 @@ import argparse
 from enum import Enum
 
 
-KSH_NAME = 'ksh'
+KSH_NAME = '.ksh'
 
 
 class HermeticMode(Enum):
@@ -13,12 +13,11 @@ class HermeticMode(Enum):
     NON_HERMETIC = 2
 
 
-def _usage():
-    print(f"""Usage:
+_USAGE = (f"""Usage:
     ksh [-h | --help]
         [+v | +verbose]
         [(+h | +hermetic) | (+s | +semi-hermetic) | (+n | +non-hermetic)]
-        [ssh args] destination")
+        [ssh args] [destination]")
 
 Options:
     +v, +verbose: verbose mode.
@@ -47,7 +46,7 @@ def _parse_ssh_args(args):
         parser.add_argument(f'-{option}', action='store_true')
     for option in 'BbcDEeFIiJLlmOoPpQRSWw':
         parser.add_argument(f'-{option}', dest=option)
-    parser.add_argument('destination')
+    parser.add_argument('destination', nargs='?', default='localhost')
     return parser.parse_args(args[1:])
 
 
@@ -68,7 +67,7 @@ def _unparse_ssh_args(parsed_args, dest=True):
 
 ksh_args, ssh_args = [], []
 if '-h' in $ARGS or '--help' in $ARGS:
-    _usage()
+    print(_USAGE)
     exit(0)
 for a in $ARGS:
     if a.startswith('+'):
@@ -78,7 +77,7 @@ for a in $ARGS:
 ksh_args = _parse_ksh_args(ksh_args)
 ssh_args = _parse_ssh_args(ssh_args)
 
-gitdir = pf'~/.{KSH_NAME}'
+gitdir = pf'~/{KSH_NAME}'
 if pf'{gitdir}'.exists():
     cd @(gitdir)
     git pull --force origin master 2>&1 > /dev/null
