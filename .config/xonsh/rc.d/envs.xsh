@@ -1,5 +1,17 @@
 from shutil import which as _which
 
+$XONSH_HISTORY_BACKEND = 'sqlite'
+$HISTCONTROL = 'ignoredups'
+$MOUSE_SUPPORT = True
+
+$MULTILINE_PROMPT = ' '
+
+$AUTO_CD = True
+$DOTGLOB = True
+$XONSH_SHOW_TRACEBACK = True
+$XONSH_TRACEBACK_LOGFILE = f'{$XDG_CACHE_HOME}/xonsh-traceback.log'
+$SUGGEST_COMMANDS = False
+
 $VISUAL = 'vim'
 if _which('nvim'):
     $VISUAL = 'nvim'

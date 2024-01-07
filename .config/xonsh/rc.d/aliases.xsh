@@ -1,6 +1,23 @@
 from shutil import which as _which
 
 
+def _register_envs_alias(names, envs, cmd=None):
+    def _wrapper(args):
+        if cmd is not None:
+            args = [cmd] + args
+        with ${...}.swap(**envs):
+            ![@(args)]
+    names = [names] if isinstance(names, str) else names
+    for name in names:
+        aliases.register(name)(_wrapper)
+
+
+def _register_dep_aliases(dep_aliases):
+    for a, cmd in dep_aliases.items():
+        if _which(cmd.split(' ')[0]):
+            aliases[a] = cmd
+
+
 aliases |= {
     '-': 'cd -',
     'xup':
@@ -22,22 +39,21 @@ aliases |= {
     'gds': 'git diff --staged',
     'gl': 'git lg',
     'gw': 'git web',
+    'grep': 'grep --color=auto',
+    'http-here': 'python -m http.server',
     'py': 'python',
     'ipy': 'ipython',
-    'grep': 'grep --color=auto',
+    'll': 'ls -la',
     'ash':
         "autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' "
         "-o ExitOnForwardFailure=yes -nNT",
     'ip': 'curl https://ifconfig.co/json' + (' | jq' if _which('jq') else ''),
-    'xtback': 'cat $XONSH_TRACEBACK_LOGFILE | less',
+    'xtb': 'cat $XONSH_TRACEBACK_LOGFILE | less',
 }
-dep_aliases = {
+_register_dep_aliases({
     'rcp': 'rsync --progress --recursive --archive',
     'ls': 'eza',
-}
-for a, cmd in dep_aliases.items():
-    if _which(cmd.split(' ')[0]):
-        aliases[a] = cmd
+})
 
 
 @aliases.register(',')
@@ -46,6 +62,25 @@ for a, cmd in dep_aliases.items():
 @aliases.register(',,,,')
 def _supercomma():
     cd @("../" * (len($__ALIAS_NAME)))
+
+
+@aliases.register('pwgen')
+def _pwgen(args):
+    import argparse
+    import math
+    import secrets
+    import string
+    parser = argparse.ArgumentParser()
+    parser.add_argument('length', type=int, nargs='?', default=20)
+    parser.add_argument('-b', '--block-size', type=int, default=5)
+    args = parser.parse_args(args)
+    args.length = max(args.length, args.block_size)
+    args.length = math.ceil(args.length / args.block_size) * args.block_size
+    alphabet = string.ascii_letters + string.digits
+    password = ''.join(secrets.choice(alphabet) for i in range(args.length))
+    return '-'.join(
+        password[i:i + args.block_size]
+        for i in range(0, args.length, args.block_size))
 
 
 @aliases.register('xf')
@@ -90,17 +125,6 @@ def _pydb(args):
     execx(f"python -m debugpy --listen 5678 --wait-for-client {args}")
 
 
-def _register_envs_alias(names, envs, cmd=None):
-    def _wrapper(args):
-        if cmd is not None:
-            args = [cmd] + args
-        with ${...}.swap(**envs):
-            ![@(args)]
-    names = [names] if isinstance(names, str) else names
-    for name in names:
-        aliases.register(name)(_wrapper)
-
-
 _register_envs_alias('hf-offline', {
     'TRANSFORMERS_OFFLINE': '1',
     'HF_DATASETS_OFFLINE': '1',
@@ -109,6 +133,7 @@ _register_envs_alias('hf-offline', {
 
 
 @aliases.register('px')
+@aliases.register('proxy')
 def _proxy(args):
     envs = {
         'http_proxy': f'http://{$PROXY}',
@@ -121,6 +146,6 @@ def _proxy(args):
 ${...}.setdefault('PROXY', '127.0.0.1:7890')
 
 
-BASH_ENV = {'SHELL': '/bin/bash'}
-_register_envs_alias('ssh', BASH_ENV, cmd='ssh')
-_register_envs_alias('sshuttle', BASH_ENV, cmd='sshuttle')
+_BASH_ENV = {'SHELL': '/bin/bash'}
+_register_envs_alias('ssh', _BASH_ENV, cmd='ssh')
+_register_envs_alias('sshuttle', _BASH_ENV, cmd='sshuttle')
