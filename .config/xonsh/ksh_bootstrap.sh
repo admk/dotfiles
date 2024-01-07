@@ -85,14 +85,15 @@ fi
 if [ ! -f $KSH_OLD_HOME/.local/bin/xonsh ]; then
     echo "Linking xonsh..."
     mkdir -p $KSH_OLD_HOME/.local/bin
-    echo <<EOF > $KSH_OLD_HOME/.local/bin/xonsh
+    echo <<EOF
 #!/usr/bin/env bash
 XDG_CONFIG_HOME=$XDG_CONFIG_HOME \
 XDG_DATA_HOME=$XDG_DATA_HOME \
 XDG_CACHE_HOME=$XDG_CACHE_HOME \
 SHELL=$KSH_SHELL \
 exec $KSH_SHELL \$@
-EOF
+EOF > $KSH_OLD_HOME/.local/bin/xonsh
+    chmod +x $KSH_OLD_HOME/.local/bin/xonsh
 fi
 if [ ! -f $KSH_SHELL ]; then
     echo 'Xonsh failed to install, fall back to $SHELL.'
