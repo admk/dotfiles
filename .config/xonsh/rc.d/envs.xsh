@@ -9,6 +9,7 @@ $MULTILINE_PROMPT = ' '
 $AUTO_CD = True
 $DOTGLOB = True
 $XONSH_SHOW_TRACEBACK = True
+mkdir -p $XDG_CACHE_HOME
 $XONSH_TRACEBACK_LOGFILE = f'{$XDG_CACHE_HOME}/xonsh-traceback.log'
 $SUGGEST_COMMANDS = False
 

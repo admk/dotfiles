@@ -2,9 +2,9 @@ from shutil import which as _which
 
 
 def _rc_main():
-    $PATH += [
+    $PATH = [
         '~/.local/bin',
-    ]
+    ] + $PATH
 
     uname = $(uname).lower().strip()
     platformrc = pf'$XONSH_CONFIG_DIR/rc.d/platform/{uname}.xsh'

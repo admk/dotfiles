@@ -4,6 +4,9 @@ import argparse
 from enum import Enum
 
 
+KSH_NAME = 'ksh'
+
+
 class HermeticMode(Enum):
     HERMETIC = 0
     SEMI_HERMETIC = 1
@@ -12,7 +15,7 @@ class HermeticMode(Enum):
 
 def _usage():
     print(f"""Usage:
-    xsh [-h | --help]
+    ksh [-h | --help]
         [+v | +verbose]
         [(+h | +hermetic) | (+s | +semi-hermetic) | (+n | +non-hermetic)]
         [ssh args] destination")
@@ -24,7 +27,7 @@ Options:
     +n, +non-hermetic: use non-hermetic mode.""")
 
 
-def _parse_xsh_args(args):
+def _parse_ksh_args(args):
     ns = argparse.Namespace()
     ns.verbose = '+v' in args or '+verbose' in args
     mode = HermeticMode.HERMETIC
@@ -63,36 +66,36 @@ def _unparse_ssh_args(parsed_args, dest=True):
     return command_line
 
 
-xsh_args, ssh_args = [], []
+ksh_args, ssh_args = [], []
 if '-h' in $ARGS or '--help' in $ARGS:
     _usage()
     exit(0)
 for a in $ARGS:
     if a.startswith('+'):
-        xsh_args.append(a)
+        ksh_args.append(a)
     else:
         ssh_args.append(a)
-xsh_args = _parse_xsh_args(xsh_args)
+ksh_args = _parse_ksh_args(ksh_args)
 ssh_args = _parse_ssh_args(ssh_args)
 
-gitdir = '~/.kodot'
+gitdir = pf'~/.{KSH_NAME}'
 if pf'{gitdir}'.exists():
     cd @(gitdir)
     git pull --force origin master 2>&1 > /dev/null
     cd -
 else:
-    git clone ~ .kodot 2>&1 > /dev/null
+    git clone ~ @(gitdir) 2>&1 > /dev/null
 
 ssh_cmd = _unparse_ssh_args(ssh_args, dest=False)
 execx(f"rsync \
     --archive --compress --update --human-readable --partial \
     --progress --rsh {' '.join(ssh_cmd)!r} \
     --cvs-exclude --exclude .miniconda3/ --exclude .cache/ \
-    {gitdir}/ {ssh_args.destination}:.kodot")
-prefix = f'XSH_MODE={xsh_args.hermetic_mode.name.lower().replace("_", "-")}'
-if xsh_args.verbose:
-    prefix += f' XSH_VERBOSE={int(xsh_args.verbose)}'
-bootstrap = '.kodot/.config/xonsh/bootstrap.sh'
+    {gitdir}/ {ssh_args.destination}:{KSH_NAME}")
+prefix = f'KSH_MODE={ksh_args.hermetic_mode.name.lower().replace("_", "-")}'
+if ksh_args.verbose:
+    prefix += f' KSH_VERBOSE={int(ksh_args.verbose)}'
+bootstrap = f'{KSH_NAME}/.config/xonsh/ksh_bootstrap.sh'
 @(ssh_cmd) \
     -o RequestTTY=yes \
     @(ssh_args.destination) \
