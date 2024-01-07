@@ -85,14 +85,14 @@ fi
 if [ ! -f $KSH_OLD_HOME/.local/bin/xonsh ]; then
     echo "Linking xonsh..."
     mkdir -p $KSH_OLD_HOME/.local/bin
-    echo <<EOF
+    cat <<EOF > $KSH_OLD_HOME/.local/bin/xonsh
 #!/usr/bin/env bash
 XDG_CONFIG_HOME=$XDG_CONFIG_HOME \
 XDG_DATA_HOME=$XDG_DATA_HOME \
 XDG_CACHE_HOME=$XDG_CACHE_HOME \
 SHELL=$KSH_SHELL \
 exec $KSH_SHELL \$@
-EOF > $KSH_OLD_HOME/.local/bin/xonsh
+EOF
     chmod +x $KSH_OLD_HOME/.local/bin/xonsh
 fi
 if [ ! -f $KSH_SHELL ]; then
