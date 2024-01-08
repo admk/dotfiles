@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+import os
+import sys
+import argparse
+import subprocess
+from enum import Enum
+
+
+KXH_NAME = '.kxh'
+KXH_URL = 'https://github.com/admk/dotfiles.git'
+
+
+class HermeticMode(Enum):
+    HERMETIC = 0
+    SEMI_HERMETIC = 1
+    NON_HERMETIC = 2
+
+
+class KxhArgumentParser(argparse.ArgumentParser):
+    _USAGE = """
+    kxh [-h | --help]
+        [+v | +verbose]
+        [(+h | +hermetic) | (+s | +semi-hermetic) | (+n | +non-hermetic)]
+        [ssh args] [destination]
+
+Options:
+    +v, +verbose: verbose mode.
+    +h, +hermetic: use hermetic mode (default).
+    +s, +semi-hermetic: use semi-hermetic mode.
+    +n, +non-hermetic: use non-hermetic mode."""
+
+    def __init__(self):
+        super().__init__()
+        kxh_options = [
+            ('h', 'hermetic'),
+            ('s', 'semi-hermetic'),
+            ('n', 'non-hermetic'),
+            ('v', 'verbose')
+        ]
+        for options in kxh_options:
+            dest = f"kxh_{options[-1].replace('-', '_')}"
+            options = [f'--kxh-{o}' for o in options]
+            self.add_argument(*options, action='store_true', dest=dest)
+        for option in '46AaCfGgKkMNnqsTtVvXxYy':
+            self.add_argument(f'-{option}', action='store_true')
+        for option in 'BbcDEeFIiJLlmOoPpQRSWw':
+            self.add_argument(f'-{option}', dest=option)
+        self.add_argument('destination', nargs='?', default='localhost')
+
+    def parse_args(self, args=None, namespace=None):
+        args = args or sys.argv[1:]
+        if '-h' in args or '--help' in args:
+            self.print_usage()
+            exit(0)
+        normalized_args = []
+        for a in args:
+            if a.startswith('++'):
+                a = a.replace('-', '_')
+                normalized_args.append(f'--kxh-{a[2:]}')
+            elif a.startswith('+'):
+                a = a.replace('-', '_')
+                for af in a[1:]:
+                    normalized_args.append(f'--kxh-{af}')
+            else:
+                normalized_args.append(a)
+        ssh_args = super().parse_args(normalized_args, namespace)
+        kxh_args = argparse.Namespace()
+        for k, v in dict(vars(ssh_args)).items():
+            if k.startswith('kxh_'):
+                setattr(kxh_args, k[4:], v)
+                delattr(ssh_args, k)
+        hmode = HermeticMode.HERMETIC
+        if kxh_args.semi_hermetic:
+            hmode = HermeticMode.SEMI_HERMETIC
+        if kxh_args.non_hermetic:
+            hmode = HermeticMode.NON_HERMETIC
+        kxh_args.hermetic_mode = hmode
+        return kxh_args, ssh_args
+
+    def unparse_ssh_args(self, parsed_args, dest=True):
+        command_line = ['ssh']
+        for option in '46AaCfGgKkMNnqsTtVvXxYy':
+            if getattr(parsed_args, option):
+                command_line.append(f'-{option}')
+        for option in 'BbcDEeFIiJLlmOoPpQRSWw':
+            value = getattr(parsed_args, option)
+            if value is not None:
+                command_line.append(f'-{option}')
+                command_line.append(str(value))
+        if dest:
+            command_line.append(parsed_args.destination)
+        return command_line
+
+    def print_usage(self):
+        print(f'Usage:\n{self._USAGE}')
+
+    def error(self, message):
+        self.print_usage()
+        print(message.replace('--kxh-', '+'))
+        exit(1)
+
+
+def main(kxh_args, ssh_args, ssh_cmd):
+    if ' ' in KXH_NAME:
+        print('KXH name cannot contain spaces.', file=sys.stderr)
+        exit(1)
+    gitdir = os.path.join(os.environ['HOME'], KXH_NAME)
+    if kxh_args.verbose:
+        out = sys.stdout
+    else:
+        out = open(os.devnull, 'w')
+    if os.path.exists(gitdir):
+        subprocess.run(
+            'git pull --force origin master',
+            shell=True, cwd=gitdir, stdout=out, stderr=out, check=True)
+    else:
+        subprocess.run(
+            f'git clone {KXH_URL} {gitdir}',
+            shell=True, stdout=out, check=True)
+
+    rsync_cmd = [
+        "rsync --archive --compress --update --human-readable --partial",
+        "--progress", f"--rsh {' '.join(ssh_cmd)!r}",
+        "--cvs-exclude --exclude .miniconda3/ --exclude .cache/",
+        f"\'{gitdir}/\' {ssh_args.destination}:{KXH_NAME}"
+    ]
+    if kxh_args.verbose:
+        print(' '.join(rsync_cmd))
+    subprocess.run(' '.join(rsync_cmd), stdout=out, shell=True, check=True)
+    prefix = [
+        f'KXH_MODE={kxh_args.hermetic_mode.name.lower().replace("_", "-")}',
+        f'KXH_VERBOSE={int(kxh_args.verbose)}'
+    ]
+    bootstrap = f"env {' '.join(prefix)} bash -c {KXH_NAME}/.config/xonsh/kxh_bootstrap.sh"
+    ssh_cmd += ['-o', 'RequestTTY=yes', ssh_args.destination, bootstrap]
+    if kxh_args.verbose:
+        print(' '.join(ssh_cmd))
+    subprocess.run(' '.join(ssh_cmd), shell=True, check=True)
+
+
+if __name__ == '__main__':
+    parser = KxhArgumentParser()
+    kxh_args, ssh_args = parser.parse_args()
+    ssh_cmd = parser.unparse_ssh_args(ssh_args, dest=False)
+    main(kxh_args, ssh_args, ssh_cmd)
