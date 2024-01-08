@@ -1,8 +1,8 @@
 from shutil import which as _which
 
-$XONSH_HISTORY_BACKEND = 'sqlite'
+# $XONSH_HISTORY_BACKEND = 'sqlite'
 $HISTCONTROL = 'ignoredups'
-$MOUSE_SUPPORT = True
+$MOUSE_SUPPORT = False
 
 $MULTILINE_PROMPT = ' '
 

@@ -112,27 +112,29 @@ def main(kxh_args, ssh_args, ssh_cmd):
     if os.path.exists(gitdir):
         subprocess.run(
             'git pull --force origin master',
-            shell=True, cwd=gitdir, stdout=out, stderr=out, check=True)
+            shell=True, cwd=gitdir, stdout=out, check=True)
     else:
         subprocess.run(
             f'git clone {KXH_URL} {gitdir}',
             shell=True, stdout=out, check=True)
 
     rsync_cmd = [
-        "rsync --archive --compress --update --human-readable --partial",
-        "--progress", f"--rsh {' '.join(ssh_cmd)!r}",
+        "rsync --archive --compress --human-readable",
+        "--update --partial --progress --checksum",
+        f"--rsh {' '.join(ssh_cmd)!r}",
         "--cvs-exclude --exclude .miniconda3/ --exclude .cache/",
         f"\'{gitdir}/\' {ssh_args.destination}:{KXH_NAME}"
     ]
     if kxh_args.verbose:
         print(' '.join(rsync_cmd))
-    subprocess.run(' '.join(rsync_cmd), stdout=out, shell=True, check=True)
+    subprocess.run(
+        ' '.join(rsync_cmd), stdout=out, shell=True, check=True)
     prefix = [
         f'KXH_MODE={kxh_args.hermetic_mode.name.lower().replace("_", "-")}',
         f'KXH_VERBOSE={int(kxh_args.verbose)}'
     ]
     bootstrap = f"env {' '.join(prefix)} bash -c {KXH_NAME}/.config/xonsh/kxh_bootstrap.sh"
-    ssh_cmd += ['-o', 'RequestTTY=yes', ssh_args.destination, bootstrap]
+    ssh_cmd += ['-o', 'RequestTTY=yes', ssh_args.destination, repr(bootstrap)]
     if kxh_args.verbose:
         print(' '.join(ssh_cmd))
     subprocess.run(' '.join(ssh_cmd), shell=True, check=True)

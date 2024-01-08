@@ -23,7 +23,7 @@ export KXH_SHELL=$KXH_CONDA_PREFIX/bin/xonsh
 export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
 export XDG_CACHE_HOME="$XDG_HOME/.cache"
-export PATH="$KXH_HOME/.local/bin:$KXH_CONDA_PREFIX/bin:$PATH"
+# export PATH="$KXH_HOME/.local/bin:$KXH_CONDA_PREFIX/bin:$PATH"
 if [[ $KXH_VERBOSE == '1' ]]; then
     echo "----- XONSH ENV -----"
     echo "\$HOME=$HOME"
@@ -39,6 +39,7 @@ if [[ $KXH_VERBOSE == '1' ]]; then
     echo "\$XDG_DATA_HOME=$XDG_DATA_HOME"
     echo "\$XDG_CACHE_HOME=$XDG_CACHE_HOME"
     echo "\$PATH=$PATH"
+    echo "args: $@"
     OUT=/dev/stdout
     ERR=/dev/stderr
 else
@@ -56,7 +57,7 @@ if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
     elif [[ $(uname) == 'Linux' ]]; then
         OS='Linux'
     else
-        echo 'Unsupported OS $OS' >&2
+        echo 'Unsupported OS $OS' >$ERR
         exit 1
     fi
     ARCH=$(uname -m)

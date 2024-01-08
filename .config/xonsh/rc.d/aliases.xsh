@@ -110,7 +110,7 @@ def _tmux_reattach():
 @aliases.register('pd')
 @aliases.register('pydb')
 def _pydb(args):
-    processes = $(lsof -i :5678)
+    processes = $(lsof -i tcp:5678)
     if processes:
         for proc in processes.split()[1:]:
             proc_out = proc.split(' ')
@@ -121,8 +121,7 @@ def _pydb(args):
                     else:
                         print('Aborting')
                         return
-    args = ' '.join(args)
-    execx(f"python -m debugpy --listen 5678 --wait-for-client {args}")
+    $[python -m debugpy --listen 5678 --wait-for-client @(args)]
 
 
 _register_envs_alias('hf-offline', {
