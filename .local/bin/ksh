@@ -77,6 +77,9 @@ for a in $ARGS:
 ksh_args = _parse_ksh_args(ksh_args)
 ssh_args = _parse_ssh_args(ssh_args)
 
+if ' ' in KSH_NAME:
+    echo 'KSH name cannot contain spaces.'
+    exit(1)
 gitdir = pf'~/{KSH_NAME}'
 if pf'{gitdir}'.exists():
     cd @(gitdir)
@@ -86,16 +89,14 @@ else:
     git clone ~ @(gitdir) 2>&1 > /dev/null
 
 ssh_cmd = _unparse_ssh_args(ssh_args, dest=False)
-execx(f"rsync \
+rsync \
     --archive --compress --update --human-readable --partial \
-    --progress --rsh {' '.join(ssh_cmd)!r} \
+    --progress --rsh @((' '.join(ssh_cmd))) \
     --cvs-exclude --exclude .miniconda3/ --exclude .cache/ \
-    {gitdir}/ {ssh_args.destination}:{KSH_NAME}")
-prefix = f'KSH_MODE={ksh_args.hermetic_mode.name.lower().replace("_", "-")}'
-if ksh_args.verbose:
-    prefix += f' KSH_VERBOSE={int(ksh_args.verbose)}'
-bootstrap = f'{KSH_NAME}/.config/xonsh/ksh_bootstrap.sh'
-@(ssh_cmd) \
-    -o RequestTTY=yes \
-    @(ssh_args.destination) \
-    @(f"bash -c '{prefix} {bootstrap}'")
+    @(gitdir)/ @(ssh_args.destination):@(KSH_NAME)
+prefix = [
+    f'KSH_MODE={ksh_args.hermetic_mode.name.lower().replace("_", "-")}',
+    f'KSH_VERBOSE={int(ksh_args.verbose)}'
+]
+bootstrap = f"{' '.join(prefix)} bash -c {KSH_NAME}/.config/xonsh/ksh_bootstrap.sh"
+@(ssh_cmd) -o RequestTTY=yes @(ssh_args.destination) @([bootstrap])

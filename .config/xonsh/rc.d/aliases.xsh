@@ -6,7 +6,7 @@ def _register_envs_alias(names, envs, cmd=None):
         if cmd is not None:
             args = [cmd] + args
         with ${...}.swap(**envs):
-            ![@(args)]
+            execx(' '.join(args))
     names = [names] if isinstance(names, str) else names
     for name in names:
         aliases.register(name)(_wrapper)

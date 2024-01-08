@@ -4,7 +4,7 @@
 export KSH_NAME=${KSH_NAME:-.ksh}
 export KSH_OLD_HOME=${KSH_OLD_HOME:-$HOME}
 export KSH_HOME=$KSH_OLD_HOME/$KSH_NAME
-export KSH_MODE=${KSH_MODE:-non-hermetic}
+export KSH_MODE=${KSH_MODE:-hermetic}
 if [[ $KSH_MODE == 'non-hermetic' ]]; then
     export XDG_HOME=$HOME
 elif [[ $KSH_MODE == 'semi-hermetic' ]]; then
@@ -16,6 +16,7 @@ else
     echo 'Unsupported KSH_MODE $KSH_MODE' >&2
     exit 1
 fi
+export KSH_BOOTSTRAP="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 export KSH_CONDA_PREFIX=$KSH_HOME/.miniconda3
 export KSH_PYTHON=$KSH_CONDA_PREFIX/bin/python
 export KSH_SHELL=$KSH_CONDA_PREFIX/bin/xonsh
@@ -23,12 +24,13 @@ export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
 export XDG_CACHE_HOME="$XDG_HOME/.cache"
 export PATH="$KSH_HOME/.local/bin:$KSH_CONDA_PREFIX/bin:$PATH"
-if [[ ! -z $KSH_VERBOSE ]]; then
+if [[ $KSH_VERBOSE == '1' ]]; then
     echo "----- xsh envs -----"
     echo "\$HOME=$HOME"
     echo "\$KSH_OLD_HOME=$KSH_OLD_HOME"
     echo "\$KSH_NAME=$KSH_NAME"
     echo "\$KSH_HOME=$KSH_HOME"
+    echo "\$KSH_BOOTSTRAP=$KSH_BOOTSTRAP"
     echo "\$KSH_CONDA_PREFIX=$KSH_CONDA_PREFIX"
     echo "\$KSH_PYTHON=$KSH_PYTHON"
     echo "\$KSH_SHELL=$KSH_SHELL"
@@ -69,7 +71,7 @@ if [ ! -f "$KSH_CONDA_PREFIX/bin/conda" ]; then
 fi
 
 # xonsh
-if [[ ! -z $KSH_VERBOSE ]]; then
+if [[ $KSH_VERBOSE == '1' ]]; then
     echo "----- xsh conda envs -----"
     echo "\$KSH_PYTHON=$KSH_PYTHON"
     PYTHONNOUSERSITE=1 $KSH_PYTHON -m site
@@ -85,15 +87,7 @@ fi
 if [ ! -f $KSH_OLD_HOME/.local/bin/xonsh ]; then
     echo "Linking xonsh..."
     mkdir -p $KSH_OLD_HOME/.local/bin
-    cat <<EOF > $KSH_OLD_HOME/.local/bin/xonsh
-#!/usr/bin/env bash
-XDG_CONFIG_HOME=$XDG_CONFIG_HOME \
-XDG_DATA_HOME=$XDG_DATA_HOME \
-XDG_CACHE_HOME=$XDG_CACHE_HOME \
-SHELL=$KSH_SHELL \
-exec $KSH_SHELL \$@
-EOF
-    chmod +x $KSH_OLD_HOME/.local/bin/xonsh
+    ln -s $KSH_BOOTSTRAP $KSH_OLD_HOME/.local/bin/xonsh
 fi
 if [ ! -f $KSH_SHELL ]; then
     echo 'Xonsh failed to install, fall back to $SHELL.'
