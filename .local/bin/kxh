@@ -112,11 +112,11 @@ def main(kxh_args, ssh_args, ssh_cmd):
     if os.path.exists(gitdir):
         subprocess.run(
             'git pull --force origin master',
-            shell=True, cwd=gitdir, stdout=out, check=True)
+            shell=True, cwd=gitdir, stdout=out, stderr=out, check=True)
     else:
         subprocess.run(
             f'git clone {KXH_URL} {gitdir}',
-            shell=True, stdout=out, check=True)
+            shell=True, stdout=out, stderr=out, check=True)
 
     rsync_cmd = [
         "rsync --archive --compress --human-readable",

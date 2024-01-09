@@ -1,4 +1,5 @@
 from shutil import which as _which
+from xonsh.tools import unthreadable
 
 
 def _register_envs_alias(names, envs, cmd=None):
@@ -48,7 +49,7 @@ aliases |= {
         "autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' "
         "-o ExitOnForwardFailure=yes -nNT",
     'ip': 'curl https://ifconfig.co/json' + (' | jq' if _which('jq') else ''),
-    'xtb': 'cat $XONSH_TRACEBACK_LOGFILE | less',
+    'xtb': 'cat $XONSH_TRACEBACK_LOGFILE | less +G',
 }
 _register_dep_aliases({
     'rcp': 'rsync --progress --recursive --archive',
@@ -109,6 +110,7 @@ def _tmux_reattach():
 
 @aliases.register('pd')
 @aliases.register('pydb')
+@unthreadable
 def _pydb(args):
     processes = $(lsof -i tcp:5678)
     if processes:
