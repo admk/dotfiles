@@ -3,11 +3,13 @@ import os
 import sys
 import argparse
 import subprocess
+from shutil import which
 from enum import Enum
 
 
 KXH_NAME = '.kxh'
 KXH_URL = 'https://github.com/admk/dotfiles.git'
+SSH = f"{which('ssh')}"
 
 
 class HermeticMode(Enum):
@@ -78,7 +80,7 @@ Options:
         return kxh_args, ssh_args
 
     def unparse_ssh_args(self, parsed_args, dest=True):
-        command_line = ['ssh']
+        command_line = [SSH]
         for option in '46AaCfGgKkMNnqsTtVvXxYy':
             if getattr(parsed_args, option):
                 command_line.append(f'-{option}')
@@ -119,25 +121,28 @@ def main(kxh_args, ssh_args, ssh_cmd):
             shell=True, stdout=out, stderr=out, check=True)
 
     rsync_cmd = [
+        f"SHELL={which('bash')}",
         "rsync --archive --compress --human-readable",
         "--update --partial --progress --checksum",
         f"--rsh {' '.join(ssh_cmd)!r}",
         "--cvs-exclude --exclude .miniconda3/ --exclude .cache/",
         f"\'{gitdir}/\' {ssh_args.destination}:{KXH_NAME}"
     ]
+    rsync_cmd = ' '.join(rsync_cmd)
     if kxh_args.verbose:
-        print(' '.join(rsync_cmd))
-    subprocess.run(
-        ' '.join(rsync_cmd), stdout=out, shell=True, check=True)
+        print(rsync_cmd)
+    subprocess.run(rsync_cmd, stdout=out, shell=True, check=True)
     prefix = [
         f'KXH_MODE={kxh_args.hermetic_mode.name.lower().replace("_", "-")}',
         f'KXH_VERBOSE={int(kxh_args.verbose)}'
     ]
-    bootstrap = f"env {' '.join(prefix)} bash -c {KXH_NAME}/.config/xonsh/kxh_bootstrap.sh"
+    bootstrap = f"env {' '.join(prefix)} "
+    bootstrap += f'bash -c {KXH_NAME}/.config/xonsh/kxh_bootstrap.sh'
     ssh_cmd += ['-o', 'RequestTTY=yes', ssh_args.destination, repr(bootstrap)]
+    ssh_cmd = ' '.join(ssh_cmd)
     if kxh_args.verbose:
-        print(' '.join(ssh_cmd))
-    subprocess.run(' '.join(ssh_cmd), shell=True, check=True)
+        print(ssh_cmd)
+    subprocess.run(ssh_cmd, shell=True, check=True)
 
 
 if __name__ == '__main__':
