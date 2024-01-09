@@ -77,9 +77,6 @@ if [[ $KXH_VERBOSE == '1' ]]; then
     echo "\$KXH_PYTHON=$KXH_PYTHON"
     PYTHONNOUSERSITE=1 $KXH_PYTHON -m site
 fi
-if [[ ! -z $XONSH_VERSION ]]; then
-    exec $SHELL $@ || exit 0
-fi
 if [ ! -f $KXH_SHELL ]; then
     echo "Installing xonsh..."
     PYTHONNOUSERSITE=1 $KXH_PYTHON -m pip install \
@@ -90,8 +87,11 @@ if [ ! -f $KXH_OLD_HOME/.local/bin/xonsh ]; then
     mkdir -p $KXH_OLD_HOME/.local/bin
     ln -s $KXH_BOOTSTRAP $KXH_OLD_HOME/.local/bin/xonsh
 fi
+if [[ ! -z $XONSH_VERSION ]]; then
+    exec $SHELL $@ || exit 0
+fi
 if [ ! -f $KXH_SHELL ]; then
-    echo 'Xonsh failed to install, fall back to $SHELL.'
+    echo 'Xonsh failed to install, fall back to $SHELL.' >$ERR
     exec $SHELL $@ || exit 0
 else
     SHELL=$KXH_SHELL exec $KXH_SHELL $@ || exit 0
