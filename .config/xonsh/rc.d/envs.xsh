@@ -1,6 +1,9 @@
 from shutil import which as _which
 
+mkdir -p $XDG_CACHE_HOME/xonsh
+
 $XONSH_HISTORY_BACKEND = 'sqlite'
+$XONSH_HISTORY_FILE = f'{$XDG_CACHE_HOME}/xonsh/xonsh-history.sqlite'
 $HISTCONTROL = 'ignoredups'
 $MOUSE_SUPPORT = False
 

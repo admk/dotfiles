@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import os
 import sys
+import tempfile
 import argparse
+import functools
 import subprocess
 from shutil import which
 from enum import Enum
 
 
-KXH_NAME = '.kxh'
-KXH_URL = 'https://github.com/admk/dotfiles.git'
 SSH = f"{which('ssh')}"
 
 
@@ -21,7 +21,7 @@ class HermeticMode(Enum):
 class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
-        [+v | +verbose]
+        [+d | +dry] [+v | +verbose]
         [(+h | +hermetic) | (+s | +semi-hermetic) | (+n | +non-hermetic)]
         [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
         [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
@@ -40,10 +40,11 @@ Options:
     def __init__(self):
         super().__init__()
         kxh_options = [
+            ('d', 'dry'),
+            ('v', 'verbose'),
             ('h', 'hermetic'),
             ('s', 'semi-hermetic'),
             ('n', 'non-hermetic'),
-            ('v', 'verbose')
         ]
         for options in kxh_options:
             dest = f"kxh_{options[-1].replace('-', '_')}"
@@ -108,51 +109,102 @@ Options:
         exit(1)
 
 
-def main(kxh_args, ssh_args, ssh_cmd):
-    if ' ' in KXH_NAME:
-        print('KXH name cannot contain spaces.', file=sys.stderr)
-        exit(1)
-    gitdir = os.path.join(os.environ['HOME'], KXH_NAME)
-    if kxh_args.verbose:
-        out = sys.stdout
-    else:
-        out = open(os.devnull, 'w')
-    if os.path.exists(gitdir):
-        subprocess.run(
-            'git pull --force origin master',
-            shell=True, cwd=gitdir, stdout=out, stderr=out, check=True)
-    else:
-        subprocess.run(
-            f'git clone {KXH_URL} {gitdir}',
-            shell=True, stdout=out, stderr=out, check=True)
+class KXH:
+    name = '.kxh'
+    url = 'https://github.com/admk/dotfiles.git'
 
-    rsync_cmd = [
-        f"SHELL={which('bash')}",
-        "rsync --archive --compress --human-readable",
-        "--update --partial --progress --checksum",
-        f"--rsh {' '.join(ssh_cmd)!r}",
-        "--cvs-exclude --exclude .miniconda3/ --exclude .cache/",
-        f"\'{gitdir}/\' {ssh_args.destination}:{KXH_NAME}"
-    ]
-    rsync_cmd = ' '.join(rsync_cmd)
-    if kxh_args.verbose:
-        print(rsync_cmd)
-    subprocess.run(rsync_cmd, stdout=out, shell=True, check=True)
-    prefix = [
-        f'KXH_MODE={kxh_args.hermetic_mode.name.lower().replace("_", "-")}',
-        f'KXH_VERBOSE={int(kxh_args.verbose)}'
-    ]
-    bootstrap = f"env {' '.join(prefix)} "
-    bootstrap += f'bash -c {KXH_NAME}/.config/xonsh/kxh_bootstrap.sh'
-    ssh_cmd += ['-o', 'RequestTTY=yes', ssh_args.destination, repr(bootstrap)]
-    ssh_cmd = ' '.join(ssh_cmd)
-    if kxh_args.verbose:
-        print(ssh_cmd)
-    subprocess.run(ssh_cmd, shell=True, check=True)
+    def __init__(self):
+        super().__init__()
+        if ' ' in self.name:
+            print('KXH name cannot contain spaces.', file=sys.stderr)
+            exit(1)
+        self.home = os.environ.get('KXH_HOME', None)
+        if not self.home:
+            self.home = os.path.join(os.environ['HOME'], self.name)
+        parser = KxhArgumentParser()
+        kxh_args, ssh_args = parser.parse_args()
+        self.ssh_cmd = parser.unparse_ssh_args(ssh_args, dest=False)
+        for args in (kxh_args, ssh_args):
+            for k, v in dict(vars(args)).items():
+                if hasattr(self, k):
+                    raise ValueError(f'Attribute {k!r} already exists.')
+                setattr(self, k, v)
+
+    def _run(self, command, error_message, **kwargs):
+        if self.verbose:
+            print(f'Run: {command}')
+            err = sys.stderr
+        else:
+            err = subprocess.DEVNULL
+        if self.dry:
+            return
+        try:
+            output = subprocess.check_output(command, stderr=err, **kwargs)
+        except subprocess.CalledProcessError:
+            print(f'Error: {error_message}', file=sys.stderr)
+            exit(1)
+        if self.verbose:
+            print(output.decode('utf-8'))
+        return output.decode('utf-8')
+
+    def _run_shell(self, command, error_message, **kwargs):
+        if self.verbose:
+            print(f'Run: {command}')
+        else:
+            kwargs.setdefault('stdout', subprocess.DEVNULL)
+        if self.dry:
+            return
+        try:
+            subprocess.run(command, shell=True, **kwargs)
+        except subprocess.CalledProcessError:
+            print(error_message, file=sys.stderr)
+            exit(1)
+
+    def _sync_files(self):
+        if not os.path.exists(self.home):
+            self._run(
+                f'git clone {self.url} {self.home}',
+                f'Failed to clone {self.url!r} to {self.home!r}.')
+        with tempfile.NamedTemporaryFile(mode='w+') as f:
+            file_list = self._run(
+                ['git', 'ls-files'],
+                f'Failed to list files in {self.home!r}.',
+                cwd=self.home)
+            file_list = file_list or ''
+            f.write(file_list)
+            f.flush()
+            rsync_cmd = [
+                f"SHELL={which('bash')}",
+                "rsync --archive --compress --human-readable",
+                "--update --partial --progress --checksum",
+                f"--rsh {' '.join(self.ssh_cmd)!r}",
+                f"--files-from {f.name}",
+                f"\'{self.home}/\' {self.destination}:{self.name}"
+            ]
+            rsync_cmd = ' '.join(rsync_cmd)
+            self._run_shell(
+                rsync_cmd,
+                f'Failed to rsync files to {self.destination!r}.')
+
+    def _bootstrap(self):
+        prefix = [
+            f'KXH_MODE={self.hermetic_mode.name.lower().replace("_", "-")}',
+            f'KXH_VERBOSE={int(self.verbose)}'
+        ]
+        bootstrap = f"env {' '.join(prefix)} "
+        bootstrap += f'bash -c {self.name}/.config/xonsh/kxh_bootstrap.sh'
+        ssh_cmd = self.ssh_cmd + [
+            '-o', 'RequestTTY=yes', self.destination, repr(bootstrap)
+        ]
+        ssh_cmd = ' '.join(ssh_cmd)
+        self._run_shell(
+            ssh_cmd, 'Failed to load ssh session.',
+            stdout=sys.stdout, stderr=sys.stderr)
+
+    def main(self):
+        self._sync_files()
+        self._bootstrap()
 
 
 if __name__ == '__main__':
-    parser = KxhArgumentParser()
-    kxh_args, ssh_args = parser.parse_args()
-    ssh_cmd = parser.unparse_ssh_args(ssh_args, dest=False)
-    main(kxh_args, ssh_args, ssh_cmd)
+    KXH().main()

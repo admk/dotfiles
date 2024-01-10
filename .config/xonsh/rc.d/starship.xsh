@@ -4,7 +4,6 @@ $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
 
 
 def _starship_main():
-
     if platform.system() == "Darwin":
         arch = 'aarch64-apple-darwin'
     else:

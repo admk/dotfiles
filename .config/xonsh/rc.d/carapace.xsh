@@ -13,7 +13,9 @@ def _carapace_path():
     return None
 
 
-if _carapace := _carapace_path():
+if ${...}.get('USE_CARAPACE', False) and _carapace := _carapace_path():
     aliases['carapace'] = _carapace
     COMPLETIONS_CONFIRM = True
-    exec($(carapace _carapace))
+    exec($(carapace _carapace xonsh))
+    # mkdir -p $XDG_CONFIG_HOME/carapace/bin
+    # ln -s @(_carapace) $XDG_CONFIG_HOME/carapace/bin/carapace
