@@ -13,7 +13,7 @@ def _carapace_path():
     return None
 
 
-if ${...}.get('USE_CARAPACE', False):
+if ${...}.get('USE_CARAPACE', True):
     _carapace_exec = _carapace_path()
     if _carapace_exec:
         aliases['carapace'] = _carapace_exec

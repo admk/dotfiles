@@ -1,9 +1,6 @@
-import platform
-
-$STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
-
-
 def _starship_main():
+    import platform
+
     if platform.system() == "Darwin":
         arch = 'aarch64-apple-darwin'
     else:
@@ -12,8 +9,10 @@ def _starship_main():
     file = f'{home}/.local/bin/starship-{arch}'
 
     if pf'{file}'.exists():
+        $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
         aliases['starship'] = file
         xontrib load prompt_starship
 
 
 _starship_main()
+del _starship_main
