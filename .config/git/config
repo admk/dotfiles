@@ -1,0 +1,71 @@
+[alias]
+    br = branch
+    cm = commit
+    co = checkout
+    d = diff
+    ds = diff --staged
+    rb = rebase
+    rs = restore
+    mg = merge
+    s = status --short --branch --column
+    sm = submodule
+    sw = swich
+    st = stash
+    un = reset
+    lg = log --graph --date-order --abbrev-commit --date=relative
+    unstage = reset
+    unstage-all = reset --soft HEAD^
+    web = "!f() { REPO_URL=$(git config remote.origin.url); open ${REPO_URL%%.git}; }; f"
+[format]
+    pretty=format:%C(bold red)%h%Creset%C(yellow)%d%Creset %s %Cgreen(%ad) %C(bold blue)<%an>%Creset
+[core]
+    autocrlf = input
+    pager = colordiff | less --tabs=4 -RFX
+[commit]
+    gpgsign = true
+[color]
+    ui = auto
+    diff = true
+    status = auto
+    branch = auto
+    interactive = auto
+    grep = auto
+    pager = true
+    decorate = auto
+    showbranch = auto
+[branch]
+    autosetupmerge = always
+    autosetuprebase = always
+[merge]
+    log = true
+    summary = true
+[push]
+    default = matching
+[filter "lfs"]
+    required = true
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+[color "diff-highlight"]
+    oldNormal = red bold
+    oldHighlight = red bold 52
+    newNormal = green bold
+    newHighlight = green bold 22
+[color "diff"]
+    frag = magenta bold
+    old = red bold
+    new = green bold
+    whitespace = red reverse
+[rebase]
+    autoStash = true
+[pull]
+    rebase = false
+[url "https://github.com/"]
+    insteadOf = git://github.com/
+    insteadOf = git@github.com:
+    insteadOf = gh:
+    insteadOf = github:
+[gpg]
+    program = gpg
+[init]
+    defaultBranch = main

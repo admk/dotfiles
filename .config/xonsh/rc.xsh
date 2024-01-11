@@ -2,18 +2,14 @@ from shutil import which as _which
 
 
 def _rc_main():
-    $PATH = [
-        '~/.local/bin',
-    ] + $PATH
+    $PATH.insert(0, '~/.local/bin')
+    if 'KXH_HOME' in ${...}:
+        $PATH.insert(0, '$KXH_HOME/.local/bin')
 
     uname = $(uname).lower().strip()
     platformrc = pf'$XONSH_CONFIG_DIR/rc.d/platform/{uname}.xsh'
     if platformrc.exists():
         execx(f'source {platformrc}')
-
-    # if !(which carapace):
-    #     $COMPLETIONS_CONFIRM=True
-    #     exec($(carapace _carapace xonsh))
 
     $XONTRIB_SH_SHELLS = ['bash', 'sh']
     $XONTRIBS_AUTOLOAD_DISABLED = True
