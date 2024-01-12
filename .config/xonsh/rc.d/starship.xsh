@@ -11,6 +11,8 @@ def _starship_main():
     if pf'{file}'.exists():
         $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
         aliases['starship'] = file
+        if ${...}.get('KXH_VERBOSE') == '1':
+            print(f'kxh: starship: using {file!r}')
         xontrib load prompt_starship
 
 

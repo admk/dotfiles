@@ -16,8 +16,10 @@ def _carapace_path():
 if ${...}.get('USE_CARAPACE', True):
     _carapace_exec = _carapace_path()
     if _carapace_exec:
+        if ${...}.get('KXH_VERBOSE') == '1':
+            print(f'kxh: carapace: using {_carapace_exec}')
         aliases['carapace'] = _carapace_exec
-        COMPLETIONS_CONFIRM = True
+        $COMPLETIONS_CONFIRM = True
         exec($(carapace _carapace xonsh))
         # mkdir -p $XDG_CONFIG_HOME/carapace/bin
         # ln -s @(_carapace_exec) $XDG_CONFIG_HOME/carapace/bin/carapace
