@@ -1,5 +1,5 @@
 from shutil import which as _which
-from xonsh.tools import unthreadable
+from xonsh.tools import unthreadable as _unthreadable
 
 
 def _register_envs_alias(names, envs, cmd=None):
@@ -72,12 +72,15 @@ def _pwgen(args):
     import math
     import secrets
     import string
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        prog='pwgen', description='Generate a random password')
     parser.add_argument('length', type=int, nargs='?', default=20)
     parser.add_argument('-b', '--block-size', type=int, default=5)
     args = parser.parse_args(args)
+    if args.block_size < 1:
+        raise ValueError('block size must be positive.')
     args.length = max(args.length, args.block_size)
-    args.length = math.ceil(args.length / args.block_size) * args.block_size
+    # args.length = math.ceil(args.length / args.block_size) * args.block_size
     alphabet = string.ascii_letters + string.digits
     password = ''.join(secrets.choice(alphabet) for i in range(args.length))
     return '-'.join(
@@ -88,6 +91,7 @@ def _pwgen(args):
 @aliases.register('xf')
 def _refresh():
     xonsh-reset
+    __xonsh__.env.undo_replace_env()
     for f in $XONSHRC:
         if pf'{f}'.exists():
             execx(f'source {f}')
@@ -111,7 +115,7 @@ def _tmux_reattach():
 
 @aliases.register('pd')
 @aliases.register('pydb')
-@unthreadable
+@_unthreadable
 def _pydb(args):
     processes = $(lsof -i tcp:5678)
     if processes:
