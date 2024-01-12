@@ -1,1 +1,11 @@
 *
+!.config/git/config
+!.config/nvim/init.vim
+!.config/pip/pip.conf
+!.config/tmux/tmux.conf
+!.config/xonsh/*
+!.config/starship.toml
+!.local/bin/
+!.gitignore
+!LICENSE
+!README.md

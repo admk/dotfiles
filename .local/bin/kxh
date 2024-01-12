@@ -130,9 +130,10 @@ class KXH:
                     raise ValueError(f'Attribute {k!r} already exists.')
                 setattr(self, k, v)
 
-    def _run(self, command, error_message, **kwargs):
-        if self.verbose:
-            print(f'Run: {command}')
+    def _run(self, command, error_message, verbose=None, **kwargs):
+        verbose = verbose if verbose is not None else self.verbose
+        if verbose:
+            print(f"kxh.run: {' '.join(command)}")
             err = sys.stderr
         else:
             err = subprocess.DEVNULL
@@ -143,13 +144,15 @@ class KXH:
         except subprocess.CalledProcessError:
             print(f'Error: {error_message}', file=sys.stderr)
             exit(1)
-        if self.verbose:
-            print(output.decode('utf-8'))
-        return output.decode('utf-8')
+        output = output.decode('utf-8')
+        if verbose:
+            print(output)
+        return output
 
-    def _run_shell(self, command, error_message, **kwargs):
-        if self.verbose:
-            print(f'Run: {command}')
+    def _run_shell(self, command, error_message, verbose=None, **kwargs):
+        verbose = verbose if verbose is not None else self.verbose
+        if verbose:
+            print(f'kxh.run_shell: {command}')
         else:
             kwargs.setdefault('stdout', subprocess.DEVNULL)
         if self.dry:
@@ -163,13 +166,13 @@ class KXH:
     def _sync_files(self):
         if not os.path.exists(self.home):
             self._run(
-                f'git clone {self.url} {self.home}',
+                ['git', 'clone', self.url, self.home],
                 f'Failed to clone {self.url!r} to {self.home!r}.')
         with tempfile.NamedTemporaryFile(mode='w+') as f:
             file_list = self._run(
                 ['git', 'ls-files'],
                 f'Failed to list files in {self.home!r}.',
-                cwd=self.home)
+                verbose=False, cwd=self.home)
             file_list = file_list or ''
             f.write(file_list)
             f.flush()
@@ -186,15 +189,15 @@ class KXH:
                 rsync_cmd,
                 f'Failed to rsync files to {self.destination!r}.')
 
-    def _bootstrap(self):
+    def _ssh(self):
         prefix = [
             f'KXH_MODE={self.hermetic_mode.name.lower().replace("_", "-")}',
             f'KXH_VERBOSE={int(self.verbose)}'
         ]
-        bootstrap = f"env {' '.join(prefix)} "
-        bootstrap += f'bash -c {self.name}/.config/xonsh/kxh_bootstrap.sh'
+        init_script = f"env {' '.join(prefix)} "
+        init_script += f'bash -c {self.name}/.local/bin/_kxh_init'
         ssh_cmd = self.ssh_cmd + [
-            '-o', 'RequestTTY=yes', self.destination, repr(bootstrap)
+            '-o', 'RequestTTY=yes', self.destination, repr(init_script)
         ]
         ssh_cmd = ' '.join(ssh_cmd)
         self._run_shell(
@@ -203,7 +206,7 @@ class KXH:
 
     def main(self):
         self._sync_files()
-        self._bootstrap()
+        self._ssh()
 
 
 if __name__ == '__main__':
