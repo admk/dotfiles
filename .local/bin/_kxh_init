@@ -108,12 +108,12 @@ source \$XDG_CONFIG_HOME/xonsh/rc.d/*.xsh
 # <<< kxh init <<<
 EOF
 fi
-if [[ ! -z $XONSH_VERSION ]]; then
-    exec $SHELL $@ || exit 0
-fi
+# if [[ ! -z $XONSH_VERSION ]]; then
+#     exec $SHELL "$@"
+# fi
 if [ ! -f $KXH_SHELL ]; then
     echo 'Xonsh failed to install, fall back to $SHELL.' >$ERR
-    exec $SHELL $@ || exit 0
+    exec $SHELL "$@"
 else
-    SHELL=$KXH_SHELL exec $KXH_SHELL $@ || exit 0
+    SHELL=$KXH_SHELL exec $KXH_SHELL "$@"
 fi
