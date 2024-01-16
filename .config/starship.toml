@@ -14,7 +14,6 @@ disabled = true
 [directory]
 fish_style_pwd_dir_length = 1
 truncation_length = 1
-truncation_symbol = '…/'
 
 [git_branch]
 ignore_branches = ['master', 'main']

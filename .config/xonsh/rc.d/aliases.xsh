@@ -51,6 +51,7 @@ aliases |= {
         "-o ExitOnForwardFailure=yes -nNT",
     'ip': 'curl https://ifconfig.co/json' + (' | jq' if _which('jq') else ''),
     'xtb': 'cat $XONSH_TRACEBACK_LOGFILE | less +G',
+    'ssh-exit': 'ssh -O exit',
 }
 _register_dep_aliases({
     'rcp': 'rsync --progress --recursive --archive',
