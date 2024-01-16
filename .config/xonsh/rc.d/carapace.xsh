@@ -14,21 +14,23 @@ def _carapace_path():
     return None
 
 
-if ${...}.get('USE_CARAPACE', True):
-    _carapace_exec = _carapace_path()
-    if _carapace_exec:
-        if ${...}.get('KXH_VERBOSE') == '1':
-            print(f'kxh: carapace: using {_carapace_exec!r}')
-        $COMPLETIONS_CONFIRM = True
-        exec($(@(_carapace_exec) _carapace xonsh))
-        _carapace_ln = f'{os.path.dirname(_carapace_exec)}/carapace'
-        if not pf'{_carapace_ln}'.exists():
-            if ${...}.get('KXH_VERBOSE') == '1':
-                print(f'kxh: carapace: creating symlink {_carapace_ln!r}')
-            ln -s @(_carapace_exec) @(_carapace_ln)
-        del _carapace_ln
-    del _carapace_exec
-
-
-del platform
-del _carapace_path
+_carapace_exec = _carapace_path()
+if _carapace_exec:
+    if ${...}.get('KXH_VERBOSE') == '1':
+        print(f'kxh: carapace: using {_carapace_exec!r}')
+    $COMPLETIONS_CONFIRM = True
+    _carapace_src = $(@(_carapace_exec) _carapace xonsh).split('\n')
+    line_to_patch = [
+        i for i, line in enumerate(_carapace_src)
+        if line.strip().startswith('exec(compile(subprocess.run')][0]
+    _carapace_name = os.path.basename(_carapace_exec)
+    _carapace_src[line_to_patch] = f"""
+        _src = subprocess.run(
+            [{_carapace_exec!r}, context.command.args[0].value, 'xonsh'],
+            stdout=subprocess.PIPE).stdout.decode('utf-8')
+        _src = _src.replace("Popen(['{_carapace_name}'", "Popen([{_carapace_exec!r}")
+        exec(compile(_src, "", "exec"))
+    """
+    exec('\n'.join(_carapace_src))
+    del _carapace_name, _carapace_src
+del _carapace_exec, _carapace_path, platform
