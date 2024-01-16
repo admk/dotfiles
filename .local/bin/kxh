@@ -20,7 +20,7 @@ class HermeticMode(Enum):
 class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
-        [+d | +dry] [+v | +verbose]
+        [+d | +dry] [+v | +verbose] [+f | +force-reinstall]
         [(+h | +hermetic) | (+s | +semi-hermetic) | (+n | +non-hermetic)]
         [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
         [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
@@ -41,6 +41,7 @@ Options:
         kxh_options = [
             ('d', 'dry'),
             ('v', 'verbose'),
+            ('f', 'force-reinstall'),
             ('h', 'hermetic'),
             ('s', 'semi-hermetic'),
             ('n', 'non-hermetic'),
@@ -167,6 +168,11 @@ class KXH:
             self._run(
                 ['git', 'clone', self.url, self.home],
                 f'Failed to clone {self.url!r} to {self.home!r}.')
+        if self.force_reinstall:
+            print(f'Force reinstalling {self.name!r} to {self.destination!r}.')
+            self._run(
+                self.ssh_cmd + [self.destination, f'rm -rf {self.name}'],
+                f'Failed to remove {self.name!r} from {self.destination!r}.')
         with tempfile.NamedTemporaryFile(mode='w+') as f:
             file_list = self._run(
                 ['git', 'ls-files'],
