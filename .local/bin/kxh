@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
 import sys
+import glob
+import fnmatch
 import tempfile
 import argparse
 import subprocess
@@ -169,6 +171,17 @@ class KXH:
             else:
                 raise e
 
+    def _custom_rcs(self):
+        config_home = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+        config_rcs = os.path.join(config_home, self.name.lstrip('.'), '*')
+        for rc in glob.glob(config_rcs):
+            if not os.path.isfile(rc):
+                continue
+            rc_name = os.path.splitext(os.path.basename(rc))[0]
+            if fnmatch.fnmatch(self.destination, rc_name):
+                rc = os.path.relpath(rc, self.home)
+                yield rc
+
     def _sync_files(self):
         if not os.path.exists(self.home):
             self._run(
@@ -185,6 +198,10 @@ class KXH:
                 f'Failed to list files in {self.home!r}.',
                 verbose=False, cwd=self.home)
             file_list = file_list or ''
+            custom_rcs = list(self._custom_rcs())
+            if self.verbose:
+                print(f'Custom rc files: {(custom_rcs)}')
+            file_list += '\n'.join(custom_rcs)
             f.write(file_list)
             f.flush()
             rsync_cmd = [
@@ -202,6 +219,7 @@ class KXH:
 
     def _ssh(self):
         prefix = [
+            f'KXH_HOST={self.destination}',
             f'KXH_MODE={self.hermetic_mode.name.lower().replace("_", "-")}',
             f'KXH_VERBOSE={int(self.verbose)}'
         ]

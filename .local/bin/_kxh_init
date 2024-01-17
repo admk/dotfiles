@@ -1,4 +1,4 @@
-#!/usr/bin/env -S bash --login
+#!/bin/bash --login
 
 # envs
 export KXH_NAME=${KXH_NAME:-.kxh}
@@ -85,7 +85,7 @@ if [ ! -f $KXH_SHELL ]; then
     PYTHONNOUSERSITE=1 $KXH_PYTHON -m pip install \
         -r $XDG_CONFIG_HOME/xonsh/requirements.txt 1>$OUT 2>$ERR
 fi
-if [ ! -f $KXH_OLD_HOME/.local/bin/xonsh ]; then
+if [ ! -f $KXH_OLD_HOME/.local/bin/xonsh-hermetic ]; then
     echo "Linking xonsh-hermetic..."
     mkdir -p $KXH_OLD_HOME/.local/bin
     ln -s $KXH_INIT $KXH_OLD_HOME/.local/bin/xonsh-hermetic
