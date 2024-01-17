@@ -33,4 +33,4 @@ if _carapace_exec:
     """
     exec('\n'.join(_carapace_src))
     del _carapace_name, _carapace_src
-del _carapace_exec, _carapace_path, platform
+del _carapace_exec, _carapace_path

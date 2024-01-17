@@ -1,3 +1,4 @@
+gpustat ; sys_platform == 'linux'
 libtmux
 prompt-toolkit
 xonsh-autoxsh
