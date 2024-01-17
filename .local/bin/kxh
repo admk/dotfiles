@@ -130,9 +130,9 @@ class KXH:
                     raise ValueError(f'Attribute {k!r} already exists.')
                 setattr(self, k, v)
 
-    def _run(self, command, error_message, verbose=None, **kwargs):
+    def _run(self, command, error_message=None, verbose=None, **kwargs):
         verbose = verbose if verbose is not None else self.verbose
-        if verbose:
+        if verbose or self.dry:
             print(f"kxh.run: {' '.join(command)}")
             err = sys.stderr
         else:
@@ -141,17 +141,20 @@ class KXH:
             return
         try:
             output = subprocess.check_output(command, stderr=err, **kwargs)
-        except subprocess.CalledProcessError:
-            print(f'Error: {error_message}', file=sys.stderr)
-            exit(1)
+        except subprocess.CalledProcessError as e:
+            if error_message is not None:
+                print(f'Error: {error_message}', file=sys.stderr)
+                exit(1)
+            else:
+                raise e
         output = output.decode('utf-8')
         if verbose:
             print(output)
         return output
 
-    def _run_shell(self, command, error_message, verbose=None, **kwargs):
+    def _run_shell(self, command, error_message=None, verbose=None, **kwargs):
         verbose = verbose if verbose is not None else self.verbose
-        if verbose:
+        if verbose or self.dry:
             print(f'kxh.run_shell: {command}')
         else:
             kwargs.setdefault('stdout', subprocess.DEVNULL)
@@ -159,9 +162,12 @@ class KXH:
             return
         try:
             subprocess.run(command, shell=True, **kwargs)
-        except subprocess.CalledProcessError:
-            print(error_message, file=sys.stderr)
-            exit(1)
+        except subprocess.CalledProcessError as e:
+            if error_message is not None:
+                print(f'Error: {error_message}', file=sys.stderr)
+                exit(1)
+            else:
+                raise e
 
     def _sync_files(self):
         if not os.path.exists(self.home):
@@ -200,7 +206,7 @@ class KXH:
             f'KXH_VERBOSE={int(self.verbose)}'
         ]
         init_script = f"env {' '.join(prefix)} "
-        init_script += f'bash -c {self.name}/.local/bin/_kxh_init'
+        init_script += f'bash -l -c {self.name}/.local/bin/_kxh_init'
         ssh_cmd = self.ssh_cmd + [
             '-o', 'RequestTTY=yes', self.destination, repr(init_script)
         ]
