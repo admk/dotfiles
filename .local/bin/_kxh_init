@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env -S bash --login
 
 # envs
 export KXH_NAME=${KXH_NAME:-.kxh}
@@ -50,8 +50,8 @@ fi
 cd $HOME
 
 # conda
-# CONDA_SRC=https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda
-CONDA_SRC=https://mirrors.aliyun.com/anaconda/miniconda
+CONDA_SRC=https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda
+# CONDA_SRC=https://mirrors.aliyun.com/anaconda/miniconda
 if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
     CONDA_INSTALLER=$KXH_HOME/miniconda3.sh
     if [[ $(uname) == 'Darwin' ]]; then
@@ -86,9 +86,9 @@ if [ ! -f $KXH_SHELL ]; then
         -r $XDG_CONFIG_HOME/xonsh/requirements.txt 1>$OUT 2>$ERR
 fi
 if [ ! -f $KXH_OLD_HOME/.local/bin/xonsh ]; then
-    echo "Linking xonsh..."
+    echo "Linking xonsh-hermetic..."
     mkdir -p $KXH_OLD_HOME/.local/bin
-    ln -s $KXH_INIT $KXH_OLD_HOME/.local/bin/xonsh
+    ln -s $KXH_INIT $KXH_OLD_HOME/.local/bin/xonsh-hermetic
 fi
 if [ ! -f $KXH_OLD_HOME/.xonshrc ]; then
     echo "Creating xonshrc..."
