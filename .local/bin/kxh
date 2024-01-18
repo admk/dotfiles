@@ -173,7 +173,8 @@ class KXH:
 
     def _custom_rcs(self):
         config_home = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-        config_rcs = os.path.join(config_home, self.name.lstrip('.'), '*')
+        config_rcs = os.path.join(
+            config_home, self.name.lstrip('.'), 'hosts', '*')
         for rc in glob.glob(config_rcs):
             if not os.path.isfile(rc):
                 continue
@@ -188,7 +189,10 @@ class KXH:
                 ['git', 'clone', self.url, self.home],
                 f'Failed to clone {self.url!r} to {self.home!r}.')
         if self.force_reinstall:
-            print(f'Force reinstalling {self.name!r} to {self.destination!r}.')
+            ask = f'Force reinstall {self.name!r} to {self.destination!r}? [y/N] '
+            if input(ask) != 'y':
+                exit(0)
+            print(f'Reinstalling {self.name!r}...')
             self._run(
                 self.ssh_cmd + [self.destination, f'rm -rf {self.name}'],
                 f'Failed to remove {self.name!r} from {self.destination!r}.')
@@ -219,12 +223,12 @@ class KXH:
 
     def _ssh(self):
         prefix = [
-            f'KXH_HOST={self.destination}',
+            f'KXH_HOST={self.destination!r}',
             f'KXH_MODE={self.hermetic_mode.name.lower().replace("_", "-")}',
             f'KXH_VERBOSE={int(self.verbose)}'
         ]
         init_script = f"env {' '.join(prefix)} "
-        init_script += f'bash -l -c {self.name}/.local/bin/_kxh_init'
+        init_script += f'bash -c {self.name}/.local/bin/_kxh_init'
         ssh_cmd = self.ssh_cmd + [
             '-o', 'RequestTTY=yes', self.destination, repr(init_script)
         ]

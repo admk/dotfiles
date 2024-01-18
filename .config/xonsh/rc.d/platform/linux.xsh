@@ -20,14 +20,12 @@ def _cuda_visible_devices(args):
 def _ubuntu_specific():
     from shutil import which
     xontrib load apt_tabcomplete
-    if not which('locale-gen'):
-        apt install -y locales
-        locale-gen "en_US.UTF-8"
     execs = [
         'autojump',
         'colordiff',
         'curl',
         'less',
+        'locale-gen',
         ('nvim', 'neovim'),
     ]
     to_install = []
@@ -35,10 +33,13 @@ def _ubuntu_specific():
         e, i = e if isinstance(e, tuple) else (e, e)
         if not which(e):
             to_install.append(i)
-    if to_install:
+    if $USER == 'root' and to_install:
+        apt update
         apt install -y @(to_install)
+    if 'local-gen' in to_install:
+        locale-gen "en_US.UTF-8"
 
 
 if 'ubuntu' in platform.uname().version.lower():
     _ubuntu_specific()
-    del _ubuntu_specific
+del _ubuntu_specific

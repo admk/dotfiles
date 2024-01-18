@@ -1,8 +1,11 @@
 def _conda_main():
+    import os
     import sys
     from types import ModuleType
     from shutil import which
     conda_path = which("conda")
+    if not conda_path and ${...}.get('KXH_CONDA_PREFIX'):
+        conda_path = os.path.join($KXH_CONDA_PREFIX, 'condabin', 'conda')
     if not conda_path:
         return
     if ${...}.get('KXH_VERBOSE') == '1':

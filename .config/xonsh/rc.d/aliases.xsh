@@ -45,6 +45,7 @@ aliases |= {
     'k': 'kxh',
     'py': 'python',
     'ipy': 'ipython',
+    'l': 'ls -a',
     'll': 'ls -la',
     'ash':
         "autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' "
@@ -99,19 +100,12 @@ def _refresh():
     execx("source $XONSH_CONFIG_DIR/rc.d/*.xsh")
 
 
-@aliases.register('tmux')
-def _tmux(args):
-    with ${...}.swap(XDG_CONFIG_HOME=$XDG_CONFIG_HOME):
-        return ![tmux @(args)]
-
-
 @aliases.register('tmr')
 @aliases.register('tmux-reattach')
 def _tmux_reattach():
     tm = $(@(_which('which')) 'tmux').strip()
-    with ${...}.swap(XDG_CONFIG_HOME=$XDG_CONFIG_HOME):
-        @(tm) attach-session -d -t $USER 2>/dev/null || \
-            @(tm) new-session -s $USER
+    @(tm) attach-session -d -t $USER 2>/dev/null || \
+        @(tm) new-session -s $USER
 
 
 @aliases.register('pd')
