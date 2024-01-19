@@ -11,7 +11,7 @@ fi
 # Create the new user on the remote server
 user_exists=$(ssh "$server" "id -u $user" 2>/dev/null)
 if [ -z "$user_exists" ]; then
-    ssh "$server" "adduser --disabled-password --gecos '' $user"
+    ssh "$server" "adduser --disabled-password --gecos '' $user && usermod -a -G shared $user"
     # Generate a random password
     # Set the random password for the new user
     password=$(openssl rand -base64 21)
@@ -22,7 +22,8 @@ else
 fi
 
 # Check if the SSH key pair exists locally, generate if not
-key_path="$HOME/.ssh/$user.id_ed25519"
+mkdir -p "$HOME/.ssh/keys"
+key_path="$HOME/.ssh/keys/$user.id_ed25519"
 if [ ! -f "$key_path.pub" ]; then
     ssh-keygen -t ed25519 -f $key_path -N "" -C "$user@$server"
     echo "Key pair created for $user."

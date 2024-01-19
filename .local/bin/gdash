@@ -1,7 +1,10 @@
 #!/usr/bin/env python
+import os
+import re
 import sys
 import math
 import json
+import itertools
 import subprocess
 from typing import Iterable, Mapping, Any, List
 
@@ -13,12 +16,13 @@ gpu_stat = 'gpustat'
 
 def fetch(server: str) -> 'subprocess.Popen[str]':
     return subprocess.Popen(
-        ['ssh', server, gpu_stat, '--json'],
+        ['ssh'] + server.split(' ') + [gpu_stat, '--json'],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
 def ip(server: str) -> str:
-    ssh = subprocess.Popen(['ssh', '-G', server], stdout=subprocess.PIPE)
+    cmd = ['ssh', '-G'] + server.split(' ')
+    ssh = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     awk = subprocess.Popen(
         ['awk', '/^hostname / { print $2 }'],
         stdin=ssh.stdout, stdout=subprocess.PIPE)
@@ -37,7 +41,7 @@ def fetch_all(servers: Iterable[str]) -> Mapping[str, ResultDict]:
     print('Finished: ', end='')
     for s, p in procs.items():
         try:
-            print(s, end=' ')
+            print(f'{repr(s) if " " in s else s} ', end='')
             sys.stdout.flush()
             stdout, stderr = p.communicate(timeout=10)
         except subprocess.TimeoutExpired as e:
@@ -114,12 +118,51 @@ def format_table(results: Mapping[str, ResultDict]) -> List[List[str]]:
     return lines
 
 
+def _regex_servers(regexes: Iterable[str]) -> Iterable[str]:
+    ssh_config = os.path.join(os.environ['HOME'], '.ssh/config')
+    with open(ssh_config, 'r', encoding='utf-8') as f:
+        hostnames = [s.split()[1] for s in f if s.startswith('Host ')]
+    servers = []
+    for r in regexes:
+        regex_servers = []
+        for h in hostnames:
+            if re.match(r, h):
+                regex_servers.append(h)
+        is_regex = any(c in r for c in '*?[](){}|\\')
+        if not regex_servers:
+            if is_regex:
+                print(f'No servers match {r!r}.')
+            else:
+                regex_servers.append(r)
+        servers += regex_servers
+    return servers
+
+
+def _range_servers(ranges: Iterable[str]) -> Iterable[str]:
+    servers = []
+    scope_regex = re.compile(r'\[(\d+)\-(\d+)\]')
+    for r in ranges:
+        scopes = scope_regex.findall(r)
+        if not scopes:
+            servers.append(r)
+            continue
+        values = itertools.product(
+            *[range(int(s), int(e) + 1) for s, e in scopes])
+        for v in values:
+            replacer = lambda m, i=iter(v): str(next(i))
+            h = scope_regex.sub(replacer, r)
+            servers.append(h)
+    return servers
+
+
 def main():
-    servers = sys.argv[1:]
-    if not servers:
+    patterns = sys.argv[1:]
+    if not patterns:
         print('No servers specified.')
         sys.exit(-1)
-    results = fetch_all(servers)
+    patterns = _range_servers(patterns)
+    patterns = _regex_servers(patterns)
+    results = fetch_all(patterns)
     table = format_table(results)
     if not table:
         return
