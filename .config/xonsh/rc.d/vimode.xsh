@@ -46,3 +46,4 @@ def _custom_keybindings(bindings, **kw):
 
 if ${...}.get('VI_MODE'):
     events.on_ptk_create(_custom_keybindings)
+del _custom_keybindings

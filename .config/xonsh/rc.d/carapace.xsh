@@ -20,11 +20,11 @@ if _carapace_exec:
         print(f'kxh: carapace: using {_carapace_exec!r}')
     $COMPLETIONS_CONFIRM = True
     _carapace_src = $(@(_carapace_exec) _carapace xonsh).split('\n')
-    line_to_patch = [
+    _line_to_patch = [
         i for i, line in enumerate(_carapace_src)
         if line.strip().startswith('exec(compile(subprocess.run')][0]
     _carapace_name = os.path.basename(_carapace_exec)
-    _carapace_src[line_to_patch] = f"""
+    _carapace_src[_line_to_patch] = f"""
         _src = subprocess.run(
             [{_carapace_exec!r}, context.command.args[0].value, 'xonsh'],
             stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -32,5 +32,5 @@ if _carapace_exec:
         exec(compile(_src, "", "exec"))
     """
     exec('\n'.join(_carapace_src))
-    del _carapace_name, _carapace_src
+    del _carapace_name, _carapace_src, _line_to_patch
 del _carapace_exec, _carapace_path

@@ -30,6 +30,7 @@ aliases |= {
     'e': '$EDITOR',
     'b': 'brew',
     'bup': 'brew update && brew upgrade && brew cleanup',
+    'dl': 'curl --location --fail --continue-at - --progress-bar',
     'g': 'git',
     'gps': 'git push',
     'gpl': 'git pull',
@@ -123,11 +124,7 @@ def _pydb(args):
                     else:
                         print('Aborting')
                         return
-    # a stupid hack to work around bad file descriptor error
-    import gc
-    gc.disable()
-    $[python -m debugpy --listen 5678 --wait-for-client @(args)]
-    gc.enable()
+    python -m debugpy --listen 5678 --wait-for-client @(args)
 
 
 _register_envs_alias('hf-offline', {
