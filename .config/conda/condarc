@@ -1,4 +1,11 @@
 envs_dirs:
+  - ./anaconda/envs
+  - ./anaconda3/envs
+  - ./miniconda/envs
+  - ./miniconda3/envs
+  - ./.conda/envs
+  - ./.miniconda/envs
+  - ./.miniconda3/envs
   - ../anaconda/envs
   - ../anaconda3/envs
   - ../miniconda/envs
