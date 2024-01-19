@@ -18,5 +18,6 @@ def _conda_main():
     sys.modules["xontrib.conda"] = mod
 
 
-_conda_main()
+if ${...}.get('TERM_PROGRAM') != 'vscode':
+    _conda_main()
 del _conda_main
