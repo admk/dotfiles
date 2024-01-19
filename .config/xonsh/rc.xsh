@@ -2,7 +2,10 @@ from shutil import which as _which
 
 
 def _rc_main():
-    $PATH.insert(0, '~/.local/bin')
+    import sys
+    sys.path.append($XONSH_CONFIG_DIR)
+    if 'KXH_OLD_HOME' in ${...}:
+        $PATH.insert(0, '$KXH_OLD_HOME/.local/bin')
     if 'KXH_HOME' in ${...}:
         $PATH.insert(0, '$KXH_HOME/.local/bin')
 

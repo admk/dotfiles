@@ -45,7 +45,7 @@ aliases |= {
     'k': 'kxh',
     'py': 'python',
     'ipy': 'ipython',
-    'l': 'ls -a',
+    'l': 'ls',
     'll': 'ls -la',
     'ash':
         "autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' "
@@ -123,7 +123,11 @@ def _pydb(args):
                     else:
                         print('Aborting')
                         return
+    # a stupid hack to work around bad file descriptor error
+    import gc
+    gc.disable()
     $[python -m debugpy --listen 5678 --wait-for-client @(args)]
+    gc.enable()
 
 
 _register_envs_alias('hf-offline', {
