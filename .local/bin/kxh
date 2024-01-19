@@ -228,7 +228,7 @@ class KXH:
             f'KXH_VERBOSE={int(self.verbose)}'
         ]
         init_script = f"env {' '.join(prefix)} "
-        init_script += f'bash -c {self.name}/.local/bin/_kxh_init'
+        init_script += f'/bin/bash -l -c {self.name}/.local/bin/_kxh_init'
         ssh_cmd = self.ssh_cmd + [
             '-o', 'RequestTTY=yes', self.destination, repr(init_script)
         ]
