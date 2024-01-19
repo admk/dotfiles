@@ -9,14 +9,14 @@ def _rc_main():
     if 'KXH_HOME' in ${...}:
         $PATH.insert(0, '$KXH_HOME/.local/bin')
 
+    $XONTRIBS_AUTOLOAD_DISABLED = True
+
     uname = $(uname).lower().strip()
     platformrc = pf'$XONSH_CONFIG_DIR/rc.d/platform/{uname}.xsh'
     if platformrc.exists():
         execx(f'source {platformrc}')
 
     $XONTRIB_SH_SHELLS = ['bash', 'sh']
-    $XONTRIBS_AUTOLOAD_DISABLED = True
-
     xontribs = [
         'abbrevs',
         'argcomplete',

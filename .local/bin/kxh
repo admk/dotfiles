@@ -224,11 +224,12 @@ class KXH:
     def _ssh(self):
         prefix = [
             f'KXH_HOST={self.destination!r}',
+            f'KXH_NAME={self.name!r}',
             f'KXH_MODE={self.hermetic_mode.name.lower().replace("_", "-")}',
             f'KXH_VERBOSE={int(self.verbose)}'
         ]
         init_script = f"env {' '.join(prefix)} "
-        init_script += f'/bin/bash -l -c {self.name}/.local/bin/_kxh_init'
+        init_script += f'/bin/bash --norc -c {self.name}/.local/bin/_kxh_init'
         ssh_cmd = self.ssh_cmd + [
             '-o', 'RequestTTY=yes', self.destination, repr(init_script)
         ]

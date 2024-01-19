@@ -1,10 +1,12 @@
-#!/bin/bash -l
+#!/bin/bash --norc
 
-# envs
+# inputs
 export KXH_NAME=${KXH_NAME:-.kxh}
 export KXH_OLD_HOME=${KXH_OLD_HOME:-$HOME}
-export KXH_HOME=$KXH_OLD_HOME/$KXH_NAME
 export KXH_MODE=${KXH_MODE:-hermetic}
+
+# envs
+export KXH_HOME=$KXH_OLD_HOME/$KXH_NAME
 if [[ $KXH_MODE == 'non-hermetic' ]]; then
     export XDG_HOME=$HOME
 elif [[ $KXH_MODE == 'semi-hermetic' ]]; then
@@ -16,7 +18,7 @@ else
     echo 'Unsupported KXH_MODE $KXH_MODE' >&2
     exit 1
 fi
-export KXH_INIT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+export KXH_INIT=$KXH_HOME/.local/bin/_kxh_init
 export KXH_CONDA_PREFIX=$KXH_HOME/.miniconda3
 export KXH_PYTHON=$KXH_CONDA_PREFIX/bin/python
 export KXH_SHELL=$KXH_CONDA_PREFIX/bin/xonsh
@@ -86,10 +88,18 @@ if [ ! -f $KXH_SHELL ]; then
     PYTHONNOUSERSITE=1 $KXH_PYTHON -m pip install \
         -r $XDG_CONFIG_HOME/xonsh/requirements.txt 1>$OUT 2>$ERR
 fi
-if [ ! -f $KXH_OLD_HOME/.local/bin/xonsh-hermetic ]; then
-    echo "Linking xonsh-hermetic..."
+if [ ! -f $KXH_OLD_HOME/.local/bin/xh ]; then
+    echo "Creating xh in $KXH_OLD_HOME/.local/bin..."
     mkdir -p $KXH_OLD_HOME/.local/bin
-    ln -s $KXH_INIT $KXH_OLD_HOME/.local/bin/xonsh-hermetic
+    cat >$KXH_OLD_HOME/.local/bin/xh <<EOF
+#!/bin/bash --norc
+export KXH_HOST=${KXH_HOST:-localhost}
+export KXH_NAME=${KXH_NAME}
+export KXH_MODE=hermetic
+export KXH_OLD_HOME=\${KXH_OLD_HOME:-\$HOME}
+exec $KXH_INIT "\$@"
+EOF
+    chmod +x $KXH_OLD_HOME/.local/bin/xh
 fi
 # if [[ ! -z $XONSH_VERSION ]]; then
 #     exec $SHELL "$@"
