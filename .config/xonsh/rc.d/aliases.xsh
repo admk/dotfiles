@@ -62,6 +62,29 @@ _register_dep_aliases({
 })
 
 
+@aliases.register('alias')
+def _alias(args):
+    import inspect
+    from xonsh.lazyimps import pyghooks, pygments
+    lexer = formatter = None
+    def _format_alias(v):
+        if isinstance(v, list):
+            return ' '.join(v)
+        if inspect.isfunction(v):
+            src = inspect.getsource(v)
+            nonlocal lexer, formatter
+            if lexer is None or formatter is None:
+                lexer = pyghooks.XonshLexer()
+                formatter = pygments.formatters.TerminalFormatter()
+            src = pygments.highlight(src, lexer, formatter)
+            return f'"""\n{src}"""'
+        return v
+    if not args:
+        args = aliases.keys()
+    for a in args:
+        print(f'{a} = {_format_alias(aliases[a])}')
+
+
 @aliases.register(',')
 @aliases.register(',,')
 @aliases.register(',,,')
