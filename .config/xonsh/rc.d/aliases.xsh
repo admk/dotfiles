@@ -184,3 +184,10 @@ _BASH_ENV = {'SHELL': '/bin/bash'}
 _register_envs_alias('ssh', _BASH_ENV, cmd='ssh')
 _register_envs_alias('sshuttle', _BASH_ENV, cmd='sshuttle')
 
+
+@events.on_transform_command
+def _transform_bangbang(cmd):
+    import re
+    cmd = cmd.replace('!!', $(history show -1).strip())
+    cmd = re.sub(r'!(-?\d+)', r'$(history show \1)', cmd)
+    return cmd
