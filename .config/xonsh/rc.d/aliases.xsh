@@ -106,8 +106,16 @@ def _refresh():
 @aliases.register('tmux-reattach')
 def _tmux_reattach():
     tm = $(@(_which('which')) 'tmux').strip()
-    @(tm) attach-session -d -t $USER 2>/dev/null || \
-        @(tm) new-session -s $USER
+    socket = str(hash(tm))
+    @(tm) -L @(socket) attach-session -d -t $USER 2>/dev/null || \
+        @(tm) -L @(socket) new-session -s $USER
+
+
+@aliases.register('tmux')
+def _tmux(args):
+    tm = $(@(_which('which')) 'tmux').strip()
+    socket = str(hash(tm))
+    @(tm) -L @(socket) @(args)
 
 
 @aliases.register('pd')
@@ -152,3 +160,4 @@ ${...}.setdefault('PROXY', '127.0.0.1:7890')
 _BASH_ENV = {'SHELL': '/bin/bash'}
 _register_envs_alias('ssh', _BASH_ENV, cmd='ssh')
 _register_envs_alias('sshuttle', _BASH_ENV, cmd='sshuttle')
+
