@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+import time
+import shutil
+import socket
+import getpass
+import datetime
+import argparse
+import subprocess
+import tempfile
+from pathlib import Path
+
+
+_logdir = '.sash_logs'
+(Path.home() / _logdir).mkdir(exist_ok=True)
+
+SLURM_SCRIPT = """#!/bin/bash
+#SBATCH -p {args.partition}
+#SBATCH -o {logdir}/%j.out
+#SBATCH -e {logdir}/%j.err
+#SBATCH -N 1
+#SBATCH --cpus-per-task={args.cpu_count}
+#SBATCH --time=7-0:00
+#SBATCH --gres={args.gres_type}:{args.gres_count}
+
+cd $HOME
+echo "date: $(date +%Y-%m-%d_%H-%M-%S)"
+echo "hostname: $(hostname)"
+# autossh to keep the reverse ssh connection alive
+{autossh} \\
+    -M 0 \\
+    -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' -N \\
+    -o ExitOnForwardFailure=yes -v \\
+    -R {port}:localhost:22 \\
+    {args.host}
+"""
+
+
+def check_connection(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
+
+
+def first_unused_port(start_port, end_port):
+    for port in range(start_port, end_port + 1):
+        if not check_connection(port):
+            return port
+    raise RuntimeError("No unused port available.")
+
+
+def submit_slurm_job(args):
+    print(f"date: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}")
+    port_range = [int(p) for p in args.port_range.split('-')]
+    if len(port_range) == 1:
+        port = port_range[0]
+        if check_connection(port):
+            raise RuntimeError(
+                f"Port {port!r} is not available, "
+                f"please choose another port.")
+    elif len(port_range) == 2:
+        port = first_unused_port(*port_range)
+    else:
+        raise ValueError(
+            f"Invalid port range {args.port_range!r}, "
+            f"should be in the format of '<int>' or '<int>-<int>'.")
+    autossh = shutil.which('autossh')
+    script = SLURM_SCRIPT.format(
+        logdir=_logdir, autossh=autossh, args=args, port=port)
+    print(f"args: {args!r}")
+    print(f"port: {port!r}")
+    print(f"autossh: {autossh!r}")
+    with tempfile.NamedTemporaryFile(mode='w', delete=True) as f:
+        f.write(script)
+        f.flush()
+        print(f"--- SLURM SCRIPT [{f.name}] ---")
+        print(script)
+        print("--- END SLURM SCRIPT ---")
+        cmd = ['sbatch'] + list(args.sbatch_args.split()) + [f.name]
+        print(f"command: {' '.join(cmd)}")
+        output = subprocess.check_output(cmd)
+    jobid = output.decode().split()[-1]
+    print(f"jobid: {jobid}")
+    cmd = ['squeue', '-h', '-j', jobid, '-o', '%T']
+    print ('Now waiting for the job to start...')
+    time.sleep(1)
+    status = subprocess.check_output(cmd).decode().strip()
+    print(f"status: {status}")
+    print('When the job is running, you can connect to the host with:')
+    print(f"ssh -p {port} {args.host}")
+
+
+def local_ip():
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.connect(('8.8.8.8', 80))
+        return s.getsockname()[0]
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='Submit a reverse SSH job to SLURM.')
+    default_host = f'{getpass.getuser()}@{local_ip()}'
+    parser.add_argument(
+        '-s', '--host', type=str, default=default_host,
+        help=f'Host to connect to, default: {default_host!r}.')
+    parser.add_argument(
+        '-t', '--partition', type=str, default='gpu',
+        help='Partition to submit to.')
+    parser.add_argument(
+        '-c', '--cpu-count', type=int, default=16, help='Number of CPU cores.')
+    parser.add_argument(
+        '-r', '--gres-type', type=str, default='gpu:a100-sxm4-80gb')
+    parser.add_argument(
+        '-g', '--gres-count', type=int, default=1, help='Number of Gres.')
+    parser.add_argument(
+        '-p', '--port-range', type=str, default="30101-30199",
+        help='Port number on host to expose, '
+        'assigned from 30101-30199 if not specified.')
+    parser.add_argument(
+        '-a', '--sbatch-args', type=str, default='',
+        help='Additional arguments to pass to sbatch.')
+    return parser.parse_args()
+
+
+def main(args=None):
+    submit_slurm_job(args or parse_args())
+
+
+if __name__ == '__main__':
+    main()
