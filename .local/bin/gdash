@@ -12,20 +12,21 @@ import tabulate
 
 
 gpu_stat = 'gpustat'
+ssh = '/usr/bin/ssh'
 
 
 def fetch(server: str) -> 'subprocess.Popen[str]':
     return subprocess.Popen(
-        ['ssh'] + server.split(' ') + [gpu_stat, '--json'],
+        [ssh, '-v'] + server.split(' ') + [gpu_stat, '--json'],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
 def ip(server: str) -> str:
-    cmd = ['ssh', '-G'] + server.split(' ')
-    ssh = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    cmd = [ssh, '-G'] + server.split(' ')
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     awk = subprocess.Popen(
         ['awk', '/^hostname / { print $2 }'],
-        stdin=ssh.stdout, stdout=subprocess.PIPE)
+        stdin=proc.stdout, stdout=subprocess.PIPE)
     output, _ = awk.communicate()
     return output.decode().strip()
 
@@ -33,24 +34,26 @@ def ip(server: str) -> str:
 ResultDict = Mapping[str, Any]
 
 
-def fetch_all(servers: Iterable[str]) -> Mapping[str, ResultDict]:
+def fetch_all(
+    servers: Iterable[str], patterns: Iterable[str]
+) -> Mapping[str, ResultDict]:
     procs: Mapping[str, 'subprocess.Popen[str]'] = {}
     results: Mapping[str, ResultDict] = {}
     for s in servers:
         procs[s] = fetch(s)
     print('Finished: ', end='')
-    for s, p in procs.items():
+    for pat, (s, proc) in zip(patterns, procs.items()):
         try:
-            print(f'{repr(s) if " " in s else s} ', end='')
+            print(f'{repr(pat) if " " in pat else pat} ', end='')
             sys.stdout.flush()
-            stdout, stderr = p.communicate(timeout=10)
+            stdout, stderr = proc.communicate(timeout=10)
         except subprocess.TimeoutExpired as e:
-            p.kill()
+            proc.kill()
             results[s] = {'error': str(e)}
             continue
-        if p.returncode:
+        if proc.returncode:
             results[s] = {
-                'error': p.returncode,
+                'error': proc.returncode,
                 'stdout': stdout,
                 'stderr': stderr,
             }
@@ -61,16 +64,13 @@ def fetch_all(servers: Iterable[str]) -> Mapping[str, ResultDict]:
 
 
 def gpu_name(name: str) -> str:
-    if 'V100' in name:
-        return 'v100'
-    if 'A100' in name:
-        return 'a100'
-    if 'A40' in name:
-        return 'a40'
-    if '3080 Ti' in name:
-        return '3080ti'
-    if '3090' in name:
-        return '3090'
+    gpu_names = [
+        'V100', 'A100', 'A800', 'H100', 'H800',
+        'A40', '3080 Ti', '3090'
+    ]
+    for gpu in gpu_names:
+        if gpu in name:
+            return gpu.replace(' ', '').lower()
     return '?'
 
 
@@ -92,22 +92,27 @@ def format_processes(procs: Iterable[ResultDict]):
     return ', '.join(text)
 
 
-def format_table(results: Mapping[str, ResultDict]) -> List[List[str]]:
+def format_table(
+    results: Mapping[str, ResultDict],
+    patterns: Iterable[str]
+) -> List[List[str]]:
     lines: List[List[str]] = []
-    for server, server_result in results.items():
+    for pattern, (server, server_result) in zip(patterns, results.items()):
         ip_addr = ip(server)
         if 'error' in server_result:
             # error = stderr.decode().splitlines()[-1]
-            print(f'{server} ({ip_addr}): error code {server_result["error"]}.')
+            print(f'{server!r} ({ip_addr}): error code {server_result["error"]}.')
             if stdout := server_result.get('stdout'):
                 print(stdout)
             if stderr := server_result.get('stderr'):
                 print(stderr)
             # lines.append([server, 'error'])
             continue
+        pattern = repr(pattern) if ' ' in pattern else pattern
+        plural = len(server_result['gpus']) > 1
         for gpu in server_result['gpus']:
             line: List[str] = [
-                f'{server}.{gpu["index"]}',
+                f'{pattern}/{gpu["index"]}' if plural else pattern,
                 ip_addr,
                 gpu_name(gpu["name"]),
                 f'{gpu["utilization.gpu"]}%',
@@ -155,15 +160,25 @@ def _range_servers(ranges: Iterable[str]) -> Iterable[str]:
     return servers
 
 
+def _colon_to_port(servers: Iterable[str]) -> Iterable[str]:
+    for s in servers:
+        if ':' not in s:
+            yield s
+            continue
+        s, p = s.split(':')
+        yield f'{s} -p {p}'
+
+
 def main():
     patterns = sys.argv[1:]
     if not patterns:
         print('No servers specified.')
         sys.exit(-1)
     patterns = _range_servers(patterns)
-    patterns = _regex_servers(patterns)
-    results = fetch_all(patterns)
-    table = format_table(results)
+    patterns = list(_regex_servers(patterns))
+    servers = _colon_to_port(patterns)
+    results = fetch_all(servers, patterns)
+    table = format_table(results, patterns)
     if not table:
         return
     headers = ('Server', 'IP', 'GPU', 'Usage', 'Used', 'Total', 'Users')
