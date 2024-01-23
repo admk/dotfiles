@@ -20,11 +20,12 @@ SLURM_SCRIPT = """#!/bin/bash
 #SBATCH -N 1
 #SBATCH --cpus-per-task={args.cpu_count}
 #SBATCH --time=7-0:00
-#SBATCH --gres={args.gres_type}:{args.gres_count}
+#SBATCH --gres={gres}
 
 cd $HOME
-echo "date: $(date +%Y-%m-%d_%H-%M-%S)"
+echo "date: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "hostname: $(hostname)"
+echo "port: {port}"
 # autossh to keep the reverse ssh connection alive
 {autossh} \\
     -M 0 \\
@@ -63,8 +64,14 @@ def submit_slurm_job(args):
             f"Invalid port range {args.port_range!r}, "
             f"should be in the format of '<int>' or '<int>-<int>'.")
     autossh = shutil.which('autossh')
+    if not autossh:
+        raise RuntimeError(
+            "autossh is not found, please install it first.")
+    gres = ''
+    if args.gres_type and args.gres_count:
+        gres = f'{args.gres_type}:{args.gres_count}'
     script = SLURM_SCRIPT.format(
-        logdir=_logdir, autossh=autossh, args=args, port=port)
+        logdir=_logdir, autossh=autossh, args=args, port=port, gres=gres)
     print(f"args: {args!r}")
     print(f"port: {port!r}")
     print(f"autossh: {autossh!r}")
@@ -82,7 +89,7 @@ def submit_slurm_job(args):
     cmd = ['squeue', '-h', '-j', jobid, '-o', '%T']
     print ('Now waiting for the job to start...')
     time.sleep(1)
-    status = subprocess.check_output(cmd).decode().strip()
+    status = subprocess.check_output(cmd).decode().strip().lower()
     print(f"status: {status}")
     print('When the job is running, you can connect to the host with:')
     print(f"ssh -p {port} {args.host}")
