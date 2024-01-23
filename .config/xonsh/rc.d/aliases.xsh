@@ -1,22 +1,8 @@
 from shutil import which as _which
+from textwrap import dedent as _dedent
 from xonsh.tools import unthreadable as _unthreadable
 
-
-def _register_envs_alias(names, envs, cmd=None):
-    def _wrapper(args):
-        if cmd is not None:
-            args = [cmd] + args
-        with ${...}.swap(**envs):
-            @(args)
-    names = [names] if isinstance(names, str) else names
-    for name in names:
-        aliases.register(name)(_wrapper)
-
-
-def _register_dep_aliases(dep_aliases):
-    for a, cmd in dep_aliases.items():
-        if _which(cmd.split(' ')[0]):
-            aliases[a] = cmd
+from common.aliases import _register_dep_aliases, _register_envs_alias
 
 
 aliases |= {
@@ -54,7 +40,7 @@ aliases |= {
     'ip': 'curl https://ifconfig.co/json' + (' | jq' if _which('jq') else ''),
     'xtb': 'cat $XONSH_TRACEBACK_LOGFILE | less +G',
     'ssh-exit': 'ssh -O exit',
-    'vim': f"{_which('vim')} -u .kxh/.config/nvim/init.vim",
+    'vim': f"{_which('vim')} -u $KXH_HOME/.config/nvim/init.vim",
 }
 _register_dep_aliases({
     'rcp': 'rsync --progress --recursive --archive',
@@ -71,7 +57,7 @@ def _alias(args):
         if isinstance(v, list):
             return ' '.join(v)
         if inspect.isfunction(v):
-            src = inspect.getsource(v)
+            src = _dedent(inspect.getsource(v))
             nonlocal lexer, formatter
             if lexer is None or formatter is None:
                 lexer = pyghooks.XonshLexer()
@@ -159,24 +145,24 @@ def _pydb(args):
     python -m debugpy --listen 5678 --wait-for-client @(args)
 
 
-_register_envs_alias('hf-offline', {
-    'TRANSFORMERS_OFFLINE': '1',
-    'HF_DATASETS_OFFLINE': '1',
-    'HF_EVALUATE_OFFLINE': '1',
-})
+_register_envs_alias(
+    'hf-offline',
+    {
+        'TRANSFORMERS_OFFLINE': '1',
+        'HF_DATASETS_OFFLINE': '1',
+        'HF_EVALUATE_OFFLINE': '1',
+    },
+    settable=True)
 
 
-@aliases.register('px')
-@aliases.register('proxy')
-def _proxy(args):
-    envs = {
+_register_envs_alias(
+    ['px', 'proxy'],
+    lambda: {
         'http_proxy': f'http://{$PROXY}',
         'https_proxy': f'http://{$PROXY}',
         'all_proxy': f'socks5://{$PROXY}',
-    }
-    with ${...}.swap(**envs):
-        execx(' '.join(args))
-
+    },
+    settable=True)
 ${...}.setdefault('PROXY', '127.0.0.1:7890')
 
 

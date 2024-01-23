@@ -1,20 +1,150 @@
 import platform
 
+from common.aliases import _register_envs_alias
+
 
 aliases |= {
     'ns': 'nvidia-smi',
     'st': 'gpustat -cup',
+    'stime': 'squeue -h --me -j $SLURM_JOB_ID -o %e',
 }
 
-@aliases.register('vd')
-def _cuda_visible_devices(args):
-    vd, *args = args
-    if not args:
-        $CUDA_VISIBLE_DEVICES = vd
-        print(f'$CUDA_VISIBLE_DEVICES={vd}')
+
+_register_envs_alias(
+    'vd', lambda devices: {'CUDA_VISIBLE_DEVICES': devices, },
+    settable=True)
+
+
+@aliases.register('srtime')
+def _srtime(args):
+    from datetime import datetime
+    date = $(squeue -h --me -j $SLURM_JOB_ID -o %e).strip('\n')
+    date = datetime.strptime(date, r'%Y-%m-%dT%H:%M:%S')
+    time = date - datetime.now()
+    time_str = ''
+    if time.days:
+        time_str += f'{time.days}d'
+    if time.seconds // 3600:
+        time_str += f'{time.seconds // 3600}h'
+    if time.seconds % 3600 // 60:
+        time_str += f'{time.seconds % 3600 // 60}m'
+    return time_str
+
+
+@aliases.register('sgpus')
+def _sgpus(args):
+    gres = $(scontrol show node | grep gres)
+    total = {}
+    alloc = {}
+    for l in gres.splitlines():
+        l = l.strip()
+        if l.startswith('CfgTRES='):
+            l = l.replace('CfgTRES=', '')
+            d = total
+        elif l.startswith('AllocTRES='):
+            l = l.replace('AllocTRES=', '')
+            d = alloc
+        else:
+            continue
+        for g in l.split(','):
+            k, v = g.split('=')
+            if k.startswith('gres/'):
+                d[k] = d.get(k, 0) + int(v)
+    print(f'Allocated GPUs: {alloc["gres/gpu"]}/{total["gres/gpu"]}')
+    for k, v in alloc.items():
+        if k == 'gres/gpu':
+            continue
+        print(f"- {k.replace('gres/gpu:', '')}: {v}/{total[k]}")
+
+
+def _ts_job_ids():
+    return [int(l.strip().split(' ')[0]) for l in $(ts).splitlines()[1:]]
+
+
+@aliases.register('ts-full-cmd-all')
+def _ts_full_cmd_all(args):
+    show_id = '-i' in args or '--id' in args
+    for i in _ts_job_ids():
+        cmd = $(ts -F @(i)).strip('\n')
+        if show_id:
+            print(f'{i}: {cmd}')
+        else:
+            print(cmd)
+
+
+@aliases.register('ts-cancel-all')
+def _ts_cancel_all(args):
+    running = '-r' in args or '--running' in args
+    allocating = '-a' in args or '--allocating' in args
+    allocating_jobs = []
+    running_jobs = []
+    for i in _ts_job_ids():
+        state = $(ts -s @(i))
+        if 'allocating' in state:
+            allocating_jobs.append(str(i))
+        elif 'running' in state:
+            running_jobs.append(str(i))
+    if allocating:
+        print(f"Removing allocating jobs: {', '.join(allocating_jobs)}...")
+        for i in allocating_jobs:
+            $(ts -r @(i))
+    if running:
+        print(f"Removing running jobs: {', '.join(running_jobs)}...")
+        for i in running_jobs:
+            $(ts -k @(i))
+    if not allocating and not running:
+        print(f'Running jobs: {", ".join(running_jobs)}')
+        print(f'Allocating jobs: {", ".join(allocating_jobs)}')
+        print(
+            'Use -a/--allocating or -r/--running '
+            'to specify which jobs to cancel.')
+
+
+@aliases.register('ts-rerun-failed')
+def _ts_rerun_failed(args):
+    import re
+    jobs = []
+    for i in _ts_job_ids():
+        info = $(ts -i @(i))
+        code = int(re.search(r'exit code (\d+)', info).group(1))
+        if code == 0:
+            continue
+        print(f'Rerunning job {i}...')
+        cmd = $(ts -F @(i))
+        $(ts @(args) @(cmd))
+        $(ts -u @(i))
+
+
+def _share_folder(args):
+    if len(args) != 1:
+        print('Usage: share-folder <user>')
         return
-    with ${...}.swap(CUDA_VISIBLE_DEVICES=vd):
-        execx(' '.join(args))
+    if not p'/home/shared'.exists():
+        groupadd shared
+        mkdir -p /home/shared/
+        chgrp -R shared /home/shared/
+        chmod -R 2775 /home/shared/
+    usermod -a -G shared @(args)
+
+
+def _install_homebrew():
+    if $USER != "root":
+        return
+    if p'/home/linuxbrew/.linuxbrew/bin/brew'.exists():
+        return
+    print('Installing Homebrew...')
+    url = 'https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh'
+    with ${...}.swap(
+        http_proxy=$PROXY,
+        https_proxy=$PROXY,
+        all_proxy=$PROXY,
+    ):
+        apt-get install -y build-essential procps curl file git
+        curl -fsL @(url) -o .homebrew_install.sh
+        execx('/bin/bash .homebrew_install.sh')
+        rm .homebrew_install.sh
+        xontrib reload homebrew
+        brew install gcc tmux btop
 
 
 def _ubuntu_specific():
@@ -42,4 +172,6 @@ def _ubuntu_specific():
 
 if 'ubuntu' in platform.uname().version.lower():
     _ubuntu_specific()
-del _ubuntu_specific
+    _install_homebrew()
+    aliases.register('share-folder')(_share_folder)
+del _ubuntu_specific, _install_homebrew, _share_folder
