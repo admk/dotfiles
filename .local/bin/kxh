@@ -30,7 +30,7 @@ class KxhArgumentParser(argparse.ArgumentParser):
         [-J destination] [-L address] [-l login_name] [-m mac_spec]
         [-O ctl_cmd] [-o option] [-P tag] [-p port] [-Q query_option]
         [-R address] [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]
-        [destination] [command [argument ...]]
+        [destination[:port]] [command [argument ...]]
 
 Options:
     +v, +verbose: verbose mode.
@@ -86,6 +86,10 @@ Options:
         if kxh_args.non_hermetic:
             hmode = HermeticMode.NON_HERMETIC
         kxh_args.hermetic_mode = hmode
+        if ':' in ssh_args.destination:
+            dest, port = ssh_args.destination.split(':')
+            ssh_args.destination = dest
+            ssh_args.p = port
         return kxh_args, ssh_args
 
     def unparse_ssh_args(self, parsed_args, dest=True):
