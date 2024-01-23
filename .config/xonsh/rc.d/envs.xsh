@@ -18,9 +18,7 @@ $COMPLETIONS_MENU_ROWS = 8
 $AUTO_CD = True
 $DOTGLOB = True
 
-$VISUAL = 'vim'
-if _which('nvim'):
-    $VISUAL = 'nvim'
+$VISUAL = 'nvim' if _which('nvim') else 'vim'
 $EDITOR = $VISUAL
 $CLICOLOR = 1
 $LESS = '-F -g -i -M -R -S -w -X -z-4'
@@ -44,7 +42,11 @@ except KeyError:
 def _vscode_shell_integration():
     if ${...}.get('TERM_PROGRAM') != 'vscode':
         return
-    $VISUAL = $EDITOR = 'code --wait'
+    old_editor = $EDITOR
+    with open($(code --locate-shell-integration-path bash).strip('\n')) as f:
+        src = f.read()
+    source-bash @(src)
+    $EDITOR = old_editor
 
 
 _vscode_shell_integration()
