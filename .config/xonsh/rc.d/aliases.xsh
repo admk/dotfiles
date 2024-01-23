@@ -2,8 +2,11 @@ from shutil import which as _which
 from textwrap import dedent as _dedent
 from xonsh.tools import unthreadable as _unthreadable
 
-from common.aliases import _register_dep_aliases, _register_envs_alias
+from common.aliases import (
+    register_dep_aliases, register_env_alias, bash_like_alias)
 
+
+aliases.register('alias')(bash_like_alias)
 
 aliases |= {
     '-': 'cd -',
@@ -42,33 +45,10 @@ aliases |= {
     'ssh-exit': 'ssh -O exit',
     'vim': f"{_which('vim')} -u $KXH_HOME/.config/nvim/init.vim",
 }
-_register_dep_aliases({
+register_dep_aliases({
     'rcp': 'rsync --progress --recursive --archive',
     'ls': 'eza',
 })
-
-
-@aliases.register('alias')
-def _alias(args):
-    import inspect
-    from xonsh.lazyimps import pyghooks, pygments
-    lexer = formatter = None
-    def _format_alias(v):
-        if isinstance(v, list):
-            return ' '.join(v)
-        if inspect.isfunction(v):
-            src = _dedent(inspect.getsource(v))
-            nonlocal lexer, formatter
-            if lexer is None or formatter is None:
-                lexer = pyghooks.XonshLexer()
-                formatter = pygments.formatters.TerminalFormatter()
-            src = pygments.highlight(src, lexer, formatter)
-            return f'"""\n{src}"""'
-        return v
-    if not args:
-        args = aliases.keys()
-    for a in args:
-        print(f'{a} = {_format_alias(aliases[a])}')
 
 
 @aliases.register(',')
@@ -131,44 +111,45 @@ def _tmux(args):
 @aliases.register('pydb')
 @_unthreadable
 def _pydb(args):
-    processes = $(lsof -i tcp:5678)
+    port = 5678
+    processes = $(lsof -i tcp:@(port)) if _which('lsof') else None
     if processes:
         for proc in processes.split()[1:]:
             proc_out = proc.split(' ')
             for p in proc_out:
-                if p.isdigit():
-                    if input(f'Kill {p}? [yN]') == 'y':
-                        execx(f'kill {p}')
-                    else:
-                        print('Aborting')
-                        return
+                if not p.isdigit():
+                    continue
+                ask = f'Process {p} is using port {port}. Kill {p}? [yN]'
+                if input(ask) == 'y':
+                    execx(f'kill {p}')
+                else:
+                    print('Aborting')
+                    return
     python -m debugpy --listen 5678 --wait-for-client @(args)
 
 
-_register_envs_alias(
-    'hf-offline',
-    {
+@register_env_alias('hf', setmode='toggle')
+def _hf_env():
+    return {
         'TRANSFORMERS_OFFLINE': '1',
         'HF_DATASETS_OFFLINE': '1',
         'HF_EVALUATE_OFFLINE': '1',
-    },
-    settable=True)
+    }
 
 
-_register_envs_alias(
-    ['px', 'proxy'],
-    lambda: {
+@register_env_alias(['px', 'proxy'], setmode='toggle')
+def _proxy():
+    return {
         'http_proxy': f'http://{$PROXY}',
         'https_proxy': f'http://{$PROXY}',
         'all_proxy': f'socks5://{$PROXY}',
-    },
-    settable=True)
+    }
 ${...}.setdefault('PROXY', '127.0.0.1:7890')
 
 
-_BASH_ENV = {'SHELL': '/bin/bash'}
-_register_envs_alias('ssh', _BASH_ENV, cmd='ssh')
-_register_envs_alias('sshuttle', _BASH_ENV, cmd='sshuttle')
+_BASH_ENV = lambda: {'SHELL': '/bin/bash'}
+register_env_alias('ssh', cmd='ssh')(_BASH_ENV)
+register_env_alias('sshuttle', cmd='sshuttle')(_BASH_ENV)
 
 
 @events.on_transform_command

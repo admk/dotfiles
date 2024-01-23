@@ -1,6 +1,6 @@
 import platform
 
-from common.aliases import _register_envs_alias
+from common.aliases import register_env_alias
 
 
 aliases |= {
@@ -10,9 +10,9 @@ aliases |= {
 }
 
 
-_register_envs_alias(
-    'vd', lambda devices: {'CUDA_VISIBLE_DEVICES': devices, },
-    settable=True)
+@register_env_alias('vd', setmode='toggle')
+def _cuda_visible_devices(devices):
+    return {'CUDA_VISIBLE_DEVICES': devices}
 
 
 @aliases.register('srtime')
@@ -103,11 +103,14 @@ def _ts_cancel_all(args):
 @aliases.register('ts-rerun-failed')
 def _ts_rerun_failed(args):
     import re
+    cancelled = '-c' in args or '--cancelled' in args
     jobs = []
     for i in _ts_job_ids():
         info = $(ts -i @(i))
-        code = int(re.search(r'exit code (\d+)', info).group(1))
+        code = int(re.search(r'exit code (\-?\d+)', info).group(1))
         if code == 0:
+            continue
+        if not cancelled and code < 0:
             continue
         print(f'Rerunning job {i}...')
         cmd = $(ts -F @(i))
