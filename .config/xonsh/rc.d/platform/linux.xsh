@@ -11,8 +11,9 @@ aliases |= {
 
 
 @register_env_alias('vd', setmode='toggle')
-def _cuda_visible_devices(devices):
-    return {'CUDA_VISIBLE_DEVICES': devices}
+def _cuda_visible_devices(args):
+    devices, *args = args
+    return args, {'CUDA_VISIBLE_DEVICES': devices}
 
 
 @aliases.register('srtime')
@@ -61,7 +62,7 @@ def _ts_job_ids():
     return [int(l.strip().split(' ')[0]) for l in $(ts).splitlines()[1:]]
 
 
-@aliases.register('ts-full-cmd-all')
+@aliases.register('ts-list-cmd')
 def _ts_full_cmd_all(args):
     show_id = '-i' in args or '--id' in args
     for i in _ts_job_ids():
@@ -72,7 +73,7 @@ def _ts_full_cmd_all(args):
             print(cmd)
 
 
-@aliases.register('ts-cancel-all')
+@aliases.register('ts-cancel')
 def _ts_cancel_all(args):
     running = '-r' in args or '--running' in args
     allocating = '-a' in args or '--allocating' in args
@@ -89,7 +90,7 @@ def _ts_cancel_all(args):
         for i in allocating_jobs:
             $(ts -r @(i))
     if running:
-        print(f"Removing running jobs: {', '.join(running_jobs)}...")
+        print(f"Stopping running jobs: {', '.join(running_jobs)}...")
         for i in running_jobs:
             $(ts -k @(i))
     if not allocating and not running:
@@ -137,10 +138,11 @@ def _install_homebrew():
         return
     print('Installing Homebrew...')
     url = 'https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh'
+    proxy = ${...}.get('PROXY', '')
     with ${...}.swap(
-        http_proxy=$PROXY,
-        https_proxy=$PROXY,
-        all_proxy=$PROXY,
+        http_proxy=proxy,
+        https_proxy=proxy,
+        all_proxy=proxy,
     ):
         apt-get install -y build-essential procps curl file git
         curl -fsL @(url) -o .homebrew_install.sh
@@ -158,7 +160,7 @@ def _ubuntu_specific():
         'colordiff',
         'curl',
         'less',
-        'locale-gen',
+        ('locale-gen', 'locales'),
         ('nvim', 'neovim'),
     ]
     to_install = []

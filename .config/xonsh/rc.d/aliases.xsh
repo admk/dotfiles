@@ -1,5 +1,4 @@
 from shutil import which as _which
-from textwrap import dedent as _dedent
 from xonsh.tools import unthreadable as _unthreadable
 
 from common.aliases import (
@@ -129,8 +128,8 @@ def _pydb(args):
 
 
 @register_env_alias('hf', setmode='toggle')
-def _hf_env():
-    return {
+def _hf_env(args):
+    return args, {
         'TRANSFORMERS_OFFLINE': '1',
         'HF_DATASETS_OFFLINE': '1',
         'HF_EVALUATE_OFFLINE': '1',
@@ -138,8 +137,8 @@ def _hf_env():
 
 
 @register_env_alias(['px', 'proxy'], setmode='toggle')
-def _proxy():
-    return {
+def _proxy(args):
+    return args, {
         'http_proxy': f'http://{$PROXY}',
         'https_proxy': f'http://{$PROXY}',
         'all_proxy': f'socks5://{$PROXY}',
@@ -147,7 +146,7 @@ def _proxy():
 ${...}.setdefault('PROXY', '127.0.0.1:7890')
 
 
-_BASH_ENV = lambda: {'SHELL': '/bin/bash'}
+_BASH_ENV = lambda args: (args, {'SHELL': '/bin/bash'})
 register_env_alias('ssh', cmd='ssh')(_BASH_ENV)
 register_env_alias('sshuttle', cmd='sshuttle')(_BASH_ENV)
 
