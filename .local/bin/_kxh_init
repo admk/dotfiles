@@ -77,6 +77,35 @@ if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
 fi
 
 # xonsh
+sync_list=$XDG_CACHE_HOME/$KXH_NAME.sync
+delete_list=()
+if [ -f $sync_list ]; then
+    hot_dirs=(
+        $XDG_CONFIG_HOME/xonsh/rc.d
+        $XDG_CACHE_HOME/kxh/hosts
+    )
+    for hot_dir in ${hot_dirs[@]}; do
+        if [ ! -d $hot_dir ]; then
+            continue
+        fi
+        for file in $hot_dir/*; do
+            if [ ! -f $file ]; then
+                continue
+            fi
+            rel_file=${file#$KXH_HOME/}
+            if grep -q -F "$rel_file" $sync_list; then
+                continue
+            fi
+            delete_list+=($file)
+        done
+    done
+    if [[ ${#delete_list[@]} > 0 ]]; then
+        if [[ $KXH_VERBOSE == '1' ]]; then
+            echo "Removing $delete_list..."
+        fi
+        rm -f ${delete_list[@]}
+    fi
+fi
 if [[ $KXH_VERBOSE == '1' ]]; then
     echo "\$KXH_PYTHON=$KXH_PYTHON"
     PYTHONNOUSERSITE=1 $KXH_PYTHON -m site

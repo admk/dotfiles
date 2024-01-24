@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import os
+import re
 import sys
-import glob
-import fnmatch
-import tempfile
+import shutil
 import argparse
 import subprocess
 from shutil import which
 from enum import Enum
+from distutils.dir_util import copy_tree
 
 
 SSH = f"{which('ssh')}"
@@ -22,8 +22,9 @@ class HermeticMode(Enum):
 class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
-        [+d | +dry] [+v | +verbose] [+f | +force-reinstall]
-        [(+h | +hermetic) | (+s | +semi-hermetic) | (+n | +non-hermetic)]
+        [+d | ++dry] [+v | ++verbose] [+D | ++debug]
+        [+f | ++force-reinstall]
+        [(+h | ++hermetic) | (+s | ++semi-hermetic) | (+n | ++non-hermetic)]
         [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
         [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
         [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]
@@ -33,16 +34,20 @@ class KxhArgumentParser(argparse.ArgumentParser):
         [destination[:port]] [command [argument ...]]
 
 Options:
-    +v, +verbose: verbose mode.
-    +h, +hermetic: use hermetic mode (default).
-    +s, +semi-hermetic: use semi-hermetic mode.
-    +n, +non-hermetic: use non-hermetic mode."""
+    +v, ++verbose: verbose mode.
+    +d, ++dry: dry run.
+    +D, ++debug: debug mode.
+    +f, ++force-reinstall: remove the kxh folder to force reinstall.
+    +h, ++hermetic: use hermetic mode (default).
+    +s, ++semi-hermetic: use semi-hermetic mode.
+    +n, ++non-hermetic: use non-hermetic mode."""
 
     def __init__(self):
         super().__init__()
         kxh_options = [
             ('d', 'dry'),
             ('v', 'verbose'),
+            ('D', 'debug'),
             ('f', 'force-reinstall'),
             ('h', 'hermetic'),
             ('s', 'semi-hermetic'),
@@ -67,10 +72,10 @@ Options:
         for a in args:
             if a.startswith('++'):
                 a = a.replace('-', '_')
-                normalized_args.append(f'--kxh-{a[2:]}')
+                normalized_args.append(f'--kxh-{a.lstrip("+")}')
             elif a.startswith('+'):
                 a = a.replace('-', '_')
-                for af in a[1:]:
+                for af in a.lstrip('+'):
                     normalized_args.append(f'--kxh-{af}')
             else:
                 normalized_args.append(a)
@@ -127,6 +132,8 @@ class KXH:
         self.home = os.environ.get('KXH_HOME', None)
         if not self.home:
             self.home = os.path.join(os.environ['HOME'], self.name)
+        self.config_home = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+        self.cache_home = os.environ.get('XDG_CACHE_HOME', '~/.cache')
         parser = KxhArgumentParser()
         kxh_args, ssh_args = parser.parse_args()
         self.ssh_cmd = parser.unparse_ssh_args(ssh_args, dest=False)
@@ -176,16 +183,37 @@ class KXH:
                 raise e
 
     def _custom_rcs(self):
-        config_home = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-        config_rcs = os.path.join(
-            config_home, self.name.lstrip('.'), 'hosts', '*')
-        for rc in glob.glob(config_rcs):
-            if not os.path.isfile(rc):
+        name = self.name.lstrip('.')
+        rcs_dir = os.path.join(self.config_home, name, 'hosts')
+        cache_rcs_dir = os.path.join(self.cache_home, name, 'hosts')
+        if os.path.exists(cache_rcs_dir):
+            shutil.rmtree(cache_rcs_dir)
+        copy_tree(rcs_dir, cache_rcs_dir)
+        for rc in os.listdir(cache_rcs_dir):
+            rc_file = os.path.join(cache_rcs_dir, rc)
+            if not os.path.isfile(rc_file):
                 continue
-            rc_name = os.path.splitext(os.path.basename(rc))[0]
-            if fnmatch.fnmatch(self.destination, rc_name):
-                rc = os.path.relpath(rc, self.home)
-                yield rc
+            rc_name = os.path.splitext(rc)[0]
+            if re.match(rc_name, self.destination):
+                yield os.path.relpath(rc_file, self.home)
+
+    def _file_list_file(self):
+        file = os.path.join(self.cache_home, f'{self.name}.sync')
+        f = open(file, 'w')
+        file_list = self._run(
+            ['git', 'ls-files'],
+            f'Failed to list files in {self.home!r}.',
+            verbose=False, cwd=self.home)
+        file_list = file_list or ''
+        custom_rcs = list(self._custom_rcs())
+        if self.verbose:
+            print(f'Custom rc files: {(custom_rcs)}')
+        file_list += '\n'.join(custom_rcs)
+        rel_file = os.path.relpath(file, self.home)
+        file_list += f'\n{rel_file}\n'
+        f.write(file_list)
+        f.close()
+        return file
 
     def _sync_files(self):
         if not os.path.exists(self.home):
@@ -200,37 +228,27 @@ class KXH:
             self._run(
                 self.ssh_cmd + [self.destination, f'rm -rf {self.name}'],
                 f'Failed to remove {self.name!r} from {self.destination!r}.')
-        with tempfile.NamedTemporaryFile(mode='w+') as f:
-            file_list = self._run(
-                ['git', 'ls-files'],
-                f'Failed to list files in {self.home!r}.',
-                verbose=False, cwd=self.home)
-            file_list = file_list or ''
-            custom_rcs = list(self._custom_rcs())
-            if self.verbose:
-                print(f'Custom rc files: {(custom_rcs)}')
-            file_list += '\n'.join(custom_rcs)
-            f.write(file_list)
-            f.flush()
-            rsync_cmd = [
-                f"SHELL={which('bash')}",
-                "rsync --archive --compress --human-readable",
-                "--update --partial --progress --checksum",
-                f"--rsh {' '.join(self.ssh_cmd)!r}",
-                f"--files-from {f.name}",
-                f"\'{self.home}/\' {self.destination}:{self.name}"
-            ]
-            rsync_cmd = ' '.join(rsync_cmd)
-            self._run_shell(
-                rsync_cmd,
-                f'Failed to rsync files to {self.destination!r}.')
+        file_list = self._file_list_file()
+        rsync_cmd = [
+            f"SHELL={which('bash')}",
+            "rsync --archive --compress --human-readable",
+            "--update --partial --progress --checksum",
+            f"--rsh {' '.join(self.ssh_cmd)!r}",
+            f"--files-from {file_list}",
+            f"\'{self.home}/\' {self.destination}:{self.name}"
+        ]
+        rsync_cmd = ' '.join(rsync_cmd)
+        self._run_shell(
+            rsync_cmd,
+            f'Failed to rsync files to {self.destination!r}.')
 
     def _ssh(self):
         prefix = [
             f'KXH_HOST={self.destination!r}',
             f'KXH_NAME={self.name!r}',
             f'KXH_MODE={self.hermetic_mode.name.lower().replace("_", "-")}',
-            f'KXH_VERBOSE={int(self.verbose)}'
+            f'KXH_VERBOSE={int(self.verbose)}',
+            f'KXH_DEBUG={int(self.debug)}',
         ]
         init_script = f"env {' '.join(prefix)} "
         init_script += f'/bin/bash --norc -c {self.name}/.local/bin/_kxh_init'

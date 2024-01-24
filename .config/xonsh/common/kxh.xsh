@@ -1,5 +1,5 @@
 def debug(enable):
-    if not enable:
+    if enable != '1':
         return
     $XONSH_DEBUG = True
     $XONSH_SHOW_TRACEBACK = True
