@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+import subprocess
+from datetime import datetime
+
+cmd = ['squeue', '-h', '--me', '-j', '$SLURM_JOB_ID', '-o', '%e']
+date = subprocess.check_output(cmd).decode().strip('\n')
+
+date = datetime.strptime(date, r'%Y-%m-%dT%H:%M:%S')
+time = date - datetime.now()
+time_str = ''
+if time.days:
+    time_str += f'{time.days}d'
+if time.seconds // 3600:
+    time_str += f'{time.seconds // 3600}h'
+if time.seconds % 3600 // 60:
+    time_str += f'{time.seconds % 3600 // 60}m'
+
+print(time_str)
