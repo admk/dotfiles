@@ -45,6 +45,9 @@ def _rc_main():
         if !(which @(cmd)):
             xontrib load @(xtb)
 
+    if cwd := ${...}.get('KXH_CWD'):
+        cd @(cwd)
+
 
 _rc_main()
 del _rc_main

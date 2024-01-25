@@ -5,12 +5,10 @@ import sys
 import shutil
 import argparse
 import subprocess
-from shutil import which
 from enum import Enum
-from distutils.dir_util import copy_tree
 
 
-SSH = f"{which('ssh')}"
+SSH = shutil.which('ssh')
 
 
 class HermeticMode(Enum):
@@ -188,7 +186,7 @@ class KXH:
         cache_rcs_dir = os.path.join(self.cache_home, name, 'hosts')
         if os.path.exists(cache_rcs_dir):
             shutil.rmtree(cache_rcs_dir)
-        copy_tree(rcs_dir, cache_rcs_dir)
+        shutil.copytree(rcs_dir, cache_rcs_dir)
         for rc in os.listdir(cache_rcs_dir):
             rc_file = os.path.join(cache_rcs_dir, rc)
             if not os.path.isfile(rc_file):
@@ -230,7 +228,7 @@ class KXH:
                 f'Failed to remove {self.name!r} from {self.destination!r}.')
         file_list = self._file_list_file()
         rsync_cmd = [
-            f"SHELL={which('bash')}",
+            f"SHELL={shutil.which('bash')}",
             "rsync --archive --compress --human-readable",
             "--update --partial --progress --checksum",
             f"--rsh {' '.join(self.ssh_cmd)!r}",
@@ -243,8 +241,11 @@ class KXH:
             f'Failed to rsync files to {self.destination!r}.')
 
     def _ssh(self):
+        host = self.destination
+        if self.p:
+            host = f'{host}:{self.p}'
         prefix = [
-            f'KXH_HOST={self.destination!r}',
+            f'KXH_HOST={host!r}',
             f'KXH_NAME={self.name!r}',
             f'KXH_MODE={self.hermetic_mode.name.lower().replace("_", "-")}',
             f'KXH_VERBOSE={int(self.verbose)}',

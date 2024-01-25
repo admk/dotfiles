@@ -1,12 +1,16 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
+[character]
+
 [line_break]
 disabled = true
 
 [username]
+disabled = true
 
 [hostname]
 ssh_symbol = ''
+disabled = true
 
 [container]
 disabled = true
@@ -20,3 +24,17 @@ ignore_branches = ['master', 'main']
 
 [python]
 disabled = true
+
+[custom.kxh_host]
+command = "echo $KXH_HOST"
+shell = 'bash'
+when = '[ ! -z $KXH_HOST ] && [ $KXH_HOST != "localhost" ]'
+format = 'on [$symbol($output )]($style)'
+style = 'bold blue'
+
+[custom.srtime]
+command = '$KXH_HOME/.local/bin/srtime -f wdhms -c 3 -n'
+shell = 'bash'
+when = '[ ! -z $SLURM_JOB_ID ]'
+format = 'in [$symbol($output )]($style)'
+style = 'bold yellow'

@@ -1,18 +1,91 @@
 #!/usr/bin/env python3
+import os
+import sys
+import argparse
 import subprocess
 from datetime import datetime
 
-cmd = ['squeue', '-h', '--me', '-j', '$SLURM_JOB_ID', '-o', '%e']
-date = subprocess.check_output(cmd).decode().strip('\n')
+import colorama
+from colorama import Fore, Style
 
-date = datetime.strptime(date, r'%Y-%m-%dT%H:%M:%S')
-time = date - datetime.now()
-time_str = ''
-if time.days:
-    time_str += f'{time.days}d'
-if time.seconds // 3600:
-    time_str += f'{time.seconds // 3600}h'
-if time.seconds % 3600 // 60:
-    time_str += f'{time.seconds % 3600 // 60}m'
 
-print(time_str)
+def _jobid():
+    jobid = os.environ.get('SLURM_JOB_ID')
+    if not jobid:
+        print('Not running in SLURM.', file=sys.stderr)
+        sys.exit(-1)
+    return jobid
+
+
+def _end_date(jobid):
+    cmd = ['squeue', '-h', '--me', '-j', jobid, '-o', '%e']
+    cmd = subprocess.run(cmd, stdout=subprocess.PIPE, check=True)
+    date = cmd.stdout.decode().strip()
+    return datetime.strptime(date, r'%Y-%m-%dT%H:%M:%S')
+
+
+def _format_component(total_seconds, format, color, num_components):
+    components = {
+        'w': 604800,
+        'd': 86400,
+        'h': 3600,
+        'm': 60,
+        's': 1,
+    }
+    colors = {
+        'w': Fore.RED,
+        'd': Fore.YELLOW,
+        'h': Fore.GREEN,
+        'm': Fore.BLUE,
+        's': Fore.MAGENTA,
+    }
+    if not all(c in components for c in format):
+        raise ValueError(f'Invalid format: {format}')
+    text = []
+    leading_zeros = True
+    for k, v in components.items():
+        if k in format:
+            count = int(total_seconds // v)
+            total_seconds -= count * v
+            if leading_zeros and not count:
+                continue
+            leading_zeros = False
+            if num_components is not None:
+                if len(text) >= num_components:
+                    continue
+            if color:
+                c = f'{count}{Style.BRIGHT}{colors[k]}{k}{Style.RESET_ALL}'
+            else:
+                c = f'{count}{k}'
+            text.append(c)
+    return ''.join(text)
+
+
+def _time_remaining(end_date, args):
+    time = end_date - datetime.now()
+    total_seconds = time.total_seconds()
+    if total_seconds < 0:
+        raise ValueError('End date is in the past.')
+    return _format_component(
+        total_seconds, args.format, not args.no_color, args.components)
+
+
+def _parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-j', '--jobid', type=int, default=None)
+    parser.add_argument('-n', '--no-color', action='store_true')
+    parser.add_argument('-f', '--format', type=str, default='wdhms')
+    parser.add_argument('-c', '--components', type=int, default=None)
+    return parser.parse_args()
+
+
+def main():
+    args = _parse_args()
+    colorama.init()
+    end_date = _end_date(args.jobid or _jobid())
+    text = _time_remaining(end_date, args)
+    print(text)
+
+
+if __name__ == '__main__':
+    main()

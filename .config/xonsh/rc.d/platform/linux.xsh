@@ -16,22 +16,6 @@ def _cuda_visible_devices(args):
     return args, {'CUDA_VISIBLE_DEVICES': devices}
 
 
-@aliases.register('srtime')
-def _srtime(args):
-    from datetime import datetime
-    date = $(squeue -h --me -j $SLURM_JOB_ID -o %e).strip('\n')
-    date = datetime.strptime(date, r'%Y-%m-%dT%H:%M:%S')
-    time = date - datetime.now()
-    time_str = ''
-    if time.days:
-        time_str += f'{time.days}d'
-    if time.seconds // 3600:
-        time_str += f'{time.seconds // 3600}h'
-    if time.seconds % 3600 // 60:
-        time_str += f'{time.seconds % 3600 // 60}m'
-    return time_str
-
-
 @aliases.register('sgpus')
 def _sgpus(args):
     gres = $(scontrol show node | grep gres)
@@ -65,8 +49,14 @@ def _ts_job_ids():
 @aliases.register('ts-list-cmd')
 def _ts_full_cmd_all(args):
     show_id = '-i' in args or '--id' in args
+    running = '-r' in args or '--running' in args
+    allocating = '-a' in args or '--allocating' in args
+    success = '-s' in args or '--success' in args
+    failed = '-f' in args or '--failed' in args
+    killed = '-k' in args or '--killed' in args
     for i in _ts_job_ids():
         cmd = $(ts -F @(i)).strip('\n')
+        state = $(ts -s @(i))
         if show_id:
             print(f'{i}: {cmd}')
         else:
@@ -107,8 +97,13 @@ def _ts_rerun_failed(args):
     cancelled = '-c' in args or '--cancelled' in args
     jobs = []
     for i in _ts_job_ids():
+        if 'running' in $(ts -s @(i)).strip():
+            continue
         info = $(ts -i @(i))
-        code = int(re.search(r'exit code (\-?\d+)', info).group(1))
+        match = re.search(r'exit code (\-?\d+)', info)
+        if match is None:
+            print(f'Job {i} has no exit code.')
+        code = int(match.group(1))
         if code == 0:
             continue
         if not cancelled and code < 0:
