@@ -59,7 +59,7 @@ def host_specific(verbose):
         rc_name = os.path.splitext(rc)[0]
         if not re.match(rc_name, host):
             continue
-        _verbose_source(rc_file, verbose, verbose_src)
+        _verbose_source(rc_file, verbose, verbose)
 
 
 def platform_specific(verbose):
@@ -82,3 +82,16 @@ def user_specific(verbose):
     if not user_rc.exists():
         return
     _verbose_source(user_rc, verbose, verbose)
+
+
+def main():
+    if 'KXH_OLD_HOME' in ${...}:
+        $PATH.insert(0, '$KXH_OLD_HOME/.local/bin')
+    if 'KXH_HOME' in ${...}:
+        $PATH.insert(0, '$KXH_HOME/.local/bin')
+
+    debug(${...}.get('KXH_DEBUG'))
+    verbose = ${...}.get('KXH_VERBOSE') == '1'
+    host_specific(verbose)
+    platform_specific(verbose)
+    user_specific(verbose)

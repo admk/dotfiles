@@ -1,24 +1,8 @@
 from shutil import which as _which
 
 
-def _rc_main():
-    import sys
-    sys.path.append($XONSH_CONFIG_DIR)
-    if 'KXH_OLD_HOME' in ${...}:
-        $PATH.insert(0, '$KXH_OLD_HOME/.local/bin')
-    if 'KXH_HOME' in ${...}:
-        $PATH.insert(0, '$KXH_HOME/.local/bin')
-
+def _xontrib_load():
     $XONTRIBS_AUTOLOAD_DISABLED = True
-
-    verbose = ${...}.get('KXH_VERBOSE') == '1'
-    from common import kxh
-    kxh.debug(${...}.get('KXH_DEBUG'))
-    # _kxh_debug(True)
-    kxh.host_specific(verbose)
-    kxh.platform_specific(verbose)
-    kxh.user_specific(verbose)
-
     $XONTRIB_SH_SHELLS = ['bash', 'sh']
     xontribs = [
         'abbrevs',
@@ -45,9 +29,12 @@ def _rc_main():
         if !(which @(cmd)):
             xontrib load @(xtb)
 
-    if cwd := ${...}.get('KXH_CWD'):
-        cd @(cwd)
+
+def _rc_main():
+    from common import kxh
+    kxh.main()
 
 
 _rc_main()
-del _rc_main
+_xontrib_load()
+del _rc_main, _xontrib_load

@@ -50,7 +50,6 @@ else
     OUT=/dev/null
     ERR=/dev/stderr
 fi
-cd $HOME
 
 # conda
 CONDA_SRC=https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda

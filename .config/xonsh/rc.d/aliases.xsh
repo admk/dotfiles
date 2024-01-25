@@ -35,6 +35,7 @@ aliases |= {
     'py': 'python',
     'ipy': 'ipython',
     'l': 'ls',
+    'la': 'ls -a',
     'll': 'ls -la',
     'ash':
         "autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' "

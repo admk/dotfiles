@@ -6,7 +6,6 @@ from common.aliases import register_env_alias
 aliases |= {
     'ns': 'nvidia-smi',
     'st': 'gpustat -cup',
-    'stime': 'squeue -h --me -j $SLURM_JOB_ID -o %e',
 }
 
 

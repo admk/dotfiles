@@ -30,8 +30,3 @@ def _conda_lazy(args):
 
 
 del _unthreadable
-
-
-# if ${...}.get('TERM_PROGRAM') != 'vscode':
-#     _conda_main()
-# del _conda_main
