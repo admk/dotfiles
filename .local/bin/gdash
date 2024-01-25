@@ -4,6 +4,7 @@ import re
 import sys
 import math
 import json
+import shutil
 import itertools
 import subprocess
 from typing import Iterable, Mapping, Any, List
@@ -12,19 +13,23 @@ import tabulate
 
 
 gpu_stat = 'gpustat'
-ssh = '/usr/bin/ssh'
+ssh = shutil.which('ssh')
+
+
+def popen(cmd: List[str], **kwargs) -> 'subprocess.Popen[str]':
+    return subprocess.Popen(cmd, env={'SHELL': '/bin/bash'}, **kwargs)
 
 
 def fetch(server: str) -> 'subprocess.Popen[str]':
-    return subprocess.Popen(
+    return popen(
         [ssh, '-v'] + server.split(' ') + [gpu_stat, '--json'],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
 def ip(server: str) -> str:
     cmd = [ssh, '-G'] + server.split(' ')
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    awk = subprocess.Popen(
+    proc = popen(cmd, stdout=subprocess.PIPE)
+    awk = popen(
         ['awk', '/^hostname / { print $2 }'],
         stdin=proc.stdout, stdout=subprocess.PIPE)
     output, _ = awk.communicate()
@@ -44,7 +49,6 @@ def fetch_all(
     print('Finished: ', end='')
     for pat, (s, proc) in zip(patterns, procs.items()):
         try:
-            print(f'{repr(pat) if " " in pat else pat} ', end='')
             sys.stdout.flush()
             stdout, stderr = proc.communicate(timeout=10)
         except subprocess.TimeoutExpired as e:
@@ -52,6 +56,7 @@ def fetch_all(
             results[s] = {'error': str(e)}
             continue
         if proc.returncode:
+            print(f'{repr(pat) if " " in pat else pat} ', end='')
             results[s] = {
                 'error': proc.returncode,
                 'stdout': stdout,
@@ -112,7 +117,7 @@ def format_table(
         plural = len(server_result['gpus']) > 1
         for gpu in server_result['gpus']:
             line: List[str] = [
-                f'{pattern}/{gpu["index"]}' if plural else pattern,
+                f'{pattern}/{gpu["index"]}' if plural else f'{pattern}  ',
                 ip_addr,
                 gpu_name(gpu["name"]),
                 f'{gpu["utilization.gpu"]}%',
@@ -130,15 +135,15 @@ def _regex_servers(regexes: Iterable[str]) -> Iterable[str]:
     servers = []
     for r in regexes:
         regex_servers = []
-        for h in hostnames:
-            if re.match(r, h):
-                regex_servers.append(h)
-        is_regex = any(c in r for c in '*?[](){}|\\')
-        if not regex_servers:
-            if is_regex:
+        is_regex = lambda x: any(c in x for c in '^$+*!?[](){}|\\')
+        if is_regex(r):
+            for h in hostnames:
+                if '*' not in h and re.search(r, h):
+                    regex_servers.append(h)
+            if not regex_servers:
                 print(f'No servers match {r!r}.')
-            else:
-                regex_servers.append(r)
+        else:
+            regex_servers.append(r)
         servers += regex_servers
     return servers
 
@@ -176,7 +181,7 @@ def main():
         sys.exit(-1)
     patterns = _range_servers(patterns)
     patterns = list(_regex_servers(patterns))
-    servers = _colon_to_port(patterns)
+    servers = list(_colon_to_port(patterns))
     results = fetch_all(servers, patterns)
     table = format_table(results, patterns)
     if not table:
