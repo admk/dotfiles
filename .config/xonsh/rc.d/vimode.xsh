@@ -4,10 +4,10 @@ $VI_MODE = True
 def _custom_keybindings(bindings, **kw):
     from prompt_toolkit.keys import Keys
     from prompt_toolkit.key_binding.key_processor import KeyPress
-    from prompt_toolkit.filters import ViInsertMode
+    from prompt_toolkit.filters import ViInsertMode, ViNavigationMode
 
     @bindings.add('j', 'k', filter=ViInsertMode())
-    def _(event):
+    def _exit_insert_mode(event):
         """
         Map j and k to <Escape>
         in Vi Insert mode.
@@ -15,7 +15,7 @@ def _custom_keybindings(bindings, **kw):
         event.cli.key_processor.feed(KeyPress(Keys.Escape))
 
     @bindings.add('c-a', filter=ViInsertMode())
-    def _(event):
+    def _start_of_buffer(event):
         """
         Restore the default behavior of ctrl-a
         to go to the beginning of the line.
@@ -24,7 +24,7 @@ def _custom_keybindings(bindings, **kw):
         event.app.current_buffer.cursor_position += pos
 
     @bindings.add('c-e', filter=ViInsertMode())
-    def _end_of_buffer(event):
+    def _end_of_buffer_or_insert_suggestion(event):
         """
         Restore the default behavior of ctrl-e
         to go to the end of the line.

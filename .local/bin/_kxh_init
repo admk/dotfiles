@@ -22,6 +22,7 @@ export KXH_INIT=$KXH_HOME/.local/bin/_kxh_init
 export KXH_CONDA_PREFIX=$KXH_HOME/.miniconda3
 export KXH_PYTHON=$KXH_CONDA_PREFIX/bin/python
 export KXH_SHELL=$KXH_CONDA_PREFIX/bin/xonsh
+export KXH_FALLBACK_SHELL=/bin/bash
 export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
 export XDG_CACHE_HOME="$XDG_HOME/.cache"
@@ -38,6 +39,7 @@ if [[ $KXH_VERBOSE == '1' ]]; then
     echo "\$KXH_CONDA_PREFIX=$KXH_CONDA_PREFIX"
     echo "\$KXH_PYTHON=$KXH_PYTHON"
     echo "\$KXH_SHELL=$KXH_SHELL"
+    echo "\$KXH_FALLBACK_SHELL=$KXH_FALLBACK_SHELL"
     echo "\$XDG_HOME=$XDG_HOME"
     echo "\$XDG_CONFIG_HOME=$XDG_CONFIG_HOME"
     echo "\$XDG_DATA_HOME=$XDG_DATA_HOME"
@@ -133,8 +135,8 @@ fi
 #     exec $SHELL "$@"
 # fi
 if [ ! -f $KXH_SHELL ]; then
-    echo 'Xonsh failed to install, fall back to $SHELL.' >$ERR
-    exec $SHELL "$@"
+    echo 'Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.' >$ERR
+    exec $KXH_FALLBACK_SHELL "$@"
 else
     SHELL=$KXH_SHELL exec $KXH_SHELL "$@"
 fi

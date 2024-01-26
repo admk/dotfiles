@@ -16,6 +16,7 @@
         Plug 'AlessandroYorba/Alduin'
         Plug 'whatyouhide/vim-gotham'
         Plug 'rakr/vim-one'
+        Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
     "}
     " Cosmetic {
         Plug 'ehamberg/vim-cute-python', {'for': 'python'}
@@ -241,7 +242,7 @@
             set termguicolors
         endif
     " }
-    colorscheme gotham
+    colorscheme catppuccin-macchiato
     " Flash cursorline
     if has("gui_running")
         function! s:Pulse()
@@ -351,6 +352,12 @@
         " let g:ycm_filetype_blacklist={
         "     \ 'notes': 1, 'unite': 1, 'tagbar': 1, 'pandoc': 1,
         "     \ 'qf': 1, 'vimwiki': 1, 'text': 1, 'infolog': 1, 'mail': 1}
+    " }
+    " color hack {
+        " hi Normal guibg=NONE ctermbg=NONE
+        " hi LineNr guibg=NONE ctermbg=NONE
+        " hi CursorLine guibg=NONE ctermbg=NONE
+        " hi CursorLineNr guibg=NONE ctermbg=NONE
     " }
 " }
 " vim: set fdm=marker fmr={,}:

@@ -3,7 +3,6 @@ from shutil import which as _which
 mkdir -p $XDG_CACHE_HOME/xonsh
 
 # $XONSH_HISTORY_BACKEND = 'sqlite'
-# $XONSH_HISTORY_FILE = f'{$XDG_CACHE_HOME}/xonsh/xonsh-history.sqlite'
 $XONSH_HISTORY_MATCH_ANYWHERE = True
 $HISTCONTROL = 'ignoredups'
 $MOUSE_SUPPORT = False
@@ -28,7 +27,7 @@ $LC_ALL = 'en_US.UTF-8'
 if 'TMUX' in ${...}:
     $TERM="xterm-256color"
 
-$GPG_TTY = $(tty)
+# $GPG_TTY = $(tty)
 
 try:
     $XONTRIB_ONEPATH_ACTIONS |= {

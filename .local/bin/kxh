@@ -20,8 +20,7 @@ class HermeticMode(Enum):
 class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
-        [+d | ++dry] [+v | ++verbose] [+D | ++debug]
-        [+f | ++force-reinstall]
+        [+d | ++dry] [+v | ++verbose] [+D | ++debug] [+f | ++force-reinstall]
         [(+h | ++hermetic) | (+s | ++semi-hermetic) | (+n | ++non-hermetic)]
         [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
         [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
@@ -225,8 +224,9 @@ class KXH:
             if input(ask) != 'y':
                 exit(0)
             print(f'Reinstalling {self.dot_name!r}...')
+            rm_cmd = f'rm -rf {self.dot_name} .local/bin/xh'
             self._run(
-                self.ssh_cmd + [self.destination, f'rm -rf {self.dot_name}'],
+                self.ssh_cmd + [self.destination, rm_cmd],
                 f'Failed to remove {self.name!r} from {self.destination!r}.')
         file_list = self._file_list_file()
         rsync_cmd = [
