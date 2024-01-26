@@ -75,7 +75,9 @@ def submit_slurm_job(args):
     print(f"args: {args!r}")
     print(f"port: {port!r}")
     print(f"autossh: {autossh!r}")
-    with tempfile.NamedTemporaryFile(mode='w', delete=True) as f:
+    temp_file = tempfile.NamedTemporaryFile(
+        prefix='sash_', mode='w', delete=True)
+    with temp_file as f:
         f.write(script)
         f.flush()
         print(f"--- SLURM SCRIPT [{f.name}] ---")
