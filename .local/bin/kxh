@@ -119,7 +119,7 @@ Options:
 
 
 class KXH:
-    name = '.kxh'
+    name = 'kxh'
     url = 'https://github.com/admk/dotfiles.git'
 
     def __init__(self):
@@ -127,11 +127,14 @@ class KXH:
         if ' ' in self.name:
             print('KXH name cannot contain spaces.', file=sys.stderr)
             exit(1)
+        self.dot_name = f'.{self.name}'
         self.home = os.environ.get('KXH_HOME', None)
         if not self.home:
-            self.home = os.path.join(os.environ['HOME'], self.name)
-        self.config_home = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-        self.cache_home = os.environ.get('XDG_CACHE_HOME', '~/.cache')
+            self.home = os.path.join(os.environ['HOME'], self.dot_name)
+        self.config_home = os.path.join(
+            os.environ.get('XDG_CONFIG_HOME', '~/.config'), self.name)
+        self.cache_home = os.path.join(
+            os.environ.get('XDG_CACHE_HOME', '~/.cache'), self.name)
         parser = KxhArgumentParser()
         kxh_args, ssh_args = parser.parse_args()
         self.ssh_cmd = parser.unparse_ssh_args(ssh_args, dest=False)
@@ -181,9 +184,8 @@ class KXH:
                 raise e
 
     def _custom_rcs(self):
-        name = self.name.lstrip('.')
-        rcs_dir = os.path.join(self.config_home, name, 'hosts')
-        cache_rcs_dir = os.path.join(self.cache_home, name, 'hosts')
+        rcs_dir = os.path.join(self.config_home, 'hosts')
+        cache_rcs_dir = os.path.join(self.cache_home, 'hosts')
         if os.path.exists(cache_rcs_dir):
             shutil.rmtree(cache_rcs_dir)
         shutil.copytree(rcs_dir, cache_rcs_dir)
@@ -196,7 +198,7 @@ class KXH:
                 yield os.path.relpath(rc_file, self.home)
 
     def _file_list_file(self):
-        file = os.path.join(self.cache_home, f'{self.name}.sync')
+        file = os.path.join(self.cache_home, f'sync')
         f = open(file, 'w')
         file_list = self._run(
             ['git', 'ls-files'],
@@ -219,12 +221,12 @@ class KXH:
                 ['git', 'clone', self.url, self.home],
                 f'Failed to clone {self.url!r} to {self.home!r}.')
         if self.force_reinstall:
-            ask = f'Force reinstall {self.name!r} to {self.destination!r}? [y/N] '
+            ask = f'Force reinstall {self.dot_name!r} to {self.destination!r}? [y/N] '
             if input(ask) != 'y':
                 exit(0)
-            print(f'Reinstalling {self.name!r}...')
+            print(f'Reinstalling {self.dot_name!r}...')
             self._run(
-                self.ssh_cmd + [self.destination, f'rm -rf {self.name}'],
+                self.ssh_cmd + [self.destination, f'rm -rf {self.dot_name}'],
                 f'Failed to remove {self.name!r} from {self.destination!r}.')
         file_list = self._file_list_file()
         rsync_cmd = [
@@ -233,7 +235,7 @@ class KXH:
             "--update --partial --progress --checksum",
             f"--rsh {' '.join(self.ssh_cmd)!r}",
             f"--files-from {file_list}",
-            f"\'{self.home}/\' {self.destination}:{self.name}"
+            f"\'{self.home}/\' {self.destination}:{self.dot_name}"
         ]
         rsync_cmd = ' '.join(rsync_cmd)
         self._run_shell(
@@ -252,7 +254,7 @@ class KXH:
             f'KXH_DEBUG={int(self.debug)}',
         ]
         init_script = f"env {' '.join(prefix)} "
-        init_script += f'/bin/bash --norc -c {self.name}/.local/bin/_kxh_init'
+        init_script += f'/bin/bash --norc -c {self.dot_name}/.local/bin/_kxh_init'
         ssh_cmd = self.ssh_cmd + [
             '-o', 'RequestTTY=yes', self.destination, repr(init_script)
         ]

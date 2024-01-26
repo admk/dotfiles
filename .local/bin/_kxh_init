@@ -1,12 +1,12 @@
 #!/bin/bash --norc
 
 # inputs
-export KXH_NAME=${KXH_NAME:-.kxh}
+export KXH_NAME=${KXH_NAME:-kxh}
 export KXH_OLD_HOME=${KXH_OLD_HOME:-$HOME}
 export KXH_MODE=${KXH_MODE:-hermetic}
 
 # envs
-export KXH_HOME=$KXH_OLD_HOME/$KXH_NAME
+export KXH_HOME=$KXH_OLD_HOME/.$KXH_NAME
 if [[ $KXH_MODE == 'non-hermetic' ]]; then
     export XDG_HOME=$HOME
 elif [[ $KXH_MODE == 'semi-hermetic' ]]; then
@@ -76,7 +76,7 @@ if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
 fi
 
 # xonsh
-sync_list=$XDG_CACHE_HOME/$KXH_NAME.sync
+sync_list=$XDG_CACHE_HOME/$KXH_NAME/sync
 delete_list=()
 if [ -f $sync_list ]; then
     hot_dirs=(
