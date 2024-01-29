@@ -85,7 +85,7 @@ def submit_slurm_job(args):
         print("--- END SLURM SCRIPT ---")
         cmd = ['sbatch'] + list(args.sbatch_args.split()) + [f.name]
         print(f"command: {' '.join(cmd)}")
-        output = subprocess.check_output(cmd)
+        output = subprocess.check_output(cmd, cwd=Path().home())
     jobid = output.decode().split()[-1]
     print(f"jobid: {jobid}")
     cmd = ['squeue', '-h', '-j', jobid, '-o', '%T']
