@@ -4,24 +4,21 @@ import re
 import sys
 import shutil
 import argparse
+import textwrap
 import subprocess
-from enum import Enum
+
+import tomlkit
 
 
 SSH = shutil.which('ssh')
 
 
-class HermeticMode(Enum):
-    HERMETIC = 0
-    SEMI_HERMETIC = 1
-    NON_HERMETIC = 2
-
-
 class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
-        [+d | ++dry] [+v | ++verbose] [+D | ++debug] [+f | ++force-reinstall]
+        [+d | ++dry] [+v | ++verbose] [+D | ++debug] [+F | ++force-reinstall]
         [(+h | ++hermetic) | (+s | ++semi-hermetic) | (+n | ++non-hermetic)]
+        [(+N | ++name) NAME] [(+r | ++rc) RC]
         [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
         [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
         [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]
@@ -34,31 +31,37 @@ Options:
     +v, ++verbose: verbose mode.
     +d, ++dry: dry run.
     +D, ++debug: debug mode.
-    +f, ++force-reinstall: remove the kxh folder to force reinstall.
+    +f, ++force-reinstall: force reinstall on remote host.
     +h, ++hermetic: use hermetic mode (default).
     +s, ++semi-hermetic: use semi-hermetic mode.
-    +n, ++non-hermetic: use non-hermetic mode."""
+    +n, ++non-hermetic: use non-hermetic mode.
+    (+r | ++rc) RC: use custom RC file.
+    (+N | ++name) NAME: use custom name instead of "kxh".
+"""
 
     def __init__(self):
         super().__init__()
-        kxh_options = [
-            ('d', 'dry'),
-            ('v', 'verbose'),
-            ('D', 'debug'),
-            ('f', 'force-reinstall'),
-            ('h', 'hermetic'),
-            ('s', 'semi-hermetic'),
-            ('n', 'non-hermetic'),
-        ]
-        for options in kxh_options:
+        store_true = {'action': 'store_true'}
+        self.kxh_options = {
+            ('d', 'dry'): store_true,
+            ('v', 'verbose'): store_true,
+            ('D', 'debug'): store_true,
+            ('f', 'force-reinstall'): store_true,
+            ('h', 'hermetic'): store_true,
+            ('s', 'semi-hermetic'): store_true,
+            ('n', 'non-hermetic'): store_true,
+            ('N', 'name'): {'type': str, 'default': None},
+            ('r', 'rc'): {'type': str, 'default': None},
+        }
+        for options, kwargs in self.kxh_options.items():
             dest = f"kxh_{options[-1].replace('-', '_')}"
             options = [f'--kxh-{o}' for o in options]
-            self.add_argument(*options, action='store_true', dest=dest)
+            self.add_argument(*options, dest=dest, **kwargs)
         for option in '46AaCfGgKkMNnqsTtVvXxYy':
             self.add_argument(f'-{option}', action='store_true')
         for option in 'BbcDEeFIiJLlmOoPpQRSWw':
             self.add_argument(f'-{option}', dest=option)
-        self.add_argument('destination', nargs='?', default='localhost')
+        self.add_argument('destination', type=str)
 
     def parse_args(self, args=None, namespace=None):
         args = args or sys.argv[1:]
@@ -82,12 +85,15 @@ Options:
             if k.startswith('kxh_'):
                 setattr(kxh_args, k[4:], v)
                 delattr(ssh_args, k)
-        hmode = HermeticMode.HERMETIC
+        mode = 'hermetic'
         if kxh_args.semi_hermetic:
-            hmode = HermeticMode.SEMI_HERMETIC
+            mode = 'semi-hermetic'
         if kxh_args.non_hermetic:
-            hmode = HermeticMode.NON_HERMETIC
-        kxh_args.hermetic_mode = hmode
+            mode = 'non-hermetic'
+        kxh_args.mode = mode
+        del kxh_args.hermetic
+        del kxh_args.semi_hermetic
+        del kxh_args.non_hermetic
         if ':' in ssh_args.destination:
             dest, port = ssh_args.destination.split(':')
             ssh_args.destination = dest
@@ -95,17 +101,19 @@ Options:
         return kxh_args, ssh_args
 
     def unparse_ssh_args(self, parsed_args, dest=True):
+        if not isinstance(parsed_args, dict):
+            parsed_args = vars(parsed_args)
         command_line = [SSH]
         for option in '46AaCfGgKkMNnqsTtVvXxYy':
-            if getattr(parsed_args, option):
+            if parsed_args.get(option):
                 command_line.append(f'-{option}')
         for option in 'BbcDEeFIiJLlmOoPpQRSWw':
-            value = getattr(parsed_args, option)
+            value = parsed_args.get(option)
             if value is not None:
                 command_line.append(f'-{option}')
                 command_line.append(str(value))
         if dest:
-            command_line.append(parsed_args.destination)
+            command_line.append(parsed_args['destination'])
         return command_line
 
     def print_usage(self):
@@ -117,40 +125,71 @@ Options:
         exit(1)
 
 
+def update(mapping, values):
+    for k, v in values.items():
+        if v is None:
+            pass
+        elif isinstance(v, bool):
+            mapping[k] = mapping.get(k) or v
+        else:
+            mapping[k] = v
+
+
 class KXH:
-    name = 'kxh'
-    url = 'https://github.com/admk/dotfiles.git'
+    kxh_defaults = {
+        'name': 'kxh',
+        'repo': 'https://github.com/admk/dotfiles.git',
+    }
+
+    def _load_rc(self, rc):
+        rc = rc or os.path.join(self.config_home, 'kxh.toml')
+        if rc is not None:
+            if not os.path.exists(rc):
+                print(f'kxh: {rc!r} does not exist.', file=sys.stderr)
+                exit(1)
+            with open(rc, 'rb') as f:
+                config = tomlkit.load(f).unwrap()
+        else:
+            config = {}
+        config.setdefault('kxh', {})
+        config.setdefault('ssh', {})
+        update(config['kxh'], self.kxh_defaults)
+        return config
 
     def __init__(self):
         super().__init__()
-        if ' ' in self.name:
-            print('KXH name cannot contain spaces.', file=sys.stderr)
-            exit(1)
-        self.dot_name = f'.{self.name}'
-        self.home = os.environ.get('KXH_HOME', None)
-        if not self.home:
-            self.home = os.path.join(os.environ['HOME'], self.dot_name)
-        self.config_home = os.path.join(
-            os.environ.get('XDG_CONFIG_HOME', '~/.config'), self.name)
-        self.cache_home = os.path.join(
-            os.environ.get('XDG_CACHE_HOME', '~/.cache'), self.name)
+        self.config_home = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+        self.cache_home = os.environ.get('XDG_CACHE_HOME', '~/.cache')
         parser = KxhArgumentParser()
         kxh_args, ssh_args = parser.parse_args()
-        self.ssh_cmd = parser.unparse_ssh_args(ssh_args, dest=False)
-        for args in (kxh_args, ssh_args):
-            for k, v in dict(vars(args)).items():
-                if hasattr(self, k):
-                    raise ValueError(f'Attribute {k!r} already exists.')
-                setattr(self, k, v)
+        config = self._load_rc(kxh_args.rc)
+        update(config.setdefault('kxh', {}), vars(kxh_args))
+        ssh_args = {
+            k: v for k, v in vars(ssh_args).items() if v is not False}
+        update(config.setdefault('ssh', {}), ssh_args)
+        self.ssh_cmd = parser.unparse_ssh_args(config['ssh'], dest=False)
+        name = config['kxh']['name']
+        if ' ' in name:
+            print('KXH name cannot contain spaces.', file=sys.stderr)
+            exit(1)
+        home = os.environ.get('KXH_HOME', None)
+        if not home:
+            home = os.path.join(os.environ['HOME'], f'.{name}')
+        config['kxh'].setdefault('home', home)
+        if config['kxh']['verbose']:
+            print('Config:')
+            print(textwrap.indent(tomlkit.dumps(config), '  '))
+        self.config = config
 
     def _run(self, command, error_message=None, verbose=None, **kwargs):
-        verbose = verbose if verbose is not None else self.verbose
-        if verbose or self.dry:
+        verbose = verbose if verbose is not None else self.config['kxh']['verbose']
+        dry = self.config['kxh']['dry']
+        if verbose or dry:
             print(f"kxh.run: {' '.join(command)}")
             err = sys.stderr
         else:
             err = subprocess.DEVNULL
-        if self.dry:
+        if dry:
             return
         try:
             output = subprocess.check_output(command, stderr=err, **kwargs)
@@ -166,12 +205,13 @@ class KXH:
         return output
 
     def _run_shell(self, command, error_message=None, verbose=None, **kwargs):
-        verbose = verbose if verbose is not None else self.verbose
-        if verbose or self.dry:
+        verbose = verbose if verbose is not None else self.config['kxh']['verbose']
+        dry = self.config['kxh']['dry']
+        if verbose or dry:
             print(f'kxh.run_shell: {command}')
         else:
             kwargs.setdefault('stdout', subprocess.DEVNULL)
-        if self.dry:
+        if dry:
             return
         try:
             subprocess.run(command, shell=True, **kwargs)
@@ -183,8 +223,10 @@ class KXH:
                 raise e
 
     def _custom_rcs(self):
-        rcs_dir = os.path.join(self.config_home, 'hosts')
-        cache_rcs_dir = os.path.join(self.cache_home, 'hosts')
+        name = self.config['kxh']['name']
+        rcs_dir = os.path.join(self.config_home, name, 'hosts')
+        os.makedirs(rcs_dir, exist_ok=True)
+        cache_rcs_dir = os.path.join(self.cache_home, name, 'hosts')
         if os.path.exists(cache_rcs_dir):
             shutil.rmtree(cache_rcs_dir)
         shutil.copytree(rcs_dir, cache_rcs_dir)
@@ -193,41 +235,49 @@ class KXH:
             if not os.path.isfile(rc_file):
                 continue
             rc_name = os.path.splitext(rc)[0]
-            if re.match(rc_name, self.destination):
-                yield os.path.relpath(rc_file, self.home)
+            if re.match(rc_name, self.config['ssh']['destination']):
+                yield os.path.relpath(rc_file, self.config['kxh']['home'])
 
     def _file_list_file(self):
-        file = os.path.join(self.cache_home, f'sync')
+        name = self.config['kxh']['name']
+        file = os.path.join(self.cache_home, name, 'sync')
+        os.makedirs(os.path.dirname(file), exist_ok=True)
         f = open(file, 'w')
+        home = self.config['kxh']['home']
         file_list = self._run(
             ['git', 'ls-files'],
-            f'Failed to list files in {self.home!r}.',
-            verbose=False, cwd=self.home)
+            f'Failed to list files in {home!r}.',
+            verbose=False, cwd=home)
         file_list = file_list or ''
         custom_rcs = list(self._custom_rcs())
-        if self.verbose:
+        if self.config['kxh']['verbose']:
             print(f'Custom rc files: {(custom_rcs)}')
         file_list += '\n'.join(custom_rcs)
-        rel_file = os.path.relpath(file, self.home)
+        rel_file = os.path.relpath(file, home)
         file_list += f'\n{rel_file}\n'
         f.write(file_list)
         f.close()
         return file
 
     def _sync_files(self):
-        if not os.path.exists(self.home):
+        url = self.config['kxh']['repo']
+        home = self.config['kxh']['home']
+        name = self.config['kxh']['name']
+        dest = self.config['ssh']['destination']
+        if not os.path.exists(home):
             self._run(
-                ['git', 'clone', self.url, self.home],
-                f'Failed to clone {self.url!r} to {self.home!r}.')
-        if self.force_reinstall:
-            ask = f'Force reinstall {self.dot_name!r} to {self.destination!r}? [y/N] '
+                ['git', 'clone', url, home],
+                f'Failed to clone {url!r} to {home!r}.')
+        if self.config['kxh']['force_reinstall']:
+            dest = self.config['ssh']['destination']
+            ask = f'Force reinstall .{name} to {dest!r}? [y/N] '
             if input(ask) != 'y':
                 exit(0)
-            print(f'Reinstalling {self.dot_name!r}...')
-            rm_cmd = f'rm -rf {self.dot_name} .local/bin/xh'
+            print(f'Reinstalling .{name}...')
+            rm_cmd = f'rm -rf .{name} .local/bin/xh'
             self._run(
-                self.ssh_cmd + [self.destination, rm_cmd],
-                f'Failed to remove {self.name!r} from {self.destination!r}.')
+                self.ssh_cmd + [dest, rm_cmd],
+                f'Failed to remove .{name!r} from {dest!r}.')
         file_list = self._file_list_file()
         rsync_cmd = [
             f"SHELL={shutil.which('bash')}",
@@ -235,28 +285,33 @@ class KXH:
             "--update --partial --progress --checksum",
             f"--rsh {' '.join(self.ssh_cmd)!r}",
             f"--files-from {file_list}",
-            f"\'{self.home}/\' {self.destination}:{self.dot_name}"
+            f"\'{home}/\' {dest}:.{name}"
         ]
         rsync_cmd = ' '.join(rsync_cmd)
         self._run_shell(
             rsync_cmd,
-            f'Failed to rsync files to {self.destination!r}.')
+            f'Failed to rsync files to {dest!r}.')
 
     def _ssh(self):
-        host = self.destination
-        if self.p:
-            host = f'{host}:{self.p}'
+        name = self.config['kxh']['name']
+        mode = self.config['kxh']['mode']
+        verbose = self.config['kxh']['verbose']
+        debug = self.config['kxh']['debug']
+        dest = self.config['ssh']['destination']
+        port = self.config['ssh'].get('p')
+        host = f'{dest}:{port}' if port else dest
         prefix = [
-            f'KXH_HOST={host!r}',
-            f'KXH_NAME={self.name!r}',
-            f'KXH_MODE={self.hermetic_mode.name.lower().replace("_", "-")}',
-            f'KXH_VERBOSE={int(self.verbose)}',
-            f'KXH_DEBUG={int(self.debug)}',
+            f'KXH_HOST={host}',
+            f'KXH_NAME={name}',
+            f'KXH_MODE={mode}',
+            f'KXH_VERBOSE={int(verbose)}',
+            f'KXH_DEBUG={int(debug)}',
         ]
         init_script = f"env {' '.join(prefix)} "
-        init_script += f'/bin/bash --norc -c {self.dot_name}/.local/bin/_kxh_init'
+        command = f".{name}/.local/bin/_kxh_init"
+        init_script += f"/bin/bash --norc -c {command!r}"
         ssh_cmd = self.ssh_cmd + [
-            '-o', 'RequestTTY=yes', self.destination, repr(init_script)
+            '-o', 'RequestTTY=yes', dest, repr(init_script)
         ]
         ssh_cmd = ' '.join(ssh_cmd)
         self._run_shell(

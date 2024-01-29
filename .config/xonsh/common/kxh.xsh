@@ -35,7 +35,7 @@ def _verbose_source(filename, verbose, verbose_src):
         src = indent(dedent(f.read()), '  ')
     lexer = pyghooks.XonshLexer()
     src = pygments.highlight(src, lexer, formatter)
-    print('\n' + src.strip('\n') + '\n')
+    print(src.strip('\n'))
 
 
 def host_specific(verbose):
