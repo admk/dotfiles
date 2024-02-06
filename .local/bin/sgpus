@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+import subprocess
+import tabulate
+
+
+def get_node_info():
+    cmd = ['scontrol', 'show', 'node']
+    return subprocess.run(cmd, capture_output=True, text=True).stdout
+
+
+def parse_node_info(node_info):
+    info = {}
+    states = {}
+    t = node = None
+    for line in node_info.splitlines():
+        line = line.strip()
+        if line.startswith('NodeName='):
+            node = line.replace('NodeName=', '').split(' ')[0]
+        elif line.startswith('State='):
+            states[node] = line.split()[0].replace('State=', '')
+        elif line.startswith('CfgTRES='):
+            line = line.replace('CfgTRES=', '')
+            t = 'total'
+        elif line.startswith('AllocTRES='):
+            line = line.replace('AllocTRES=', '')
+            t = 'alloc'
+        else:
+            continue
+        if not line:
+            continue
+        for gres in line.split(','):
+            k, v = gres.split('=')
+            if not k.startswith('gres/'):
+                continue
+            if k == 'gres/gpu':
+                continue
+            k = k.replace('gres/gpu:', '')
+            sub_info = info.setdefault(k, {}).setdefault(node, {})
+            sub_info[t] = sub_info.get(t, 0) + int(v)
+    return info, states
+
+
+def format_table(info, states):
+    tab_info = [
+        (k, states[k], g, f"{i.get('alloc', 0)}/{i.get('total', 0)}")
+        for g, sub_info in info.items() for k, i in sub_info.items()]
+    table = tabulate.tabulate(
+        tab_info, headers=['Node', 'State', 'GPU', 'Alloc/Total'],
+        tablefmt="rounded_outline")
+    return table
+
+
+def main():
+    node_info = get_node_info()
+    info, states = parse_node_info(node_info)
+    table = format_table(info, states)
+    print(table)
+
+
+if __name__ == "__main__":
+    main()
