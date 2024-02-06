@@ -16,7 +16,10 @@
         Plug 'AlessandroYorba/Alduin'
         Plug 'whatyouhide/vim-gotham'
         Plug 'rakr/vim-one'
-        Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
+        if has('nvim')
+            Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
+            Plug 'f-person/auto-dark-mode.nvim'
+        endif
     "}
     " Cosmetic {
         Plug 'ehamberg/vim-cute-python', {'for': 'python'}
@@ -242,7 +245,11 @@
             set termguicolors
         endif
     " }
-    colorscheme catppuccin-macchiato
+    colorscheme base16-ocean
+    if has('nvim')
+        lua require('color')
+        hi Normal guibg=NONE ctermbg=NONE
+    endif
     " Flash cursorline
     if has("gui_running")
         function! s:Pulse()
