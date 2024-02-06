@@ -31,6 +31,9 @@ def _xontrib_load():
 
 
 def _rc_main():
+    import os
+    import sys
+    sys.path.append(os.path.join($XDG_CONFIG_HOME, 'xonsh'))
     from common import kxh
     kxh.main()
 

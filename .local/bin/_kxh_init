@@ -139,4 +139,5 @@ if [ ! -f $KXH_SHELL ]; then
     exec $KXH_FALLBACK_SHELL "$@"
 else
     SHELL=$KXH_SHELL exec $KXH_SHELL "$@"
+    # SHELL=$KXH_OLD_HOME/.local/bin/xh exec $KXH_SHELL "$@"
 fi

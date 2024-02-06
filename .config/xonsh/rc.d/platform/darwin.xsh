@@ -17,8 +17,37 @@ $CHROMIUM = p'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrom
 aliases['chrome'] = "'$CHROMIUM'"
 
 
+@aliases.register('proxy-browser-alt')
+def proxy_browser_alt(args):
+    ssh_options = {
+        'ControlMaster': 'no',
+        # 'ExitOnForwardFailure': 'yes',
+        # 'ClearAllForwardings': 'yes',
+    }
+    ssh_options = ' '.join(f'-o {k}={v}' for k, v in ssh_options.items())
+    args = ' '.join(args)
+    parallel -j2 --halt now,done=1 --ungroup ::: \
+        "'$CHROMIUM' --proxy-server=socks5://localhost:1080 2>/dev/null" \
+        f'ssh -vNT {ssh_options} -D 1080 {args}'
+
+
 @aliases.register('proxy-browser')
 def proxy_browser(args):
-    parallel --halt-on-error 2 --ungroup ::: \
-        f'ssh -vNT -o ControlMaster=no -D 1080 {args[0]}' \
-        "'$CHROMIUM' --proxy-server=socks5://localhost:1080"
+    ssh_options = {
+        # 'ControlMaster': 'no',
+        'ExitOnForwardFailure': 'yes',
+        'ClearAllForwardings': 'yes',
+    }
+    ssh_options = [f'-o {k}={v}' for k, v in ssh_options.items()]
+    bargs = '_'.join(args).replace(' ', '_').replace('/', '_').replace('@', '_')
+    socket_path = f'/tmp/ssh_proxy_browser_{bargs}'
+    if not !(ssh -vfMNT @(ssh_options) -S @(socket_path) @(args)):
+        echo 'Failed to establish SSH connection'
+        return
+    if not !(ssh @(ssh_options) -S @(socket_path) -O forward -D 1080 @(args)):
+        echo 'Failed to forward SOCKS5 proxy port 1080'
+        return
+    if not !('$CHROMIUM' --proxy-server=socks5://localhost:1080):
+        echo 'Failed to start browser'
+        return
+    ssh -S @(socket_path) -O exit @(args)

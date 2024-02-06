@@ -13,6 +13,7 @@ def _env_exec(env, cmd=None, setmode='off'):
         if args:
             with ${...}.swap(**_env):
                 args = [repr(a) if ' ' in a else a for a in args]
+                # FIXME doesn't work with pipes
                 return execx(' '.join(args))
         if setmode == 'off':
             return

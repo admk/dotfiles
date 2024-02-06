@@ -18,3 +18,9 @@ def _starship_main():
 
 _starship_main()
 del _starship_main
+
+
+if 'SSH_CONNECTION' in ${...}:
+    # enable line breaks in starship prompt when using SSH
+    # as the prompt could be very long
+    starship config line_break.disabled false

@@ -91,6 +91,13 @@ def _refresh():
     execx("source $XONSH_CONFIG_DIR/rc.d/*.xsh")
 
 
+@aliases.register('tmux')
+def _tmux(args):
+    tm = $(@(_which('which')) 'tmux').strip()
+    socket = str(hash(tm))
+    @(tm) -L @(socket) @(args)
+
+
 @aliases.register('tmr')
 @aliases.register('tmux-reattach')
 def _tmux_reattach():
@@ -98,13 +105,6 @@ def _tmux_reattach():
     socket = str(hash(tm))
     @(tm) -L @(socket) attach-session -d -t $USER 2>/dev/null || \
         @(tm) -L @(socket) new-session -s $USER
-
-
-@aliases.register('tmux')
-def _tmux(args):
-    tm = $(@(_which('which')) 'tmux').strip()
-    socket = str(hash(tm))
-    @(tm) -L @(socket) @(args)
 
 
 @aliases.register('pd')
@@ -125,10 +125,17 @@ def _pydb(args):
                 else:
                     print('Aborting')
                     return
-    python -m debugpy --listen 5678 --wait-for-client @(args)
+    if _which('websocat') and ${...}.get('DEBUGPY_AUTOATTACH'):
+        vscode_cmd = "{ 'command': 'workbench.action.debug.start' }"
+        remote_control_url = "ws://127.0.0.1:3710"
+        echo @(vscode_cmd) | websocat @(remote_control_url)
+        python -m debugpy --connect 5678 @(args)
+    else:
+        print('Waiting for client to attach to 5678...')
+        python -m debugpy --listen 5678 --wait-for-client @(args)
 
 
-@register_env_alias('hf', setmode='toggle')
+@register_env_alias('hfoff', setmode='toggle')
 def _hf_env(args):
     return args, {
         'TRANSFORMERS_OFFLINE': '1',

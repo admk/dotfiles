@@ -17,28 +17,45 @@ def _cuda_visible_devices(args):
 
 @aliases.register('sgpus')
 def _sgpus(args):
-    gres = $(scontrol show node | grep gres)
-    total = {}
-    alloc = {}
+    import tabulate
+    gres = $(scontrol show node | grep -e NodeName -e State -e CfgTRES -e AllocTRES)
+    info = {}
+    states = {}
     for l in gres.splitlines():
         l = l.strip()
+        if l.startswith('NodeName='):
+            node = l.replace('NodeName=', '').split(' ')[0]
+            continue
+        if l.startswith('State='):
+            states[node] = l.split()[0].replace('State=', '')
         if l.startswith('CfgTRES='):
             l = l.replace('CfgTRES=', '')
-            d = total
+            t = 'total'
         elif l.startswith('AllocTRES='):
             l = l.replace('AllocTRES=', '')
-            d = alloc
+            t = 'alloc'
         else:
+            continue
+        if not l:
             continue
         for g in l.split(','):
             k, v = g.split('=')
-            if k.startswith('gres/'):
-                d[k] = d.get(k, 0) + int(v)
-    print(f'Allocated GPUs: {alloc["gres/gpu"]}/{total["gres/gpu"]}')
-    for k, v in alloc.items():
-        if k == 'gres/gpu':
-            continue
-        print(f"- {k.replace('gres/gpu:', '')}: {v}/{total[k]}")
+            if not k.startswith('gres/'):
+                continue
+            if k == 'gres/gpu':
+                continue
+            k = k.replace('gres/gpu:', '')
+            sub_info = info.setdefault(k, {}).setdefault(node, {})
+            sub_info[t] = sub_info.get(t, 0) + int(v)
+    tab_info = []
+    for g, sub_info in info.items():
+        tab_info += [
+            (k, states[k], g, f"{i.get('alloc', 0)}/{i.get('total', 0)}")
+            for k, i in sub_info.items()]
+    table = tabulate.tabulate(
+        tab_info, headers=['Node', 'State', 'GPU', 'Alloc/Total'],
+        tablefmt="rounded_outline")
+    print(table)
 
 
 def _ts_job_ids():
@@ -114,6 +131,7 @@ def _ts_rerun_failed(args):
 
 
 def _share_folder(args):
+    # TODO WIP
     if len(args) != 1:
         print('Usage: share-folder <user>')
         return
@@ -154,6 +172,7 @@ def _ubuntu_specific():
         'colordiff',
         'curl',
         'less',
+        'xsel',
         ('locale-gen', 'locales'),
         ('nvim', 'neovim'),
     ]

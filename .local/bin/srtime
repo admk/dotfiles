@@ -5,9 +5,6 @@ import argparse
 import subprocess
 from datetime import datetime
 
-import colorama
-from colorama import Fore, Style
-
 
 def _jobid():
     jobid = os.environ.get('SLURM_JOB_ID')
@@ -32,13 +29,20 @@ def _format_component(total_seconds, format, color, num_components):
         'm': 60,
         's': 1,
     }
-    colors = {
-        'w': Fore.RED,
-        'd': Fore.YELLOW,
-        'h': Fore.GREEN,
-        'm': Fore.BLUE,
-        's': Fore.MAGENTA,
-    }
+    if color:
+        from colorama import Fore, Style
+        colors = {
+            'w': Fore.RED,
+            'd': Fore.YELLOW,
+            'h': Fore.GREEN,
+            'm': Fore.BLUE,
+            's': Fore.MAGENTA,
+        }
+        template = '{count}{Style.BRIGHT}{colors[k]}{k}{Style.RESET_ALL}'
+    else:
+        Fore = Style = None
+        colors = {}
+        template = '{count}{k}'
     if not all(c in components for c in format):
         raise ValueError(f'Invalid format: {format}')
     text = []
@@ -54,9 +58,10 @@ def _format_component(total_seconds, format, color, num_components):
                 if len(text) >= num_components:
                     continue
             if color:
-                c = f'{count}{Style.BRIGHT}{colors[k]}{k}{Style.RESET_ALL}'
+                c = template.format(
+                    count=count, colors=colors, k=k, Style=Style)
             else:
-                c = f'{count}{k}'
+                c = template.format(count=count, k=k)
             text.append(c)
     return ''.join(text)
 
@@ -81,7 +86,11 @@ def _parse_args():
 
 def main():
     args = _parse_args()
-    colorama.init()
+    try:
+        import colorama
+        colorama.init()
+    except ImportError:
+        args.no_color = True
     end_date = _end_date(args.jobid or _jobid())
     text = _time_remaining(end_date, args)
     print(text)
