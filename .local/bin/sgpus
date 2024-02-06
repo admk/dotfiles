@@ -16,9 +16,11 @@ def parse_node_info(node_info):
         line = line.strip()
         if line.startswith('NodeName='):
             node = line.replace('NodeName=', '').split(' ')[0]
-        elif line.startswith('State='):
+            continue
+        if line.startswith('State='):
             states[node] = line.split()[0].replace('State=', '')
-        elif line.startswith('CfgTRES='):
+            continue
+        if line.startswith('CfgTRES='):
             line = line.replace('CfgTRES=', '')
             t = 'total'
         elif line.startswith('AllocTRES='):
