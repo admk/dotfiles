@@ -15,7 +15,6 @@ def _cuda_visible_devices(args):
     return args, {'CUDA_VISIBLE_DEVICES': devices}
 
 
-
 def _ts_job_ids():
     return [int(l.strip().split(' ')[0]) for l in $(ts).splitlines()[1:]]
 
