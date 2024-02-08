@@ -38,7 +38,7 @@ def _format_component(total_seconds, format, color, num_components):
             'm': Fore.BLUE,
             's': Fore.MAGENTA,
         }
-        template = '{count}{Style.BRIGHT}{colors[k]}{k}{Style.RESET_ALL}'
+        template = '{count}{Style.BRIGHT}{color}{k}{Style.RESET_ALL}'
     else:
         Fore = Style = None
         colors = {}
@@ -48,21 +48,22 @@ def _format_component(total_seconds, format, color, num_components):
     text = []
     leading_zeros = True
     for k, v in components.items():
-        if k in format:
-            count = int(total_seconds // v)
-            total_seconds -= count * v
-            if leading_zeros and not count:
+        if k not in format:
+            continue
+        count = int(total_seconds // v)
+        total_seconds -= count * v
+        if leading_zeros and not count:
+            continue
+        leading_zeros = False
+        if num_components is not None:
+            if len(text) >= num_components:
                 continue
-            leading_zeros = False
-            if num_components is not None:
-                if len(text) >= num_components:
-                    continue
-            if color:
-                c = template.format(
-                    count=count, colors=colors, k=k, Style=Style)
-            else:
-                c = template.format(count=count, k=k)
-            text.append(c)
+        if color:
+            c = template.format(
+                count=count, color=colors[k], k=k, Style=Style)
+        else:
+            c = template.format(count=count, k=k)
+        text.append(c)
     return ''.join(text)
 
 
