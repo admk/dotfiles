@@ -94,7 +94,7 @@ def _refresh():
 @aliases.register('tmux')
 def _tmux(args):
     tm = $(@(_which('which')) 'tmux').strip()
-    socket = str(hash(tm))
+    socket = $(@(tm) -V).strip().replace('tmux ', '')
     @(tm) -L @(socket) @(args)
 
 
@@ -102,7 +102,7 @@ def _tmux(args):
 @aliases.register('tmux-reattach')
 def _tmux_reattach():
     tm = $(@(_which('which')) 'tmux').strip()
-    socket = str(hash(tm))
+    socket = $(@(tm) -V).strip().replace('tmux ', '')
     @(tm) -L @(socket) attach-session -d -t $USER 2>/dev/null || \
         @(tm) -L @(socket) new-session -s $USER
 

@@ -30,6 +30,14 @@ def _xontrib_load():
             xontrib load @(xtb)
 
 
+def _rc_path():
+    $PATH = [
+        '/usr/local/bin',
+        '/usr/sbin',
+        '/sbin',
+    ] + $PATH
+
+
 def _rc_main():
     import os
     import sys
@@ -38,6 +46,7 @@ def _rc_main():
     kxh.main()
 
 
+_rc_path()
 _rc_main()
 _xontrib_load()
-del _rc_main, _xontrib_load
+del _rc_path, _rc_main, _xontrib_load
