@@ -1,0 +1,123 @@
+import sys
+import json
+import argparse
+import textwrap
+
+
+STATUSES = ['running', 'allocating', 'success', 'failed', 'killed']
+
+
+def _parse_args(args=None):
+    parser = argparse.ArgumentParser()
+    range_regex = "(\d+|\d+-\d+)[,(\d+|\d+-\d+)]*"
+    options = {
+        ('action', ): {
+            'choices': [
+                'json', 'print',
+                'queue', 'cancel', 'rerun', 'remove'
+            ],
+            'help': 'Action to perform.',
+        },
+        ('-i', '--id'): {
+            'type': str,
+            'default': None,
+            'help':
+                'The range of job IDs to perform the action on, '
+                f'syntax: {range_regex}. '
+                'If not provided, all jobs will be affected.',
+        },
+        ('-r', '--running'): {
+            'action': 'store_true',
+            'help': 'Perform the action on running jobs.',
+        },
+        ('-a', '--allocating'): {
+            'action': 'store_true',
+            'help': 'Perform the action on allocating jobs.',
+        },
+        ('-s', '--success'): {
+            'action': 'store_true',
+            'help': 'Perform the action on successful jobs.',
+        },
+        ('-f', '--failed'): {
+            'action': 'store_true',
+            'help': 'Perform the action on failed jobs.',
+        },
+        ('-k', '--killed'): {
+            'action': 'store_true',
+            'help': 'Perform the action on killed jobs.',
+        },
+    }
+    for option, kwargs in options.items():
+        parser.add_argument(*option, **kwargs)
+    args = parser.parse_args(args)
+    flags = [getattr(args, a) for a in STATUSES]
+    if not all(flags):
+        for a in STATUSES:
+            setattr(args, a, True)
+
+
+def _ts(*args):
+    import subprocess
+    p = subprocess.run(['ts'] + list(args), capture_output=True)
+    return p.stdout.decode('utf-8')
+
+
+def _ts_job_info(args):
+    info = {}
+    for l in _ts().splitlines()[1:]:
+        l = l.strip().split()
+        if l[1] == 'finished':
+            id, status, _, exitcode, gpus, *_ = l
+            exitcode = int(exitcode)
+            if exitcode == 0:
+                status = 'success'
+            elif exitcode < 0:
+                status = 'killed'
+            else:
+                status = 'failed'
+        else:
+            id, status, _, gpus, *_ = l
+            exitcode = None
+        info[int(id)] = {
+            'status': status,
+            'gpus': gpus,
+            'exitcode': exitcode
+        }
+    for a in ['running', 'allocating', 'success', 'failed', 'killed']:
+        if not getattr(args, a):
+            info = {k: v for k, v in info.items() if v['status'] != a}
+    return info
+
+
+def tsu_json(args):
+    def get_line(job_info, key):
+        for l in job_info.splitlines():
+            if key in l:
+                return l.replace(key, '').strip()
+        return None
+
+    info = _ts_job_info(args)
+    for i in info:
+        job_info = _ts('-i', i)
+        info[i].update({
+            'command': get_line(job_info, 'Command: '),
+            'slots_required': int(get_line(job_info, 'Slots required: ')),
+            'gpus_required': int(get_line(job_info, 'GPUs required: ')),
+            'gpu_ids': get_line(job_info, 'GPU IDs: '),
+            'enqueue_time': get_line(job_info, 'Enqueue time: '),
+            'start_time': get_line(job_info, 'Start time: '),
+            'end_time': get_line(job_info, 'End time: '),
+            'time_run':
+                get_line(job_info, 'Time running: ') or
+                get_line(job_info, 'Time run: '),
+        })
+    print(json.dumps(info, indent=4))
+
+
+def main():
+    args = _parse_args()
+    try:
+        getattr(sys.modules[__name__], f'tsu_{args.action}')(args)
+    except AttributeError:
+        print(f'Invalid action: {args.action}')
+        sys.exit(1)
