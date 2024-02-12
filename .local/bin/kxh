@@ -13,12 +13,27 @@ import tomlkit
 SSH = shutil.which('ssh')
 
 
+_quote_pos = re.compile('(?=[^-0-9a-zA-Z_./\n])')
+
+def quote(arg):
+    r"""
+    >>> quote('\t')
+    '\\\t'
+    >>> quote('foo bar')
+    'foo\\ bar'
+    """
+    # This is the logic emacs uses
+    if arg:
+        return _quote_pos.sub('\\\\', arg).replace('\n',"'\n'")
+    return "''"
+
+
 class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
         [+d | ++dry] [+v | ++verbose] [+D | ++debug] [+F | ++force-reinstall]
+        [+f | ++fast] [(+N | ++name) NAME] [(+r | ++rc) RC]
         [(+h | ++hermetic) | (+s | ++semi-hermetic) | (+n | ++non-hermetic)]
-        [(+N | ++name) NAME] [(+r | ++rc) RC]
         [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
         [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
         [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file]
@@ -31,12 +46,13 @@ Options:
     +v, ++verbose: verbose mode.
     +d, ++dry: dry run.
     +D, ++debug: debug mode.
-    +f, ++force-reinstall: force reinstall on remote host.
+    +F, ++force-reinstall: force reinstall on remote host.
+    +f, ++fast: skip file sync.
+    (+r | ++rc) RC: use custom RC file.
+    (+N | ++name) NAME: use custom name instead of "kxh".
     +h, ++hermetic: use hermetic mode (default).
     +s, ++semi-hermetic: use semi-hermetic mode.
     +n, ++non-hermetic: use non-hermetic mode.
-    (+r | ++rc) RC: use custom RC file.
-    (+N | ++name) NAME: use custom name instead of "kxh".
 """
 
     def __init__(self):
@@ -46,7 +62,8 @@ Options:
             ('d', 'dry'): store_true,
             ('v', 'verbose'): store_true,
             ('D', 'debug'): store_true,
-            ('f', 'force-reinstall'): store_true,
+            ('F', 'force-reinstall'): store_true,
+            ('f', 'fast'): store_true,
             ('h', 'hermetic'): store_true,
             ('s', 'semi-hermetic'): store_true,
             ('n', 'non-hermetic'): store_true,
@@ -69,7 +86,13 @@ Options:
             self.print_usage()
             exit(0)
         normalized_args = []
+        command_args = []
+        has_destination = False
+        parse_command = False
         for a in args:
+            if parse_command:
+                command_args.append(a)
+                continue
             if a.startswith('++'):
                 a = a.replace('-', '_')
                 normalized_args.append(f'--kxh-{a.lstrip("+")}')
@@ -77,9 +100,14 @@ Options:
                 a = a.replace('-', '_')
                 for af in a.lstrip('+'):
                     normalized_args.append(f'--kxh-{af}')
-            else:
+            elif not has_destination:
                 normalized_args.append(a)
+                has_destination = True
+            else:
+                parse_command = True
+                command_args.append(a)
         ssh_args = super().parse_args(normalized_args, namespace)
+        ssh_args.command = command_args
         kxh_args = argparse.Namespace()
         for k, v in dict(vars(ssh_args)).items():
             if k.startswith('kxh_'):
@@ -308,18 +336,21 @@ class KXH:
             f'KXH_DEBUG={int(debug)}',
         ]
         init_script = f"env {' '.join(prefix)} "
-        command = f".{name}/.local/bin/_kxh_init"
-        init_script += f"/bin/bash --norc -c {command!r}"
-        ssh_cmd = self.ssh_cmd + [
-            '-o', 'RequestTTY=yes', dest, repr(init_script)
-        ]
-        ssh_cmd = ' '.join(ssh_cmd)
+        command = f'.{name}/.local/bin/_kxh_init'
+        if cmd := self.config['ssh']['command']:
+            cmd = " ".join(cmd)
+            command += f' -c {cmd!r}'
+        # command = command.replace('\\', '\\\\').replace(' ', '\\ ')
+        # command = command.replace("'", "\\'").replace('"', '\\"')
+        init_script += f"/bin/bash --norc -c {quote(command)!r}"
+        ssh_cmd = self.ssh_cmd + ['-o', 'RequestTTY=yes', dest, init_script]
         self._run_shell(
-            ssh_cmd, 'Failed to load ssh session.',
+            ' '.join(ssh_cmd), 'Failed to load ssh session.',
             stdout=sys.stdout, stderr=sys.stderr)
 
     def main(self):
-        self._sync_files()
+        if not self.config['kxh']['fast']:
+            self._sync_files()
         self._ssh()
 
 
