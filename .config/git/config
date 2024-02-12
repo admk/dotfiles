@@ -1,6 +1,6 @@
 [alias]
     br = branch
-    bb = !better-git-branch.sh
+    bb = better-branch
     cm = commit
     co = checkout
     d = diff
