@@ -17,7 +17,7 @@ SLURM_SCRIPT = """#!/bin/bash
 #SBATCH -p {args.partition}
 #SBATCH -o {logdir}/%j.out
 #SBATCH -e {logdir}/%j.err
-#SBATCH -N 1
+#SBATCH -N {args.node_count}
 #SBATCH --cpus-per-task={args.cpu_count}
 #SBATCH --time=7-0:00
 #SBATCH --gres={gres}
@@ -114,7 +114,9 @@ def parse_args():
         '-t', '--partition', type=str, default='gpu',
         help='Partition to submit to.')
     parser.add_argument(
-        '-c', '--cpu-count', type=int, default=16, help='Number of CPU cores.')
+        '-n', '--node-count', type=int, default=1, help='Number of nodes.')
+    parser.add_argument(
+        '-c', '--cpu-count', type=int, default=32, help='Number of CPU cores.')
     parser.add_argument(
         '-r', '--gres-type', type=str, default='gpu:a100-sxm4-80gb')
     parser.add_argument(
