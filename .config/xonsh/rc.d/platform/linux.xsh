@@ -6,85 +6,16 @@ from common.aliases import register_env_alias
 aliases |= {
     'ns': 'nvidia-smi',
     'st': 'gpustat -cup',
+    'sexit': '"SLURM_JOB_ID" in ${...} && scancel $SLURM_JOB_ID || exit -1',
 }
 
 
-@register_env_alias('vd', setmode='toggle')
+@register_env_alias('vd', setmode='update')
 def _cuda_visible_devices(args):
+    if not args:
+        return args, {'CUDA_VISIBLE_DEVICES': ''}
     devices, *args = args
     return args, {'CUDA_VISIBLE_DEVICES': devices}
-
-
-def _ts_job_ids():
-    return [int(l.strip().split(' ')[0]) for l in $(ts).splitlines()[1:]]
-
-
-@aliases.register('ts-list-cmd')
-def _ts_full_cmd_all(args):
-    show_id = '-i' in args or '--id' in args
-    running = '-r' in args or '--running' in args
-    allocating = '-a' in args or '--allocating' in args
-    success = '-s' in args or '--success' in args
-    failed = '-f' in args or '--failed' in args
-    killed = '-k' in args or '--killed' in args
-    for i in _ts_job_ids():
-        cmd = $(ts -F @(i)).strip('\n')
-        state = $(ts -s @(i))
-        if show_id:
-            print(f'{i}: {cmd}')
-        else:
-            print(cmd)
-
-
-@aliases.register('ts-cancel')
-def _ts_cancel_all(args):
-    running = '-r' in args or '--running' in args
-    allocating = '-a' in args or '--allocating' in args
-    allocating_jobs = []
-    running_jobs = []
-    for i in _ts_job_ids():
-        state = $(ts -s @(i))
-        if 'allocating' in state:
-            allocating_jobs.append(str(i))
-        elif 'running' in state:
-            running_jobs.append(str(i))
-    if allocating:
-        print(f"Removing allocating jobs: {', '.join(allocating_jobs)}...")
-        for i in allocating_jobs:
-            $(ts -r @(i))
-    if running:
-        print(f"Stopping running jobs: {', '.join(running_jobs)}...")
-        for i in running_jobs:
-            $(ts -k @(i))
-    if not allocating and not running:
-        print(f'Running jobs: {", ".join(running_jobs)}')
-        print(f'Allocating jobs: {", ".join(allocating_jobs)}')
-        print(
-            'Use -a/--allocating or -r/--running '
-            'to specify which jobs to cancel.')
-
-
-@aliases.register('ts-rerun-failed')
-def _ts_rerun_failed(args):
-    import re
-    cancelled = '-c' in args or '--cancelled' in args
-    jobs = []
-    for i in _ts_job_ids():
-        if 'running' in $(ts -s @(i)).strip():
-            continue
-        info = $(ts -i @(i))
-        match = re.search(r'exit code (\-?\d+)', info)
-        if match is None:
-            print(f'Job {i} has no exit code.')
-        code = int(match.group(1))
-        if code == 0:
-            continue
-        if not cancelled and code < 0:
-            continue
-        print(f'Rerunning job {i}...')
-        cmd = $(ts -F @(i))
-        $(ts @(args) @(cmd))
-        $(ts -u @(i))
 
 
 def _share_folder(args):
