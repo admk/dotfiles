@@ -29,14 +29,48 @@ disabled = true
 
 [custom.kxh_host]
 command = "echo $KXH_HOST"
+symbol = ' '
 shell = 'bash'
 when = '[ ! -z $KXH_HOST ] && [ $KXH_HOST != "localhost" ]'
 format = 'on [$symbol($output )]($style)'
 style = 'bold blue'
 
+[custom.slurm_job_id]
+command = "echo $SLURM_JOB_ID"
+symbol = '󰢩 '
+shell = 'bash'
+when = '[ ! -z $SLURM_JOB_ID ]'
+format = 'in [$symbol($output )]($style)'
+style = 'bold blue'
+
 [custom.srtime]
-command = '$KXH_HOME/.local/bin/srtime -f wdhms -c 3 -n'
+command = '$KXH_HOME/.local/bin/srtime -f wdhms -c 2 -n'
+symbol = '󱎫 '
 shell = 'bash'
 when = '[ ! -z $SLURM_JOB_ID ]'
 format = 'in [$symbol($output )]($style)'
 style = 'bold yellow'
+
+[custom.proxy]
+command = "echo $http_proxy | sed -E -e 's_.*://([^/@]*@)?([^/:]+).*_\\2_'"
+symbol = '󱂇 '
+shell = 'bash'
+when = '[ ! -z $http_proxy ] || [ ! -z $https_proxy ] || [ ! -z $all_proxy ]'
+format = 'via [$symbol($output )]($style)'
+style = 'bold yellow'
+
+[custom.hf_offline]
+command = "echo 'HF'"
+symbol = ' '
+shell = 'bash'
+when = '[ ! -z $HF_DATASETS_OFFLINE ] || [ ! -z $HF_EVALUATE_OFFLINE ] || [ ! -z $HF_MODULES_OFFLINE ] || [ ! -z $TRANSFORMERS_OFFLINE ]'
+format = 'with [$symbol($output )]($style)'
+style = 'bold red'
+
+[custom.cuda_visisble_devices]
+command = "echo $CUDA_VISIBLE_DEVICES"
+symbol = ' '
+shell = 'bash'
+when = '[ ! -z $CUDA_VISIBLE_DEVICES ]'
+format = 'on [$symbol($output )]($style)'
+style = 'bold green'

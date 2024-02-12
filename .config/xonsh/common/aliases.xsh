@@ -20,10 +20,16 @@ def _env_exec(env, cmd=None, setmode='off'):
         match = all(${...}.get(k) == v for k, v in _env.items())
         for k, v in _env.items():
             if setmode == 'update' or (setmode == 'toggle' and not match):
-                print(f'${k} = {v!r}')
-                ${...}[k] = v
+                if ${...}.get('KXH_VERBOSE') == '1':
+                    print(f'${k} = {v!r}')
+                if not v:
+                    if k in ${...}:
+                        del ${...}[k]
+                else:
+                    ${...}[k] = v
             elif setmode == 'toggle' and match:
-                print(f'del ${k}')
+                if ${...}.get('KXH_VERBOSE') == '1':
+                    print(f'del ${k}')
                 del ${...}[k]
             else:
                 raise ValueError('Unreachable')
