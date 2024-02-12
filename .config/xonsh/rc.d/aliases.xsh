@@ -100,11 +100,12 @@ def _tmux(args):
 
 @aliases.register('tmr')
 @aliases.register('tmux-reattach')
-def _tmux_reattach():
+def _tmux_reattach(args):
     tm = $(@(_which('which')) 'tmux').strip()
     socket = $(@(tm) -V).strip().replace('tmux ', '')
-    @(tm) -L @(socket) attach-session -d -t $USER 2>/dev/null || \
-        @(tm) -L @(socket) new-session -s $USER
+    name = args[0] if args else $USER
+    @(tm) -L @(socket) attach-session -d -t @(name) 2>/dev/null || \
+        @(tm) -L @(socket) new-session -s @(name)
 
 
 @aliases.register('pd')
