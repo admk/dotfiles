@@ -14,6 +14,7 @@ $SSH_AUTH_SOCK = f'/Users/{$USER}/Library/Containers/com.maxgoedjen.Secretive.Se
 $CHROMIUM = p'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
 aliases['chrome'] = "'$CHROMIUM'"
 
+$BROWSER = 'open'
 
 @aliases.register('proxy-browser-alt')
 def proxy_browser_alt(args):
