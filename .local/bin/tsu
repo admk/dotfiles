@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
+import re
 import sys
 import json
 import shlex
 import argparse
 import datetime
+import itertools
 import subprocess
 
-import tqdm
+from tqdm import tqdm as tqdm_
+
+
+def tqdm(*args, commit=True, **kwargs):
+    disable = not commit or not sys.stdout.isatty()
+    return tqdm_(*args, **kwargs, disable=disable)
 
 
 STATUSES = ['running', 'allocating', 'success', 'failed', 'killed']
@@ -15,12 +22,14 @@ STATUSES = ['running', 'allocating', 'success', 'failed', 'killed']
 def _parse_args(args=None):
     parser = argparse.ArgumentParser()
     options = {
-        ('action', ): {
-            'choices': [
-                'ids', 'json', 'info', 'cancel', 'rerun', 'requeue', 'remove',
-            ],
-            'help': 'Action to perform.',
+        ('-d', '--dry-run'): {
+            'action': 'store_true',
+            'help':
+                'Print the command that would be executed, but do not '
+                'execute it.',
         },
+    }
+    filter_options = {
         ('-i', '--id'): {
             'type': str,
             'default': None,
@@ -49,39 +58,70 @@ def _parse_args(args=None):
             'action': 'store_true',
             'help': 'Perform the action on killed jobs.',
         },
-        ('-c', '--commit'): {
-            'action': 'store_true',
-            'help':
-                'Print the command that would be executed, but do not '
-                'execute it.',
-        },
     }
     for option, kwargs in options.items():
         parser.add_argument(*option, **kwargs)
+    filter_actions = [
+        'ids', 'json', 'info', 'cancel', 'rerun', 'requeue', 'remove',
+    ]
+    subparsers = parser.add_subparsers(dest='action')
+    for action in filter_actions:
+        action_parser = subparsers.add_parser(action)
+        for option, kwargs in filter_options.items():
+            action_parser.add_argument(*option, **kwargs)
+    add_parser = subparsers.add_parser('add')
+    add_options = {
+        ('-G', '--gpus'): {
+            'type': int,
+            'default': 0,
+            'help': 'Number of GPUs required.',
+        },
+        ('-N', '--slots'): {
+            'type': int,
+            'default': 1,
+            'help': 'Number of slots required.',
+        },
+        ('-f', '--from-file'): {
+            'type': str,
+            'default': None,
+            'help':
+                'Read commands from a file, one per line. '
+                'If "-", read from standard input.',
+        },
+        ('command', ): {
+            'type': str,
+            'nargs': argparse.REMAINDER,
+            'help': 'The command to run.',
+        },
+    }
+    for option, kwargs in add_options.items():
+        add_parser.add_argument(*option, **kwargs)
     args = parser.parse_args(args)
-    # extract the range of job IDs
-    if args.id:
-        args.id = args.id.split(',')
-        ids = []
-        for i in args.id:
-            if '-' in i:
-                start, end = i.split('-')
-                ids += list(range(int(start), int(end) + 1))
-            else:
-                ids.append(int(i))
-        args.id = ids
-    # If no statuses are specified, default to all.
-    args.all = all([not getattr(args, a) for a in STATUSES])
+    if args.action in filter_actions:
+        # extract the range of job IDs
+        if args.id:
+            args.id = args.id.split(',')
+            ids = []
+            for i in args.id:
+                if '-' in i:
+                    start, end = i.split('-')
+                    ids += list(range(int(start), int(end) + 1))
+                else:
+                    ids.append(int(i))
+            args.id = ids
+        # If no statuses are specified, default to all.
+        args.all = all(not getattr(args, a) for a in STATUSES)
+    args.commit = not args.dry_run
     return args
 
 
 def _ts(*args, commit=True):
     cmd = ['ts'] + [str(a) for a in args]
     if not commit:
-        print(cmd)
+        print(' '.join(cmd))
         return
     p = subprocess.run(cmd, capture_output=True)
-    return p.stdout.decode('utf-8')
+    return p.stdout.decode('utf-8').strip()
 
 
 def _ts_job_info(args):
@@ -114,9 +154,14 @@ def _ts_job_info(args):
     return {k: info[k] for k in sorted(info)}
 
 
-def tsu_ids(args):
-    for i in _tsu_info(args):
-        print(i)
+def _ts_add(command, gpus, slots, commit=True):
+    torun = []
+    if gpus:
+        torun += ['-G', gpus]
+    if slots:
+        torun += ['-N', slots]
+    torun += shlex.split(command)
+    return _ts(*torun, commit=commit)
 
 
 def _tsu_info(args):
@@ -137,8 +182,8 @@ def _tsu_info(args):
         job_info = _ts('-i', i)
         new_info = {
             'command': get_line(job_info, 'Command: '),
-            'slots_required': int(get_line(job_info, 'Slots required: ')),
-            'gpus_required': int(get_line(job_info, 'GPUs required: ')),
+            'slots_required': int(get_line(job_info, 'Slots required: ') or 1),
+            'gpus_required': int(get_line(job_info, 'GPUs required: ') or 0),
             'gpu_ids': get_line(job_info, 'GPU IDs: '),
             'enqueue_time': get_time(job_info, 'Enqueue time: '),
             'start_time': get_time(job_info, 'Start time: '),
@@ -149,6 +194,11 @@ def _tsu_info(args):
         }
         info[i].update({k: v for k, v in new_info.items() if v is not None})
     return info
+
+
+def tsu_ids(args):
+    for i in _tsu_info(args):
+        print(i)
 
 
 def tsu_json(args):
@@ -167,26 +217,26 @@ def tsu_rerun(args):
     if args.all:
         print('tsu: flags must be specified for rerun.')
         sys.exit(1)
-    iterer = tqdm.tqdm(_tsu_info(args).items())
+    iterer = tqdm(_tsu_info(args).items(), commit=args.commit)
     reran_ids = []
     for i, info in iterer:
         reran_ids += [i]
         iterer.set_description(f'Requeueing {i}')
-        torun = []
-        if gpus := info['gpus_required']:
-            torun += ['-G', gpus]
-        if slots := info['slots_required']:
-            torun += ['-N', slots]
-        torun += shlex.split(info['command'])
-        _ts(*torun, commit=args.commit)
+        _ts_add(
+            info['command'], info['gpus_required'], info['slots_required'],
+            commit=args.commit)
     return reran_ids
 
 
-def _tsu_remove(ids, commit):
-    iterer = tqdm.tqdm(ids)
+def _tsu_remove(ids, commit=True):
+    iterer = tqdm(ids, commit=commit)
     for i in iterer:
         iterer.set_description(f'Removing {i}')
         _ts('-r', i, commit=commit)
+
+
+def tsu_remove(args):
+    _tsu_remove(_ts_job_info(args), args.commit)
 
 
 def tsu_requeue(args):
@@ -197,8 +247,79 @@ def tsu_requeue(args):
     _tsu_remove(reran_ids, args.commit)
 
 
-def tsu_remove(args):
-    _tsu_remove(_ts_job_info(args), args.commit)
+def _regex_extrapolate(texts, regex, extrapolator):
+    new_texts = []
+    for text in texts:
+        scope_regex = re.compile(regex)
+        scopes = scope_regex.findall(text)
+        if not scopes:
+            new_texts.append(text)
+            continue
+        values = itertools.product(*[extrapolator(s) for s in scopes])
+        for v in values:
+            replacer = lambda m, i=iter(v): str(next(i))
+            h = scope_regex.sub(replacer, text)
+            new_texts.append(h)
+    return new_texts
+
+
+def _extrapolate_ranges(commands):
+    def extrapolator(s):
+        values = []
+        for r in s[0].split(','):
+            if not r:
+                continue
+            if '-' in r:
+                start, end = r.split('-')
+                values += list(range(int(start), int(end) + 1))
+            else:
+                values.append(int(r))
+        return values
+    regex = r'\[((?:\d+(?:-\d+)?)(?:,(?:\d+(-\d+)?))*)\]'
+    return _regex_extrapolate(commands, regex, extrapolator)
+
+
+def _extrapolate_sets(commands):
+    return _regex_extrapolate(commands, r'\{([^}]+)\}', lambda s: s.split(','))
+
+
+def _extrapolate_inputs(commands, inputs):
+    new_commands = []
+    for line in inputs:
+        line = line.strip()
+        if not line:
+            continue
+        args = line.split(',')
+        for c in commands:
+            for j, a in enumerate(args):
+                c = c.replace(f'@{j + 1}', a)
+            new_commands.append(c)
+    return new_commands
+
+
+def tsu_add(args):
+    inputs = sys.stdin.readlines()
+    if args.from_file == '-':
+        commands = inputs
+    elif args.from_file:
+        with open(args.from_file, 'r') as f:
+            commands = f.readlines()
+    else:
+        commands = []
+    if args.command:
+        commands += [' '.join(args.command)]
+    if not args.from_file and inputs:
+        commands = _extrapolate_inputs(commands, inputs)
+    commands = _extrapolate_ranges(commands)
+    commands = _extrapolate_sets(commands)
+    iterer = tqdm(commands, commit=args.commit)
+    ids = []
+    for c in iterer:
+        iterer.set_description(f'Adding {c!r}')
+        output = _ts_add(c, args.gpus, args.slots, commit=args.commit)
+        ids.append(output)
+    if any(ids):
+        print('Added:', ', '.join(ids))
 
 
 def main():
