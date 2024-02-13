@@ -2,6 +2,7 @@ gpustat ; sys_platform == 'linux'
 libtmux
 prompt-toolkit
 tabulate
+task-spooler-utils
 xonsh-autoxsh
 xonsh[full]
 xontrib-abbrevs
