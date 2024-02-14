@@ -24,3 +24,8 @@ if 'SSH_CONNECTION' in ${...}:
     # enable line breaks in starship prompt when using SSH
     # as the prompt could be very long
     starship config line_break.disabled false
+
+
+@events.on_postcommand
+def on_postcommand(cmd, *args, **kwargs):
+    print()
