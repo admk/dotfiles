@@ -24,8 +24,12 @@ if 'SSH_CONNECTION' in ${...}:
     # enable line breaks in starship prompt when using SSH
     # as the prompt could be very long
     starship config line_break.disabled false
-
-
-@events.on_postcommand
-def on_postcommand(cmd, *args, **kwargs):
-    print()
+    starship config add_newline true
+else:
+    # omit initial newline on shell startup
+    # this config exists in starship.toml:
+    # starship config add_newline false
+    # and print a newline after every command
+    @events.on_postcommand
+    def on_postcommand(cmd, *args, **kwargs):
+        print()
