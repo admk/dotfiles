@@ -103,6 +103,8 @@ Options:
             elif not has_destination:
                 normalized_args.append(a)
                 has_destination = True
+            elif not command_args and a.startswith('-'):
+                normalized_args.append(a)
             else:
                 parse_command = True
                 command_args.append(a)
