@@ -23,6 +23,8 @@
 [core]
     autocrlf = input
     pager = colordiff | less --tabs=4 -RFX
+    untrackedcache = true
+    fsmonitor = true
 [color]
     ui = auto
     diff = true
@@ -63,6 +65,8 @@
     autoStash = true
 [pull]
     rebase = false
+[fetch]
+    writeCommitGraph = true
 [url "https://github.com/"]
     insteadOf = git://github.com/
     insteadOf = git@github.com:
