@@ -40,7 +40,7 @@ class KxhArgumentParser(argparse.ArgumentParser):
         [-J destination] [-L address] [-l login_name] [-m mac_spec]
         [-O ctl_cmd] [-o option] [-P tag] [-p port] [-Q query_option]
         [-R address] [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]
-        [destination[:port]] [command [argument ...]]
+        [destination[:port]] [-- command [argument ...]]
 
 Options:
     +v, ++verbose: verbose mode.
@@ -87,7 +87,6 @@ Options:
             exit(0)
         normalized_args = []
         command_args = []
-        has_destination = False
         parse_command = False
         for a in args:
             if parse_command:
@@ -100,14 +99,10 @@ Options:
                 a = a.replace('-', '_')
                 for af in a.lstrip('+'):
                     normalized_args.append(f'--kxh-{af}')
-            elif not has_destination:
-                normalized_args.append(a)
-                has_destination = True
-            elif not command_args and a.startswith('-'):
-                normalized_args.append(a)
-            else:
+            elif a == '--':
                 parse_command = True
-                command_args.append(a)
+            else:
+                normalized_args.append(a)
         ssh_args = super().parse_args(normalized_args, namespace)
         ssh_args.command = command_args
         kxh_args = argparse.Namespace()
