@@ -74,3 +74,11 @@ shell = 'bash'
 when = '[ ! -z $CUDA_VISIBLE_DEVICES ]'
 format = 'on [$symbol($output )]($style)'
 style = 'bold green'
+
+[custom.wandb]
+command = "cat ./wandb/settings | grep mode | cut -d ' ' -f 3"
+symbol = ' '
+shell = 'bash'
+when = '[ -f ./wandb/settings ]'
+format = 'with [$symbol($output )]($style)'
+style = 'bold cyan'

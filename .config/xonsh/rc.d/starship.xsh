@@ -30,6 +30,17 @@ else:
     # this config exists in starship.toml:
     # starship config add_newline false
     # and print a newline after every command
-    @events.on_postcommand
-    def on_postcommand(cmd, *args, **kwargs):
-        print()
+    _preprompt_linebreak = False
+
+    @events.on_pre_prompt
+    def on_pre_prompt():
+        global _preprompt_linebreak
+        if _preprompt_linebreak:
+            print()
+        else:
+            _preprompt_linebreak = True
+
+    @events.on_post_spec_run_clear
+    def print_while_ls(spec=None, **kwargs):
+        global _preprompt_linebreak
+        _preprompt_linebreak = False
