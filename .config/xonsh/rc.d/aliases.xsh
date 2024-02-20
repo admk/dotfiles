@@ -35,6 +35,7 @@ aliases |= {
     'k': 'kxh',
     'py': 'python',
     'ipy': 'ipython',
+    'pio': 'python3 -m pip install --index-url https://pypi.org/simple/',
     'l': 'ls',
     'la': 'ls -a',
     'll': 'ls -la',
@@ -116,17 +117,21 @@ def _pydb(args):
     port = 5678
     processes = $(lsof -i tcp:@(port)) if _which('lsof') else None
     if processes:
+        pids = []
         for proc in processes.split()[1:]:
             proc_out = proc.split(' ')
             for p in proc_out:
                 if not p.isdigit():
                     continue
-                ask = f'Process {p} is using port {port}. Kill {p}? [yN]'
-                if input(ask) == 'y':
-                    execx(f'kill {p}')
-                else:
-                    print('Aborting')
-                    return
+                pids.append(p)
+        if pids:
+            ask = f'Process(es) {pids} are using port {port}. Kill? [yN]'
+            if input(ask) == 'y':
+                for p in pids:
+                    execx(f'kill -- -{p}')
+            else:
+                print('Aborting')
+                return
     if _which('websocat') and ${...}.get('DEBUGPY_AUTOATTACH'):
         vscode_cmd = "{ 'command': 'workbench.action.debug.start' }"
         remote_control_url = "ws://127.0.0.1:3710"
