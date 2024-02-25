@@ -41,6 +41,8 @@ except KeyError:
 def _vscode_shell_integration():
     if ${...}.get('TERM_PROGRAM') != 'vscode':
         return
+    if not _which('code'):
+        return
     old_editor = $EDITOR
     with open($(code --locate-shell-integration-path bash).strip('\n')) as f:
         src = f.read()
