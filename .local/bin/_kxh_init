@@ -83,7 +83,6 @@ delete_list=()
 if [ -f $sync_list ]; then
     hot_dirs=(
         $XDG_CONFIG_HOME/xonsh/rc.d
-        $XDG_CACHE_HOME/kxh/hosts
     )
     for hot_dir in ${hot_dirs[@]}; do
         if [ ! -d $hot_dir ]; then

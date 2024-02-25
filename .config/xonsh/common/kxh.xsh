@@ -18,36 +18,53 @@ def debug(enable):
     print('kxh: debugger (debugpy, ipdb, or pdb) not found.')
 
 
+def add_border(title, hl_title, src, hl_src):
+    width = max(len(l) for l in src.split('\n'))
+    width = max(width, len(title))
+    lines = ['╭─' + '─' * width + '─╮']
+    if title:
+        lines.append('│ ' + hl_title + ' ' * (width - len(title)) + ' │')
+        lines.append('├─' + '─' * width + '─┤')
+    for hl_line, line in zip(hl_src.split('\n'), src.split('\n')):
+        lines.append('│ ' + hl_line + ' ' * (width - len(line)) + ' │')
+    lines.append('╰─' + '─' * width + '─╯')
+    return '\n'.join(lines)
+
+
 def _verbose_source(filename, verbose, verbose_src):
     if verbose or verbose_src:
         from xonsh.lazyimps import pyghooks, pygments
         from pygments.formatters import TerminalFormatter
         lexer = pyghooks.XonshLexer()
         formatter = TerminalFormatter()
-        src = f'source @({filename!r})'
-        src = pygments.highlight(src, lexer, formatter).strip('\n')
-        print(f'kxh: {src}')
+        src_fn = f'source @({filename!r})'
+        hl_src_fn = pygments.highlight(src_fn, lexer, formatter).strip('\n')
+        if not verbose_src:
+            print('kxh:', hl_src_fn)
     source @(filename)
     if not verbose_src:
         return
-    from textwrap import indent, dedent
+    import tabulate
+    from textwrap import dedent
     with open(filename) as f:
-        src = indent(dedent(f.read()), '  ')
+        src = dedent(f.read()).strip('\n')
     lexer = pyghooks.XonshLexer()
-    src = pygments.highlight(src, lexer, formatter)
-    print(src.strip('\n'))
+    hl_src = pygments.highlight(src, lexer, formatter)
+    print(add_border(src_fn, hl_src_fn, src, hl_src))
 
 
-def host_specific(verbose):
+def ssh_host_specific(verbose):
     import os
     import re
     config_home = ${...}.get('XDG_CONFIG_HOME', '~/.config')
     config_host_rcs = f'{config_home}/kxh/hosts/'
-    if os.path.exists(config_host_rcs):
-        host_rcs = config_host_rcs
-    else:
+    if not os.path.exists(config_host_rcs):
         cache_home = ${...}.get('XDG_CACHE_HOME', '~/.cache')
-        host_rcs = f'{cache_home}/kxh/hosts/'
+        host_rc = f'{cache_home}/kxh/hosts_collated.xsh'
+        if os.path.exists(host_rc):
+            _verbose_source(host_rc, verbose, verbose)
+        return
+    host_rcs = config_host_rcs
     host = ${...}.get('KXH_HOST', '')
     if verbose:
         print(f'kxh: host={host}')
@@ -92,6 +109,6 @@ def main():
 
     debug(${...}.get('KXH_DEBUG'))
     verbose = ${...}.get('KXH_VERBOSE') == '1'
-    host_specific(verbose)
+    ssh_host_specific(verbose)
     platform_specific(verbose)
     user_specific(verbose)

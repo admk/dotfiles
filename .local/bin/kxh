@@ -4,7 +4,6 @@ import re
 import sys
 import shutil
 import argparse
-import textwrap
 import subprocess
 
 import tomlkit
@@ -26,6 +25,33 @@ def quote(arg):
     if arg:
         return _quote_pos.sub('\\\\', arg).replace('\n',"'\n'")
     return "''"
+
+
+def highlight(src, lang):
+    import pygments
+    from pygments.formatters import TerminalFormatter
+    from pygments.lexers.configs import TOMLLexer
+    if lang == 'toml':
+        lexer = TOMLLexer()
+    else:
+        raise ValueError(f'Unknown language: {lang!r}')
+    formatter = TerminalFormatter()
+    return pygments.highlight(src, lexer, formatter).strip('\n')
+
+
+def add_border(title, hl_title, src, hl_src):
+    hl_title = hl_title or title
+    hl_src = hl_src or src
+    width = max(len(l) for l in src.split('\n'))
+    width = max(width, len(title))
+    lines = ['╭─' + '─' * width + '─╮']
+    if title:
+        lines.append('│ ' + hl_title + ' ' * (width - len(title)) + ' │')
+        lines.append('├─' + '─' * width + '─┤')
+    for hl_line, line in zip(hl_src.split('\n'), src.split('\n')):
+        lines.append('│ ' + hl_line + ' ' * (width - len(line)) + ' │')
+    lines.append('╰─' + '─' * width + '─╯')
+    return '\n'.join(lines)
 
 
 class KxhArgumentParser(argparse.ArgumentParser):
@@ -202,8 +228,9 @@ class KXH:
             home = os.path.join(os.environ['HOME'], f'.{name}')
         config['kxh'].setdefault('home', home)
         if config['kxh']['verbose']:
-            print('Config:')
-            print(textwrap.indent(tomlkit.dumps(config), '  '))
+            src = tomlkit.dumps(config)
+            hl_src = highlight(src, 'toml')
+            print(add_border('KXH Config', None, src, hl_src))
         self.config = config
 
     def _run(self, command, error_message=None, verbose=None, **kwargs):
@@ -247,7 +274,7 @@ class KXH:
             else:
                 raise e
 
-    def _custom_rcs(self):
+    def _ssh_host_specific_rcs(self):
         name = self.config['kxh']['name']
         rcs_dir = os.path.join(self.config_home, name, 'hosts')
         os.makedirs(rcs_dir, exist_ok=True)
@@ -255,13 +282,22 @@ class KXH:
         if os.path.exists(cache_rcs_dir):
             shutil.rmtree(cache_rcs_dir)
         shutil.copytree(rcs_dir, cache_rcs_dir)
+        custom_rcs = []
         for rc in os.listdir(cache_rcs_dir):
             rc_file = os.path.join(cache_rcs_dir, rc)
             if not os.path.isfile(rc_file):
                 continue
             rc_name = os.path.splitext(rc)[0]
             if re.match(rc_name, self.config['ssh']['destination']):
-                yield os.path.relpath(rc_file, self.config['kxh']['home'])
+                custom_rcs.append(rc_file)
+        collate_rc = os.path.join(self.cache_home, name, 'hosts_collated.xsh')
+        with open(collate_rc, 'w', encoding='utf-8') as f:
+            for rc in custom_rcs:
+                with open(rc, 'r', encoding='utf-8') as r:
+                    rc = os.path.relpath(rc, self.config['kxh']['home'])
+                    f.write(f'# --- {rc} ---\n')
+                    f.write(r.read())
+        return os.path.relpath(collate_rc, self.config['kxh']['home'])
 
     def _file_list_file(self):
         name = self.config['kxh']['name']
@@ -274,12 +310,12 @@ class KXH:
             f'Failed to list files in {home!r}.',
             verbose=False, cwd=home)
         file_list = file_list or ''
-        custom_rcs = list(self._custom_rcs())
+        custom_rcs = self._ssh_host_specific_rcs()
         if self.config['kxh']['verbose']:
             print(f'Custom rc files: {(custom_rcs)}')
-        file_list += '\n'.join(custom_rcs)
+        file_list += f'{custom_rcs}\n'
         rel_file = os.path.relpath(file, home)
-        file_list += f'\n{rel_file}\n'
+        file_list += f'{rel_file}\n'
         f.write(file_list)
         f.close()
         return file
