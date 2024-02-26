@@ -80,7 +80,7 @@ fi
 # xonsh
 sync_list=$XDG_CACHE_HOME/$KXH_NAME/sync
 delete_list=()
-if [ -f $sync_list ]; then
+if [[ -f $sync_list && ! -z $SSH_CONNECTION ]]; then
     hot_dirs=(
         $XDG_CONFIG_HOME/xonsh/rc.d
     )

@@ -9,6 +9,8 @@ def _transform_bangbang(cmd):
     return cmd
 
 
+_preprompt_linebreak = False
+
 def _starship_main():
     import platform
 
@@ -36,8 +38,6 @@ def _starship_main():
         # this config exists in starship.toml:
         # starship config add_newline false
         # and print a newline after every command
-        _preprompt_linebreak = False
-
         @events.on_pre_prompt
         def on_pre_prompt():
             global _preprompt_linebreak
@@ -57,4 +57,4 @@ del _starship_main
 
 
 if _which('atuin'):
-    eval "$(atuin init zsh --disable-up-arrow)"
+    execx($(atuin init xonsh --disable-up-arrow))
