@@ -49,7 +49,7 @@ def _install_homebrew():
         execx('/bin/bash .homebrew_install.sh')
         rm .homebrew_install.sh
         xontrib reload homebrew
-        brew install gcc tmux btop
+        brew install gcc tmux btop atuin
 
 
 def _ubuntu_specific():
