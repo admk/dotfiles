@@ -164,11 +164,3 @@ ${...}.setdefault('PROXY', '127.0.0.1:7890')
 _BASH_ENV = lambda args: (args, {'SHELL': '/bin/bash'})
 register_env_alias('ssh', cmd='ssh')(_BASH_ENV)
 register_env_alias('sshuttle', cmd='sshuttle')(_BASH_ENV)
-
-
-@events.on_transform_command
-def _transform_bangbang(cmd):
-    import re
-    cmd = cmd.replace('!!', $(history show -1).strip())
-    cmd = re.sub(r'!(-?\d+)', r'$(history show \1)', cmd)
-    return cmd
