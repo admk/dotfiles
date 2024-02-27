@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+import os
+import argparse
+
+import requests
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-k', '--key', type=str,
+        help='Bark key, if not set, will use BARK_KEY environment variable.')
+    parser.add_argument(
+        '-g', '--group', type=str, default='default',
+        help='Notification group.')
+    parser.add_argument(
+        '-i', '--icon', type=str, default=None, help='Icon to use.')
+    parser.add_argument(
+        '-T', '--time-sensitive', action='store_true',
+        help='Mark the message as time-sensitive.')
+    parser.add_argument('title', type=str, help='Title of the message.')
+    parser.add_argument(
+        'message', type=str, default=None, nargs='?',
+        help='Message to send.')
+    return parser.parse_args()
+
+
+def main(args):
+    key = args.key or os.environ.get('BARK_KEY')
+    if not key:
+        raise ValueError('Bark key not set.')
+    url = f'https://api.day.app/{key}/{args.title}'
+    if args.message:
+        url += f'/{args.message}'
+    data = {}
+    data['group'] = args.group
+    if args.icon:
+        data['icon'] = args.icon
+    if args.time_sensitive:
+        data['level'] = 'timeSensitive'
+    try:
+        response = requests.get(url, params=data, timeout=5)
+        response.raise_for_status()
+    except Exception as e:
+        raise SystemExit(e) from e
+
+
+if __name__ == '__main__':
+    main(parse_args())
