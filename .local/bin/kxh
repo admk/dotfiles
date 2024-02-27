@@ -7,6 +7,7 @@ import argparse
 import subprocess
 
 import tomlkit
+from cryptography.fernet import Fernet
 
 
 SSH = shutil.which('ssh')
@@ -190,6 +191,7 @@ class KXH:
     kxh_defaults = {
         'name': 'kxh',
         'repo': 'https://github.com/admk/dotfiles.git',
+        'key': Fernet.generate_key().decode('utf-8'),
     }
 
     def _load_rc(self, rc):
@@ -276,6 +278,7 @@ class KXH:
 
     def _ssh_host_specific_rcs(self):
         name = self.config['kxh']['name']
+        key = self.config['kxh']['key']
         rcs_dir = os.path.join(self.config_home, name, 'hosts')
         os.makedirs(rcs_dir, exist_ok=True)
         cache_rcs_dir = os.path.join(self.cache_home, name, 'hosts')
@@ -290,13 +293,18 @@ class KXH:
             rc_name = os.path.splitext(rc)[0]
             if re.match(rc_name, self.config['ssh']['destination']):
                 custom_rcs.append(rc_file)
-        collate_rc = os.path.join(self.cache_home, name, 'hosts_collated.xsh')
+        rcs = []
+        for rc in custom_rcs:
+            with open(rc, 'r', encoding='utf-8') as r:
+                rc = os.path.relpath(rc, self.config['kxh']['home'])
+                rcs.append(f'# --- {rc} ---')
+                rcs.append(r.read())
+        rcs = '\n'.join(rcs)
+        enc = Fernet(key).encrypt(rcs.encode('utf-8'))
+        collate_rc = os.path.join(
+            self.cache_home, name, 'hosts_collated.xsh.enc')
         with open(collate_rc, 'w', encoding='utf-8') as f:
-            for rc in custom_rcs:
-                with open(rc, 'r', encoding='utf-8') as r:
-                    rc = os.path.relpath(rc, self.config['kxh']['home'])
-                    f.write(f'# --- {rc} ---\n')
-                    f.write(r.read())
+            f.write(enc.decode('utf-8'))
         return os.path.relpath(collate_rc, self.config['kxh']['home'])
 
     def _file_list_file(self):
@@ -358,6 +366,7 @@ class KXH:
         mode = self.config['kxh']['mode']
         verbose = self.config['kxh']['verbose']
         debug = self.config['kxh']['debug']
+        enc_key = self.config['kxh']['key']
         dest = self.config['ssh']['destination']
         port = self.config['ssh'].get('p')
         host = f'{dest}:{port}' if port else dest
@@ -367,6 +376,7 @@ class KXH:
             f'KXH_MODE={mode}',
             f'KXH_VERBOSE={int(verbose)}',
             f'KXH_DEBUG={int(debug)}',
+            f'KXH_ENCRYPT_KEY={enc_key}'
         ]
         init_script = f"env {' '.join(prefix)} "
         command = f'.{name}/.local/bin/_kxh_init'

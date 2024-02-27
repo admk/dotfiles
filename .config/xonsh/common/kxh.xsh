@@ -31,7 +31,7 @@ def add_border(title, hl_title, src, hl_src):
     return '\n'.join(lines)
 
 
-def _verbose_source(filename, verbose, verbose_src):
+def _verbose_source(filename, verbose, verbose_src, dec_key=None):
     if verbose or verbose_src:
         from xonsh.lazyimps import pyghooks, pygments
         from pygments.formatters import TerminalFormatter
@@ -41,16 +41,25 @@ def _verbose_source(filename, verbose, verbose_src):
         hl_src_fn = pygments.highlight(src_fn, lexer, formatter).strip('\n')
         if not verbose_src:
             print('kxh:', hl_src_fn)
-    source @(filename)
+    if dec_key is not None:
+        from cryptography.fernet import Fernet
+        with open(filename, 'r', encoding='utf-8') as f:
+            enc_src = f.read().encode('utf-8')
+            src_text = Fernet(dec_key).decrypt(enc_src).decode('utf-8')
+            src_text = src_text.strip('\n')
+        execx(src_text)
+    else:
+        source @(filename)
     if not verbose_src:
         return
     import tabulate
     from textwrap import dedent
-    with open(filename) as f:
-        src = dedent(f.read()).strip('\n')
+    if dec_key is None:
+        with open(filename) as f:
+            src_text = dedent(f.read()).strip('\n')
     lexer = pyghooks.XonshLexer()
-    hl_src = pygments.highlight(src, lexer, formatter)
-    print(add_border(src_fn, hl_src_fn, src, hl_src))
+    hl_src_text = pygments.highlight(src_text, lexer, formatter)
+    print(add_border(src_fn, hl_src_fn, src_text, hl_src_text))
 
 
 def ssh_host_specific(verbose):
@@ -60,9 +69,10 @@ def ssh_host_specific(verbose):
     config_host_rcs = f'{config_home}/kxh/hosts/'
     if not os.path.exists(config_host_rcs):
         cache_home = ${...}.get('XDG_CACHE_HOME', '~/.cache')
-        host_rc = f'{cache_home}/kxh/hosts_collated.xsh'
+        host_rc = f'{cache_home}/kxh/hosts_collated.xsh.enc'
         if os.path.exists(host_rc):
-            _verbose_source(host_rc, verbose, verbose)
+            key = ${...}.get('KXH_ENCRYPT_KEY')
+            _verbose_source(host_rc, verbose, verbose, key)
         return
     host_rcs = config_host_rcs
     host = ${...}.get('KXH_HOST', '')
