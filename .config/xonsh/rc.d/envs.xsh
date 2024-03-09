@@ -29,6 +29,8 @@ if 'TMUX' in ${...}:
 
 # $GPG_TTY = $(tty)
 
+$PYDEVD_DISABLE_FILE_VALIDATION = 1
+
 try:
     $XONTRIB_ONEPATH_ACTIONS |= {
         'text/': $VISUAL,
