@@ -31,9 +31,8 @@ def sash(args):
     except KeyError:
         print(f'Unknown GPU type: {args.gpu_type}')
         return
-    cpus = args.cpus_per_gpu * args.num_gpus
     command = f'sash -N 1 -p {partition} --gres={gpu_type}:{args.num_gpus} '
-    command += f'-c {cpus} {" ".join(remaining_args)}'
+    command += f'-c {args.cpus_per_gpu} {" ".join(remaining_args)}'
     print(command)
     execx(command)
 
@@ -65,26 +64,23 @@ def _share_folder(args):
 def _install_homebrew():
     if $USER != "root":
         return
-    if not p'/home/linuxbrew/.linuxbrew/bin/brew'.exists():
-        print('Installing Homebrew...')
-        url = 'https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh'
-        proxy = ${...}.get('PROXY', '')
-        with ${...}.swap(
-            http_proxy=proxy,
-            https_proxy=proxy,
-            all_proxy=proxy,
-        ):
-            apt-get install -y build-essential procps curl file git
-            curl -fsL @(url) -o .homebrew_install.sh
-            execx('/bin/bash .homebrew_install.sh')
-            rm .homebrew_install.sh
-            xontrib reload homebrew
-    from shutil import which
-    pkgs = ['gcc', 'tmux', 'btop', 'atuin']
-    missing_pkgs = [p for p in pkgs if not which(p)]
-    if missing_pkgs:
-        print(f'Installing missing Homebrew packages: {missing_pkgs}')
-        brew install @(missing_pkgs)
+    if p'/home/linuxbrew/.linuxbrew/bin/brew'.exists():
+        return
+    print('Installing Homebrew...')
+    url = 'https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh'
+    proxy = ${...}.get('PROXY', '')
+    with ${...}.swap(
+        http_proxy=proxy,
+        https_proxy=proxy,
+        all_proxy=proxy,
+    ):
+        apt-get install -y build-essential procps curl file git
+        curl -fsL @(url) -o .homebrew_install.sh
+        execx('/bin/bash .homebrew_install.sh')
+        rm .homebrew_install.sh
+        xontrib reload homebrew
+        pkgs = ['gcc', 'tmux', 'btop', 'atuin']
+        brew install @(pkgs)
 
 
 def _ubuntu_specific():
@@ -112,7 +108,10 @@ def _ubuntu_specific():
 
 
 if 'ubuntu' in platform.uname().version.lower():
-    _ubuntu_specific()
-    _install_homebrew()
+    try:
+        _ubuntu_specific()
+        _install_homebrew()
+    except KeyboardInterrupt:
+        print('Interrupted')
     aliases.register('share-folder')(_share_folder)
 del _ubuntu_specific, _install_homebrew, _share_folder
