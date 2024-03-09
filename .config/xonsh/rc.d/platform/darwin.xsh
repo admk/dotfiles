@@ -50,3 +50,11 @@ def proxy_browser(args):
         echo 'Failed to start browser'
         return
     ssh -S @(socket_path) -O exit @(args)
+
+
+$CODE = p'/Applications/Visual Studio Code.app'
+aliases |= {
+    'patch-vscode':
+        "sed -i '' 's/:k\\\\.isUnsupportedGlibc/:0/g' "
+        "$CODE/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js"
+}

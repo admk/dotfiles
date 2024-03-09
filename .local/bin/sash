@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import time
 import shutil
 import socket
@@ -18,14 +19,22 @@ SLURM_SCRIPT = """#!/bin/bash
 #SBATCH -o {logdir}/%j.out
 #SBATCH -e {logdir}/%j.err
 #SBATCH -N {args.node_count}
-#SBATCH --cpus-per-task={args.cpu_count}
+#SBATCH --cpus-per-task={cpus}
 #SBATCH --time=7-0:00
 #SBATCH --gres={gres}
+{sbatch_extra}
 
 cd $HOME
 echo "date: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "hostname: $(hostname)"
 echo "port: {port}"
+BARK={args.bark}
+if [ -n "$BARK" ]; then
+    $BARK \\
+        "$(hostname) is up and running." \\
+        "Server is ready on port {port}." \\
+        -g "sash"
+fi
 # autossh to keep the reverse ssh connection alive
 {autossh} \\
     -M 0 \\
@@ -67,11 +76,13 @@ def submit_slurm_job(args):
     if not autossh:
         raise RuntimeError(
             "autossh is not found, please install it first.")
-    gres = ''
-    if args.gres_type and args.gres_count:
-        gres = f'{args.gres_type}:{args.gres_count}'
+    sbatch_extra = ''
+    if args.node:
+        sbatch_extra += f"""#SBATCH -w {args.node}\n"""
+    cpus = int(args.cpus_per_gpu) * int(args.gres.split(':')[-1])
     script = SLURM_SCRIPT.format(
-        logdir=_logdir, autossh=autossh, args=args, port=port, gres=gres)
+        logdir=_logdir, autossh=autossh, args=args, port=port, gres=args.gres,
+        cpus=cpus, sbatch_extra=sbatch_extra)
     print(f"args: {args!r}")
     print(f"port: {port!r}")
     print(f"autossh: {autossh!r}")
@@ -88,51 +99,68 @@ def submit_slurm_job(args):
         output = subprocess.check_output(cmd, cwd=Path().home())
     jobid = output.decode().split()[-1]
     print(f"jobid: {jobid}")
-    cmd = ['squeue', '-h', '-j', jobid, '-o', '%T']
+    cmd = ['squeue', '-h', '-j', jobid, '-o', '%T,%N']
     print ('Now waiting for the job to start...')
     time.sleep(1)
-    status = subprocess.check_output(cmd).decode().strip().lower()
+    status, node = subprocess.check_output(cmd).decode().split(',')
+    status = status.strip().lower()
+    node = node.strip()
     print(f"status: {status}")
-    print('When the job is running, you can connect to the host with:')
-    print(f"ssh -p {port} {args.host}")
+    if args.now and status != 'running':
+        print(f'Job failed to start, cancelling job {jobid}...')
+        subprocess.run(['scancel', jobid], check=True)
+        return 1
+    if status == 'running':
+        print(f"node: {node}")
+        print('You can now connect to the host with:')
+        print(f"ssh {login_host().replace('login', node)}")
+    else:
+        print('When the job is running, you can connect to the host with:')
+        print(f'ssh localhost -p {port}')
+    return 0
 
 
-def local_ip():
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.connect(('8.8.8.8', 80))
-        return s.getsockname()[0]
+def login_host():
+    domain = '.'.join(socket.gethostname().split('.')[1:])
+    return f'login.{domain}'
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Submit a reverse SSH job to SLURM.')
-    default_host = f'{getpass.getuser()}@{local_ip()}'
+    default_host = f'{getpass.getuser()}@{login_host()}'
     parser.add_argument(
         '-s', '--host', type=str, default=default_host,
         help=f'Host to connect to, default: {default_host!r}.')
     parser.add_argument(
-        '-t', '--partition', type=str, default='gpu',
+        '-p', '--partition', type=str, default='gpu',
         help='Partition to submit to.')
     parser.add_argument(
-        '-n', '--node-count', type=int, default=1, help='Number of nodes.')
+        '-N', '--node-count', type=int, default=1, help='Number of nodes.')
     parser.add_argument(
-        '-c', '--cpu-count', type=int, default=32, help='Number of CPU cores.')
+        '-c', '--cpus-per-gpu', type=int, default=16, help='Number of CPU cores.')
     parser.add_argument(
-        '-r', '--gres-type', type=str, default='gpu:a100-sxm4-80gb')
+        '-g', '--gres', type=str, default='gpu:a100-sxm4-80gb:1')
     parser.add_argument(
-        '-g', '--gres-count', type=int, default=1, help='Number of Gres.')
+        '-w', '--node', type=str, default=None)
     parser.add_argument(
-        '-p', '--port-range', type=str, default="30101-30199",
+        '-r', '--port-range', type=str, default="30101-30199",
         help='Port number on host to expose, '
         'assigned from 30101-30199 if not specified.')
     parser.add_argument(
         '-a', '--sbatch-args', type=str, default='',
         help='Additional arguments to pass to sbatch.')
+    parser.add_argument(
+        '--bark', type=str, default=shutil.which('bark'),
+        help='Path to bark, used to send notification.')
+    parser.add_argument(
+        '-n', '--now', action='store_true',
+        help='If set, the job will either start or fail immediately.')
     return parser.parse_args()
 
 
 def main(args=None):
-    submit_slurm_job(args or parse_args())
+    sys.exit(submit_slurm_job(args or parse_args()))
 
 
 if __name__ == '__main__':

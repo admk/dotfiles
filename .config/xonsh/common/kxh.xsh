@@ -71,7 +71,11 @@ def ssh_host_specific(verbose):
         cache_home = ${...}.get('XDG_CACHE_HOME', '~/.cache')
         host_rc = f'{cache_home}/kxh/hosts_collated.xsh.enc'
         if os.path.exists(host_rc):
-            key = ${...}.get('KXH_ENCRYPT_KEY')
+            key = f'{cache_home}/kxh/key'
+            if not os.path.exists(key):
+                print(f'kxh: missing key to decrypt {host_rc!r}.')
+                return
+            key = open(key, 'r', encoding='utf-8').read().strip()
             _verbose_source(host_rc, verbose, verbose, key)
         return
     host_rcs = config_host_rcs
