@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env kxh_python
 import os
 import re
 import sys
@@ -192,7 +192,6 @@ class KXH:
     kxh_defaults = {
         'name': 'kxh',
         'repo': 'https://github.com/admk/dotfiles.git',
-        'key': Fernet.generate_key().decode('utf-8'),
     }
 
     def _load_rc(self, rc):
@@ -206,6 +205,8 @@ class KXH:
         else:
             config = {}
         config.setdefault('kxh', copy.deepcopy(self.kxh_defaults))
+        if 'key' not in config['kxh']:
+            config['kxh']['key'] = Fernet.generate_key().decode('utf-8')
         config.setdefault('ssh', {})
         return config
 
