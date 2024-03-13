@@ -6,7 +6,7 @@ from common.aliases import register_env_alias
 aliases |= {
     'ns': 'nvidia-smi',
     'st': 'gpustat -cup',
-    'sq': 'squeue',
+    'sq': 'squeue -o "%.5i %.7P %.8j %.5u %.2t %.10M %R"',
     'sc': 'scontrol',
     'scn': 'scontrol show node',
     'scj': 'scontrol show job',
@@ -26,13 +26,20 @@ def sash(args):
     try:
         partition, gpu_type = $SLURM_INFO[args.gpu_type]
     except NameError:
-        print('SLURM_INFO not provided.')
+        print('$SLURM_INFO not provided.')
         return
     except KeyError:
         print(f'Unknown GPU type: {args.gpu_type}')
         return
-    command = f'sash -N 1 -p {partition} --gres={gpu_type}:{args.num_gpus} '
-    command += f'-c {args.cpus_per_gpu} {" ".join(remaining_args)}'
+    command = f'sash -N 1 -p {partition} '
+    if gpu_type:
+        command += f'--gres={gpu_type}:{args.num_gpus} '
+    else:
+        command += f'--gres="" '
+    command += f'-c {args.cpus_per_gpu} '
+    command += " ".join(remaining_args)
+    command += ' -- slack chat send '
+    command += f'\"Job $SLURM_JOB_ID started on $SLURM_NODELIST\" \"#update-bnuc\"'
     print(command)
     execx(command)
 

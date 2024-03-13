@@ -34,7 +34,7 @@ fi
 # Copy the public keys to the remote server's new user
 ssh-copy-id -f -i $HOME/.ssh/id_rsa.pub $user@$server
 ssh-copy-id -f -i $key_path.pub $user@$server
-echo "ssh-copy-id -i $key_path.pub $user@$server"
+echo "ssh-copy-id -f -i $key_path.pub $user@$server"
 echo "Public key copied to the new account."
 
 # Open Finder with the key files selected

@@ -1,6 +1,8 @@
 #!/usr/bin/env kxh_python
+import re
 import sys
 import time
+import shlex
 import shutil
 import socket
 import getpass
@@ -20,7 +22,7 @@ SLURM_SCRIPT = """#!/bin/bash
 #SBATCH -e {logdir}/%j.err
 #SBATCH -N {args.node_count}
 #SBATCH --cpus-per-task={cpus}
-#SBATCH --time=7-0:00
+#SBATCH --time={args.time}
 #SBATCH --gres={gres}
 {sbatch_extra}
 
@@ -28,13 +30,7 @@ cd $HOME
 echo "date: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "hostname: $(hostname)"
 echo "port: {port}"
-BARK={args.bark}
-if [ -n "$BARK" ]; then
-    $BARK \\
-        "$(hostname) is up and running." \\
-        "Server is ready on port {port}." \\
-        -g "sash"
-fi
+{acmd}
 # autossh to keep the reverse ssh connection alive
 {autossh} \\
     -M 0 \\
@@ -79,10 +75,19 @@ def submit_slurm_job(args):
     sbatch_extra = ''
     if args.node:
         sbatch_extra += f"""#SBATCH -w {args.node}\n"""
-    cpus = int(args.cpus_per_gpu) * int(args.gres.split(':')[-1])
+    try:
+        gpus = int(args.gres.split(':')[-1])
+        cpus = int(args.cpus_per_gpu) * gpus
+    except ValueError:
+        gpus = 0
+        cpus = int(args.cpus_per_gpu)
+    acmd = [shlex.quote(a) for a in args.additional_command]
+    acmd = [re.sub(r"^'", r'"', a) for a in acmd]
+    acmd = [re.sub(r"'$", r'"', a) for a in acmd]
+    acmd = ' '.join(acmd)
     script = SLURM_SCRIPT.format(
         logdir=_logdir, autossh=autossh, args=args, port=port, gres=args.gres,
-        cpus=cpus, sbatch_extra=sbatch_extra)
+        cpus=cpus, sbatch_extra=sbatch_extra, acmd=acmd)
     print(f"args: {args!r}")
     print(f"port: {port!r}")
     print(f"autossh: {autossh!r}")
@@ -94,20 +99,23 @@ def submit_slurm_job(args):
         print(f"--- SLURM SCRIPT [{f.name}] ---")
         print(script)
         print("--- END SLURM SCRIPT ---")
-        cmd = ['sbatch'] + list(args.sbatch_args.split()) + [f.name]
+        bargs = args.sbatch_args.strip().strip('"')
+        bargs = shlex.split(args.sbatch_args)
+        cmd = ['sbatch'] + list(bargs) + [f.name]
         print(f"command: {' '.join(cmd)}")
         output = subprocess.check_output(cmd, cwd=Path().home())
     jobid = output.decode().split()[-1]
     print(f"jobid: {jobid}")
-    cmd = ['squeue', '-h', '-j', jobid, '-o', '%T,%N']
+    cmd = ['squeue', '-h', '-j', jobid, '-o', '%T;%R']
     print ('Now waiting for the job to start...')
     time.sleep(1)
-    status, node = subprocess.check_output(cmd).decode().split(',')
+    status, node = subprocess.check_output(cmd).decode().split(';')
     status = status.strip().lower()
     node = node.strip()
     print(f"status: {status}")
     if args.now and status != 'running':
-        print(f'Job failed to start, cancelling job {jobid}...')
+        print(
+            f'Job failed to start, reason {node}, cancelling job {jobid}...')
         subprocess.run(['scancel', jobid], check=True)
         return 1
     if status == 'running':
@@ -144,6 +152,9 @@ def parse_args():
     parser.add_argument(
         '-w', '--node', type=str, default=None)
     parser.add_argument(
+        '-t', '--time', type=str, default='7-0:00',
+        help='Time limit for the job.')
+    parser.add_argument(
         '-r', '--port-range', type=str, default="30101-30199",
         help='Port number on host to expose, '
         'assigned from 30101-30199 if not specified.')
@@ -151,12 +162,17 @@ def parse_args():
         '-a', '--sbatch-args', type=str, default='',
         help='Additional arguments to pass to sbatch.')
     parser.add_argument(
-        '--bark', type=str, default=shutil.which('bark'),
-        help='Path to bark, used to send notification.')
-    parser.add_argument(
         '-n', '--now', action='store_true',
         help='If set, the job will either start or fail immediately.')
-    return parser.parse_args()
+    argv = sys.argv[1:]
+    try:
+        split_pos = argv.index('--')
+        argv, command = argv[:split_pos], argv[split_pos + 1:]
+    except ValueError:
+        command = []
+    args = parser.parse_args(argv)
+    args.additional_command = command
+    return args
 
 
 def main(args=None):
