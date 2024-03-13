@@ -1,0 +1,115 @@
+#!/usr/bin/env kxh_python
+import os
+import base64
+import argparse
+import tempfile
+import subprocess
+import urllib.parse
+from datetime import datetime
+
+import yaml
+import requests
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('url', type=str, help='Subscription URL.')
+    parser.add_argument('--config', type=str, default=None)
+    args = parser.parse_args()
+    if not args.config:
+        args.config = os.path.join(
+            os.environ.get('XDG_CONFIG_HOME', '~/.config'),
+            'clash/config.yaml')
+    return args
+
+
+class Decode:
+    @staticmethod
+    def extract(url):
+        parts = url.split('@')
+        credentials, netloc = parts
+        host_port, tag = netloc.split('#')
+        host, port = host_port.split(':')
+        tag = urllib.parse.unquote(tag)
+        return credentials, host, port, tag
+
+    @classmethod
+    def ss(cls, url):
+        creds, host, port, name = cls.extract(url)
+        creds = base64.b64decode(creds).decode('utf-8')
+        cipher, password = creds.split(':')
+        return {
+            'name': name,
+            'password': password,
+            'cipher': cipher,
+            'server': host,
+            'port': int(port),
+            'type': 'ss',
+            'udp': True
+        }
+
+def fetch_subscriptions(url):
+    response = requests.get(url, timeout=5)
+    response.raise_for_status()
+    text = response.text
+    subscriptions = []
+    for l in base64.b64decode(text).decode('utf-8').splitlines():
+        protocol, uri = l.split('://')
+        decode = getattr(Decode, protocol, None)
+        if not decode:
+            raise ValueError(f'Unsupported protocol: {protocol}')
+        subscriptions.append(decode(uri))
+    return subscriptions
+
+
+def write_config(path, default_config, subscriptions):
+    config = default_config.copy()
+    config['proxies'] = subscriptions
+    config['proxy-groups'] = [
+        {
+            'name': 'Default',
+            'type': 'url-test',
+            'proxies': [p['name'] for p in subscriptions],
+            'url': 'http://www.gstatic.com/generate_204',
+            'interval': 7200,
+        },
+    ]
+    with open(path, 'w', encoding='utf-8') as f:
+        yaml.dump(
+            config, f, encoding='utf-8', allow_unicode=True, sort_keys=False)
+
+
+def main(args):
+    try:
+        with open(args.config, 'r', encoding='utf-8') as f:
+            default_config = yaml.safe_load(f)
+    except FileNotFoundError as e:
+        raise ValueError(f'Config file not found: {args.config}.') from e
+    print(f'Fetching subscriptions from {args.url}')
+    subscriptions = fetch_subscriptions(args.url)
+    with tempfile.NamedTemporaryFile('w', delete=True) as f:
+        write_config(f.name, default_config, subscriptions)
+        f.flush()
+        cmd = f'clash -f {f.name}'
+        print(f'Running clash: {cmd}')
+        subprocess.run(cmd, shell=True, check=True, timeout=86400)
+
+
+def loop(args):
+    while True:
+        try:
+            main(args)
+        except KeyboardInterrupt:
+            break
+        except subprocess.TimeoutExpired:
+            now = datetime.now()
+            print(f'[{now:%Y-%m-%d %H:%M:%S}] Timeout expired, retrying...')
+            # subprocess.run('pkill -f clash', shell=True, check=False)
+        except Exception as e:
+            now = datetime.now()
+            print(f'[{now:%Y-%m-%d %H:%M:%S}] Error: {e}')
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    loop(args)

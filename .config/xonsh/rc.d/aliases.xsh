@@ -46,6 +46,7 @@ aliases |= {
     'xtb': 'cat $XONSH_TRACEBACK_LOGFILE | less +G',
     'ssh-exit': 'ssh -O exit',
     'vim': f"{_which('vim')} -u $KXH_HOME/.config/nvim/init.vim",
+    'clash-start': 'klash $CLASH_SUBSCRIPTION --config $XDG_CONFIG_HOME/kxh/share/clash.yaml',
 }
 register_dep_aliases({
     'rcp': 'rsync --progress --recursive --archive',
