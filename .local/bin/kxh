@@ -309,32 +309,36 @@ class KXH:
         key_file = os.path.join(self.cache_home, name, 'key')
         with open(key_file, 'w', encoding='utf-8') as f:
             f.write(key)
-        files = {
-            'collated': os.path.relpath(collate_rc, self.config['kxh']['home']),
-            'key': os.path.relpath(key_file, self.config['kxh']['home']),
-        }
-        return files
+        return [collate_rc, key_file]
+
+    def _shared_files(self):
+        name = self.config['kxh']['name']
+        shared_dir = os.path.join(self.config_home, name, 'share')
+        return [os.path.join(shared_dir, f) for f in os.listdir(shared_dir)]
 
     def _file_list_file(self):
         name = self.config['kxh']['name']
-        file = os.path.join(self.cache_home, name, 'sync')
-        os.makedirs(os.path.dirname(file), exist_ok=True)
-        f = open(file, 'w', encoding='utf-8')
+        sync_file = os.path.join(self.cache_home, name, 'sync')
+        os.makedirs(os.path.dirname(sync_file), exist_ok=True)
+        f = open(sync_file, 'w', encoding='utf-8')
         home = self.config['kxh']['home']
         file_list = self._run(
             ['git', 'ls-files'],
             f'Failed to list files in {home!r}.',
             verbose=False, cwd=home)
         file_list = file_list or ''
-        custom_rcs = self._ssh_host_specific_rcs()
+        custom_files = self._ssh_host_specific_rcs()
+        custom_files += self._shared_files()
+        files = [
+            os.path.relpath(f, self.config['kxh']['home'])
+            for f in custom_files]
         if self.config['kxh']['verbose']:
-            print(f'Custom rc files: {custom_rcs}')
-        files = list(custom_rcs.values())
-        files.append(os.path.relpath(file, home))
+            print(f'Custom files: {custom_files}')
+        files.append(os.path.relpath(sync_file, home))
         file_list += '\n'.join(files) + '\n'
         f.write(file_list)
         f.close()
-        return file
+        return sync_file
 
     def _sync_files(self):
         url = self.config['kxh']['repo']
