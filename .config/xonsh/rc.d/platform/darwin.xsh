@@ -52,9 +52,9 @@ def proxy_browser(args):
     ssh -S @(socket_path) -O exit @(args)
 
 
-$CODE = p'/Applications/Visual Studio Code.app'
-aliases |= {
-    'patch-vscode':
-        "sed -i '' 's/:k\\\\.isUnsupportedGlibc/:0/g' "
-        "$CODE/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js"
-}
+@aliases.register('patch-vscode')
+def patch_vscode():
+    sed -i '' \
+        's/:k\.isUnsupportedGlibc/:0/g' \
+        "/Applications/Visual Studio Code.app/Contents/Resources/app/out/"\
+        "vs/workbench/workbench.desktop.main.js"
