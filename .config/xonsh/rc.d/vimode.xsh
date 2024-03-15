@@ -1,7 +1,7 @@
 $VI_MODE = True
 
 
-def _custom_keybindings(bindings, **kw):
+def _custom_keybindings(bindings, **kwargs):
     from prompt_toolkit.keys import Keys
     from prompt_toolkit.key_binding.key_processor import KeyPress
     from prompt_toolkit.filters import ViInsertMode, ViNavigationMode
@@ -44,6 +44,17 @@ def _custom_keybindings(bindings, **kw):
         app.current_buffer.cursor_position += pos
 
 
+def _fallback_clipboard(**kwargs):
+    import pyperclip
+    from pyperclip import PyperclipException
+    try:
+        pyperclip.copy('test')
+    except PyperclipException:
+        from prompt_toolkit.clipboard.in_memory import InMemoryClipboard
+        prompter.clipboard = InMemoryClipboard()
+
+
 if ${...}.get('VI_MODE'):
     events.on_ptk_create(_custom_keybindings)
-del _custom_keybindings
+    events.on_ptk_create(_fallback_clipboard)
+del _custom_keybindings, _fallback_clipboard
