@@ -114,7 +114,7 @@ def _tmux_reattach(args):
 @aliases.register('pd')
 @aliases.register('pydb')
 @_unthreadable
-def _pydb(args):
+def _pydb(args, stdin=None):
     port = 5678
     processes = $(lsof -i tcp:@(port)) if _which('lsof') else None
     if processes:
@@ -133,13 +133,10 @@ def _pydb(args):
             else:
                 print('Aborting')
                 return
-    if _which('websocat') and ${...}.get('DEBUGPY_AUTOATTACH'):
-        vscode_cmd = "{ 'command': 'workbench.action.debug.start' }"
-        remote_control_url = "ws://127.0.0.1:3710"
-        echo @(vscode_cmd) | websocat @(remote_control_url)
-        python -m debugpy --connect 5678 @(args)
+    print('Waiting for client to attach to 5678...')
+    if stdin is not None:
+        echo @(stdin) | python -m debugpy --listen 5678 --wait-for-client @(args)
     else:
-        print('Waiting for client to attach to 5678...')
         python -m debugpy --listen 5678 --wait-for-client @(args)
 
 
