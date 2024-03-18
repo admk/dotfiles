@@ -44,7 +44,7 @@ def _custom_keybindings(bindings, **kwargs):
         app.current_buffer.cursor_position += pos
 
 
-def _fallback_clipboard(**kwargs):
+def _fallback_clipboard(prompter, **kwargs):
     import pyperclip
     from pyperclip import PyperclipException
     try:

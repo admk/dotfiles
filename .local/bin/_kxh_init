@@ -22,7 +22,7 @@ export KXH_INIT=$KXH_HOME/.local/bin/_kxh_init
 export KXH_CONDA_PREFIX=$KXH_HOME/.miniconda3
 export KXH_PYTHON=$KXH_CONDA_PREFIX/bin/python
 export KXH_SHELL=$KXH_CONDA_PREFIX/bin/xonsh
-export KXH_FALLBACK_SHELL=/bin/bash
+export KXH_FALLBACK_SHELL=$SHELL
 export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
 export XDG_CACHE_HOME="$XDG_HOME/.cache"
@@ -64,9 +64,17 @@ if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
         OS='Linux'
     else
         echo 'Unsupported OS $OS' >$ERR
-        exit 1
+        exec $KXH_FALLBACK_SHELL "$@"
     fi
     ARCH=$(uname -m)
+    if [[ $ARCH == 'x86_64' ]]; then
+        ARCH='x86_64'
+    elif [[ $ARCH == 'arm64' ]]; then
+        ARCH='aarch64'
+    else
+        echo 'Unsupported ARCH $ARCH' >$ERR
+        exec $KXH_FALLBACK_SHELL "$@"
+    fi
     CONDA_URL=$CONDA_SRC/Miniconda3-latest-$OS-$ARCH.sh
     echo "Downloading miniconda3 from $CONDA_URL to $CONDA_INSTALLER..."
     curl -L $CONDA_URL -o $CONDA_INSTALLER 1>$OUT 2>$ERR

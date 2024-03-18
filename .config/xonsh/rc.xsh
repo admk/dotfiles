@@ -14,7 +14,7 @@ def _xontrib_load():
         'onepath',
         # 'output_search',
         'pipeliner',
-        'readable-traceback',
+        # 'readable-traceback',
         'sh',
     ]
     xontrib load -s @(xontribs)
@@ -28,6 +28,7 @@ def _xontrib_load():
             cmd, xtb = cmd_xtb
         if !(which @(cmd)):
             xontrib load @(xtb)
+    aliases.pop('jc', None)
 
 
 def _rc_path():
