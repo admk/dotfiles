@@ -26,6 +26,8 @@ SLURM_SCRIPT = """#!/bin/bash
 #SBATCH --gres={gres}
 {sbatch_extra}
 
+sleep 10
+{queue_cmd}
 cd $HOME
 echo "date: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "hostname: $(hostname)"
@@ -35,9 +37,9 @@ echo "port: {port}"
 {autossh} \\
     -M 0 \\
     -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' -N \\
-    -o ExitOnForwardFailure=yes -v \\
     -R {port}:localhost:22 \\
     {args.host}
+sleep {time_in_seconds}
 """
 
 
@@ -81,13 +83,16 @@ def submit_slurm_job(args):
     except ValueError:
         gpus = 0
         cpus = int(args.cpus_per_gpu)
+    queue_cmd = ' '.join(sys.argv)
     acmd = [shlex.quote(a) for a in args.additional_command]
     acmd = [re.sub(r"^'", r'"', a) for a in acmd]
     acmd = [re.sub(r"'$", r'"', a) for a in acmd]
     acmd = ' '.join(acmd)
+    time_in_seconds = 604800  # 7 days
     script = SLURM_SCRIPT.format(
         logdir=_logdir, autossh=autossh, args=args, port=port, gres=args.gres,
-        cpus=cpus, sbatch_extra=sbatch_extra, acmd=acmd)
+        cpus=cpus, sbatch_extra=sbatch_extra, queue_cmd=queue_cmd, acmd=acmd,
+        time_in_seconds=time_in_seconds)
     print(f"args: {args!r}")
     print(f"port: {port!r}")
     print(f"autossh: {autossh!r}")
@@ -164,6 +169,9 @@ def parse_args():
     parser.add_argument(
         '-n', '--now', action='store_true',
         help='If set, the job will either start or fail immediately.')
+    parser.add_argument(
+        '-q', '--queue-recursively', action='store_true',
+        help='Queue another job recursively.')
     argv = sys.argv[1:]
     try:
         split_pos = argv.index('--')

@@ -1,4 +1,4 @@
-#!/bin/bash --norc
+#!/bin/bash -l
 
 # inputs
 export KXH_NAME=${KXH_NAME:-kxh}

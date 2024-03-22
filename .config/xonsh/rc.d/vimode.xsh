@@ -45,13 +45,12 @@ def _custom_keybindings(bindings, **kwargs):
 
 
 def _fallback_clipboard(prompter, **kwargs):
-    import pyperclip
-    from pyperclip import PyperclipException
-    try:
-        pyperclip.copy('test')
-    except PyperclipException:
-        from prompt_toolkit.clipboard.in_memory import InMemoryClipboard
-        prompter.clipboard = InMemoryClipboard()
+    from shutil import which
+    commands = ('xclip', 'xsel', 'pbcopy', 'clip')
+    if any(which(c) for c in commands):
+        return
+    from prompt_toolkit.clipboard.in_memory import InMemoryClipboard
+    prompter.clipboard = InMemoryClipboard()
 
 
 if ${...}.get('VI_MODE'):

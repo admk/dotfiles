@@ -65,15 +65,16 @@ def fetch_subscriptions(url):
 def write_config(path, default_config, subscriptions):
     config = default_config.copy()
     config['proxies'] = subscriptions
-    config['proxy-groups'] = [
-        {
-            'name': 'Default',
-            'type': 'url-test',
-            'proxies': [p['name'] for p in subscriptions],
-            'url': 'http://www.gstatic.com/generate_204',
-            'interval': 7200,
-        },
-    ]
+    if not config.get('proxy-groups'):
+        config['proxy-groups'] = [
+            {
+                'name': 'Default',
+                'type': 'url-test',
+                'proxies': [p['name'] for p in subscriptions],
+                'url': 'http://www.gstatic.com/generate_204',
+                'interval': 7200,
+            },
+        ]
     with open(path, 'w', encoding='utf-8') as f:
         yaml.dump(
             config, f, encoding='utf-8', allow_unicode=True, sort_keys=False)

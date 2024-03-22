@@ -91,6 +91,8 @@ def _install_homebrew():
 
 
 def _ubuntu_specific():
+    if 'ubuntu' not in platform.uname().version.lower():
+        return
     from shutil import which
     xontrib load apt_tabcomplete
     execs = [
@@ -112,13 +114,23 @@ def _ubuntu_specific():
         apt install -y @(to_install)
     if 'local-gen' in to_install:
         locale-gen "en_US.UTF-8"
-
-
-if 'ubuntu' in platform.uname().version.lower():
-    try:
-        _ubuntu_specific()
-        _install_homebrew()
-    except KeyboardInterrupt:
-        print('Interrupted')
+    _install_homebrew()
     aliases.register('share-folder')(_share_folder)
-del _ubuntu_specific, _install_homebrew, _share_folder
+
+
+def _centos_specific():
+    $FOREIGN_ALIASES_SUPPRESS_SKIP_MESSAGE = True
+    if not p'/etc/centos-release'.exists():
+        return
+    module = aliases.pop('module', None)
+    @aliases.register('module')
+    def _module(args):
+        source-bash --suppress-skip-message module @(args)
+
+
+try:
+    _ubuntu_specific()
+    _centos_specific()
+except KeyboardInterrupt:
+    print('Interrupted')
+del _ubuntu_specific, _install_homebrew, _share_folder, _centos_specific
