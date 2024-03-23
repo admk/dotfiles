@@ -196,11 +196,8 @@ class KXH:
 
     def _load_rc(self, rc):
         rc = rc or os.path.join(self.config_home, 'kxh.toml')
-        if rc is not None:
-            if not os.path.exists(rc):
-                print(f'kxh: {rc!r} does not exist.', file=sys.stderr)
-                exit(1)
-            with open(rc, 'rb') as f:
+        if os.path.exists(rc):
+            with open(rc, 'rb', encoding='utf-8') as f:
                 config = tomlkit.load(f).unwrap()
         else:
             config = {}
