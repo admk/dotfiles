@@ -76,7 +76,7 @@ format = 'on [$symbol($output )]($style)'
 style = 'bold green'
 
 [custom.wandb]
-command = "cat ./wandb/settings | grep mode | cut -d ' ' -f 3"
+command = "result=$(cat ./wandb/settings | grep mode | cut -d ' ' -f 3); [[ -n $result ]] && echo $result || echo online"
 symbol = ' '
 shell = 'bash'
 when = '[ -f ./wandb/settings ]'
