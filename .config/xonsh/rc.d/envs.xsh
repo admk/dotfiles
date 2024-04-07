@@ -29,6 +29,8 @@ if 'TMUX' in ${...}:
     $TERM="xterm-256color"
 
 # $GPG_TTY = $(tty)
+if 'KXH_OLD_HOME' in ${...}:
+    mkdir -p $KXH_OLD_HOME/.ssh/control_socket
 
 $PYDEVD_DISABLE_FILE_VALIDATION = 1
 

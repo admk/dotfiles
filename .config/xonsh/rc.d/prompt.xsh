@@ -28,11 +28,13 @@ def _starship_main():
             print(f'kxh: starship: using {file!r}')
         xontrib load prompt_starship
 
+    # FIXME this occasionally breaks starship config file
     if 'SSH_CONNECTION' in ${...}:
-        # enable line breaks in starship prompt when using SSH
-        # as the prompt could be very long
-        starship config line_break.disabled false
-        starship config add_newline true
+        if pf'{file}'.exists():
+            # enable line breaks in starship prompt when using SSH
+            # as the prompt could be very long
+            starship config line_break.disabled false
+            starship config add_newline true
     else:
         # omit initial newline on shell startup
         # this config exists in starship.toml:

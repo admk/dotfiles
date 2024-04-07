@@ -24,7 +24,7 @@
     autocrlf = input
     pager = colordiff | less --tabs=4 -RFX
     untrackedcache = true
-    fsmonitor = true
+    fsmonitor = false
 [color]
     ui = auto
     diff = true
@@ -80,3 +80,5 @@
     enabled = true
 [column]
 	ui = auto
+[credential]
+    helper = store

@@ -74,20 +74,26 @@ def _install_homebrew():
     if p'/home/linuxbrew/.linuxbrew/bin/brew'.exists():
         return
     print('Installing Homebrew...')
-    url = 'https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh'
+    mirror = 'https://mirrors.tuna.tsinghua.edu.cn'
+    git_url = f'{mirror}/git/homebrew'
+    bottle_url = f'{mirror}/homebrew-bottles'
     proxy = ${...}.get('PROXY', '')
+    apt-get install -y build-essential procps curl file git
+    git clone --depth=1 @(f'{git_url}/install.git') .brew-install
     with ${...}.swap(
-        http_proxy=proxy,
-        https_proxy=proxy,
-        all_proxy=proxy,
+        HOMEBREW_INSTALL_FROM_API=1,
+        HOMEBREW_API_DOMAIN=f'{bottle_url}/api',
+        HOMEBREW_BOTTLE_DOMAIN=bottle_url,
+        HOMEBREW_BREW_GIT_REMOTE=f'{git_url}/brew.git',
+        HOMEBREW_CORE_GIT_REMOTE=f'{git_url}/homebrew-core.git',
+        NONINTERACTIVE=1,
     ):
-        apt-get install -y build-essential procps curl file git
-        curl -fsL @(url) -o .homebrew_install.sh
-        execx('/bin/bash .homebrew_install.sh')
-        rm .homebrew_install.sh
-        xontrib reload homebrew
-        pkgs = ['gcc', 'tmux', 'btop', 'atuin']
-        brew install @(pkgs)
+        execx('/bin/bash .brew-install/install.sh')
+    rm -rf .brew-install
+    xpip install xontrib-homebrew
+    xontrib reload homebrew
+    pkgs = ['gcc', 'tmux', 'btop', 'atuin']
+    brew install @(pkgs)
 
 
 def _ubuntu_specific():
@@ -99,9 +105,13 @@ def _ubuntu_specific():
         'autojump',
         'colordiff',
         'curl',
+        'htop',
         'less',
+        'lsof',
         'xsel',
+        'sudo',
         ('locale-gen', 'locales'),
+        ('nc', 'netcat'),
         ('nvim', 'neovim'),
     ]
     to_install = []
@@ -110,10 +120,11 @@ def _ubuntu_specific():
         if not which(e):
             to_install.append(i)
     if $USER == 'root' and to_install:
+        print(f'Installing packages: {", ".join(to_install)}')
         apt update
         apt install -y @(to_install)
-    if 'local-gen' in to_install:
-        locale-gen "en_US.UTF-8"
+        if 'locales' in to_install:
+            locale-gen "en_US.UTF-8"
     _install_homebrew()
     aliases.register('share-folder')(_share_folder)
 

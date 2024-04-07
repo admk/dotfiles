@@ -129,15 +129,16 @@ def _pydb(args, stdin=None):
             ask = f'Process(es) {pids} are using port {port}. Kill? [yN]'
             if input(ask) == 'y':
                 for p in pids:
-                    execx(f'kill -- -{p}')
+                    execx(f'kill -- {p}')
             else:
                 print('Aborting')
                 return
     print('Waiting for client to attach to 5678...')
-    if stdin is not None:
-        echo @(stdin) | python -m debugpy --listen 5678 --wait-for-client @(args)
-    else:
-        python -m debugpy --listen 5678 --wait-for-client @(args)
+    with ${...}.swap(WANDB_MODE='disabled'):
+        if stdin is not None:
+            echo @(stdin) | python -m debugpy --listen 5678 --wait-for-client @(args)
+        else:
+            python -m debugpy --listen 5678 --wait-for-client @(args)
 
 
 @register_env_alias('hfoff', setmode='toggle')
@@ -162,3 +163,23 @@ ${...}.setdefault('PROXY', '127.0.0.1:7890')
 _BASH_ENV = lambda args: (args, {'SHELL': '/bin/bash'})
 register_env_alias('ssh', cmd='ssh')(_BASH_ENV)
 register_env_alias('sshuttle', cmd='sshuttle')(_BASH_ENV)
+
+
+@aliases.register('ssh-exit-all')
+def ssh_exit_all():
+    home = ${...}.get('KXH_OLD_HOME', $HOME)
+    socket_dir = pf'{home}/.ssh/control_socket'
+    sockets = os.listdir(socket_dir)
+    if not sockets:
+        print('No sockets found.')
+        return
+    print(f'Found {len(sockets)} sockets:')
+    for p in sockets:
+        print(f'  {p}')
+    if input(f'Close all sockets? [yN] ') != 'y':
+        print('Abort.')
+        return
+    for p in sockets:
+        p = socket_dir / p
+        print(f'Closing {p}...')
+        execx(f'ssh -O exit -o ControlPath="{p}" bogus')

@@ -197,7 +197,7 @@ class KXH:
     def _load_rc(self, rc):
         rc = rc or os.path.join(self.config_home, 'kxh.toml')
         if os.path.exists(rc):
-            with open(rc, 'rb', encoding='utf-8') as f:
+            with open(rc, 'rb') as f:
                 config = tomlkit.load(f).unwrap()
         else:
             config = {}
@@ -346,6 +346,12 @@ class KXH:
             self._run(
                 ['git', 'clone', url, home],
                 f'Failed to clone {url!r} to {home!r}.')
+        git_repo = os.path.join(home, '.git')
+        if not os.path.exists(git_repo):
+            print(
+                'Error: kxh recursively is not yet supported.',
+                file=sys.stderr)
+            exit(1)
         if self.config['kxh']['force_reinstall']:
             dest = self.config['ssh']['destination']
             ask = f'Force reinstall .{name} to {dest!r}? [y/N] '
@@ -360,7 +366,7 @@ class KXH:
         rsync_cmd = [
             f"SHELL={shutil.which('bash')}",
             "rsync --archive --compress --human-readable",
-            "--update --partial --progress --checksum",
+            "--update --partial --progress --checksum --copy-links",
             f"--rsh {' '.join(self.ssh_cmd)!r}",
             f"--files-from {file_list}",
             f"\'{home}/\' {dest}:.{name}"

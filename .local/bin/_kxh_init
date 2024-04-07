@@ -75,9 +75,9 @@ if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
         echo 'Unsupported ARCH $ARCH' >$ERR
         exec $KXH_FALLBACK_SHELL "$@"
     fi
-    CONDA_URL=$CONDA_SRC/Miniconda3-latest-$OS-$ARCH.sh
+    CONDA_URL=$CONDA_SRC/Miniconda3-py311_24.1.2-0-$OS-$ARCH.sh
     echo "Downloading miniconda3 from $CONDA_URL to $CONDA_INSTALLER..."
-    curl -L $CONDA_URL -o $CONDA_INSTALLER 1>$OUT 2>$ERR
+    curl --progress-bar -L $CONDA_URL -o $CONDA_INSTALLER 1>$OUT 2>$ERR
     echo "Installing miniconda3 to $KXH_CONDA_PREFIX..."
     sh $CONDA_INSTALLER -u -b -p $KXH_CONDA_PREFIX 1>$OUT 2>$ERR
     if [ -f $CONDA_INSTALLER ]; then
