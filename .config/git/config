@@ -67,9 +67,9 @@
     rebase = false
 [fetch]
     writeCommitGraph = true
-[url "https://github.com/"]
+[url "git@github.com:"]
+    insteadOf = https://github.com/
     insteadOf = git://github.com/
-    insteadOf = git@github.com:
     insteadOf = gh:
     insteadOf = github:
 [gpg]
