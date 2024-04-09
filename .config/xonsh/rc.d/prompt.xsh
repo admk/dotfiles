@@ -12,21 +12,16 @@ def _transform_bangbang(cmd):
 _preprompt_linebreak = False
 
 def _starship_main():
-    import platform
+    file = f'{$KXH_CONDA_PREFIX}/bin/starship'
+    if not pf'{file}'.exists():
+        print(f'kxh: starship: {file!r} not found, installing...')
+        @(f'{$KXH_CONDA_PREFIX}/bin/conda') install -y -c conda-forge starship
 
-    if platform.system() == "Darwin":
-        file = _which('starship')
-    else:
-        arch = 'x86_64-unknown-linux-musl'
-        home = ${...}.get('KXH_HOME', $HOME)
-        file = f'{home}/.local/bin/starship-{arch}'
-
-    if pf'{file}'.exists():
-        $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
-        aliases['starship'] = file
-        if ${...}.get('KXH_VERBOSE') == '1':
-            print(f'kxh: starship: using {file!r}')
-        xontrib load prompt_starship
+    $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
+    aliases['starship'] = file
+    if ${...}.get('KXH_VERBOSE') == '1':
+        print(f'kxh: starship: using {file!r}')
+    xontrib load prompt_starship
 
     # FIXME this occasionally breaks starship config file
     if 'SSH_CONNECTION' in ${...}:

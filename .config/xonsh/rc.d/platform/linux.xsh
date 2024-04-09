@@ -125,7 +125,6 @@ def _install_homebrew():
         'btop',
         'atuin',
         'carapace',
-        'starship',
     ]
     to_install = []
     for pkg in pkgs:

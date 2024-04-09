@@ -83,6 +83,8 @@ if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
     if [ -f $CONDA_INSTALLER ]; then
         rm $CONDA_INSTALLER
     fi
+    echo "Installing starship..."
+    $KXH_CONDA_PREFIX/bin/conda install -y -c conda-forge starship 1>$OUT 2>$ERR
 fi
 
 # xonsh
