@@ -32,6 +32,8 @@ if 'TMUX' in ${...}:
 if 'KXH_OLD_HOME' in ${...}:
     mkdir -p $KXH_OLD_HOME/.ssh/control_socket
 
+$PIP_CONFIG_FILE = f'{$XDG_CONFIG_HOME}/pip/pip.conf'
+
 $PYDEVD_DISABLE_FILE_VALIDATION = 1
 
 try:

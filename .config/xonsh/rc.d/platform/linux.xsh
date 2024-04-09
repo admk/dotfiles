@@ -133,9 +133,9 @@ def _install_homebrew():
     if not to_install:
         return
     print(f'Installing homebrew packages: {", ".join(to_install)}.')
+    use_proxy = False
     if 'carapace' in to_install:
         use_proxy = True
-        brew tap rsteube/homebrew-tap
     if use_proxy:
         print(f'Using proxy {$PROXY!r} for GitHub.')
         context = ${...}.swap(
@@ -147,6 +147,8 @@ def _install_homebrew():
         from contextlib import nullcontext
         context = nullcontext()
     with context:
+        if 'carapace' in to_install:
+            brew tap rsteube/homebrew-tap
         brew install @(to_install)
 
 
