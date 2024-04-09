@@ -381,6 +381,7 @@ class KXH:
         mode = self.config['kxh']['mode']
         verbose = self.config['kxh']['verbose']
         debug = self.config['kxh']['debug']
+        fast = self.config['kxh']['fast']
         dest = self.config['ssh']['destination']
         port = self.config['ssh'].get('p')
         host = f'{dest}:{port}' if port else dest
@@ -390,6 +391,7 @@ class KXH:
             f'KXH_MODE={mode}',
             f'KXH_VERBOSE={int(verbose)}',
             f'KXH_DEBUG={int(debug)}',
+            f'KXH_FAST={int(fast)}',
         ]
         init_script = f"env {' '.join(prefix)} "
         command = f'.{name}/.local/bin/_kxh_init'

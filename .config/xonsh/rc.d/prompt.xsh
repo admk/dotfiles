@@ -15,11 +15,11 @@ def _starship_main():
     import platform
 
     if platform.system() == "Darwin":
-        arch = 'aarch64-apple-darwin'
+        file = _which('starship')
     else:
         arch = 'x86_64-unknown-linux-musl'
-    home = ${...}.get('KXH_HOME', $HOME)
-    file = f'{home}/.local/bin/starship-{arch}'
+        home = ${...}.get('KXH_HOME', $HOME)
+        file = f'{home}/.local/bin/starship-{arch}'
 
     if pf'{file}'.exists():
         $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
