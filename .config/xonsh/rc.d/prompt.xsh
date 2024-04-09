@@ -15,7 +15,9 @@ def _starship_main():
     file = f'{$KXH_CONDA_PREFIX}/bin/starship'
     if not pf'{file}'.exists():
         print(f'kxh: starship: {file!r} not found, installing...')
-        @(f'{$KXH_CONDA_PREFIX}/bin/conda') install -y -c conda-forge starship
+        quite_flag = '-q' if ${...}.get('KXH_VERBOSE') != '1' else ''
+        @(f'{$KXH_CONDA_PREFIX}/bin/conda') install \
+            @(quite_flag) -y -c conda-forge starship
 
     $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
     aliases['starship'] = file
