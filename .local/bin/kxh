@@ -56,6 +56,31 @@ def add_border(title, hl_title, src, hl_src):
     return '\n'.join(lines)
 
 
+class colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    VERBOSE = '\033[0;37m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    ENDC = '\033[0m'
+
+
+def print_verbose(message, *args, **kwargs):
+    print(f'{colors.VERBOSE}{message}{colors.ENDC}', *args, **kwargs)
+
+
+def print_warning(message, *args, **kwargs):
+    print(f'{colors.WARNING}{message}{colors.ENDC}', *args, **kwargs)
+
+
+def print_error(message, *args, **kwargs):
+    print(f'{colors.FAIL}{message}{colors.ENDC}', *args, **kwargs)
+
+
 class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
@@ -174,7 +199,7 @@ Options:
 
     def error(self, message):
         self.print_usage()
-        print(message.replace('--kxh-', '+'))
+        print_error(message.replace('--kxh-', '+'))
         exit(1)
 
 
@@ -221,7 +246,7 @@ class KXH:
         self.ssh_cmd = parser.unparse_ssh_args(config['ssh'], dest=False)
         name = config['kxh']['name']
         if ' ' in name:
-            print('KXH name cannot contain spaces.', file=sys.stderr)
+            print_error('KXH name cannot contain spaces.', file=sys.stderr)
             exit(1)
         home = os.environ.get('KXH_HOME', None)
         if not home:
@@ -237,7 +262,7 @@ class KXH:
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
         dry = self.config['kxh']['dry']
         if verbose or dry:
-            print(f"kxh.run: {' '.join(command)}")
+            print_verbose(f"kxh.run: {' '.join(command)}")
             err = sys.stderr
         else:
             err = subprocess.DEVNULL
@@ -247,20 +272,20 @@ class KXH:
             output = subprocess.check_output(command, stderr=err, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
-                print(f'Error: {error_message}', file=sys.stderr)
+                print_error(f'==> kxh: Error: {error_message}', file=sys.stderr)
                 exit(1)
             else:
                 raise e
         output = output.decode('utf-8')
         if verbose:
-            print(output)
+            print_verbose(output)
         return output
 
     def _run_shell(self, command, error_message=None, verbose=None, **kwargs):
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
         dry = self.config['kxh']['dry']
         if verbose or dry:
-            print(f'kxh.run_shell: {command}')
+            print_verbose(f'==> kxh: run_shell: {command}')
         else:
             kwargs.setdefault('stdout', subprocess.DEVNULL)
         if dry:
@@ -269,7 +294,7 @@ class KXH:
             subprocess.run(command, shell=True, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
-                print(f'Error: {error_message}', file=sys.stderr)
+                print_error(f'==> kxh: Error: {error_message}', file=sys.stderr)
                 exit(1)
             else:
                 raise e
@@ -330,7 +355,7 @@ class KXH:
             os.path.relpath(f, self.config['kxh']['home'])
             for f in custom_files]
         if self.config['kxh']['verbose']:
-            print(f'Custom files: {custom_files}')
+            print_verbose(f'Custom files: {custom_files}')
         files.append(os.path.relpath(sync_file, home))
         file_list += '\n'.join(files) + '\n'
         f.write(file_list)
@@ -348,16 +373,17 @@ class KXH:
                 f'Failed to clone {url!r} to {home!r}.')
         git_repo = os.path.join(home, '.git')
         if not os.path.exists(git_repo):
-            print(
-                'Error: kxh recursively is not yet supported.',
+            print_error(
+                '==> kxh: Error: kxh recursively is not yet supported.',
                 file=sys.stderr)
             exit(1)
         if self.config['kxh']['force_reinstall']:
             dest = self.config['ssh']['destination']
-            ask = f'Force reinstall .{name} to {dest!r}? [y/N] '
+            ask = f'Force reinstall .{name} to {dest!r}?'
+            ask = f'{colors.WARNING}{colors.BOLD}{ask}{colors.ENDC} [y/N] '
             if input(ask) != 'y':
                 exit(0)
-            print(f'Reinstalling .{name}...')
+            print_warning(f'Reinstalling .{name}...')
             rm_cmd = f'rm -rf .{name} .local/bin/xh'
             self._run(
                 self.ssh_cmd + [dest, rm_cmd],
@@ -407,8 +433,13 @@ class KXH:
             stdout=sys.stdout, stderr=sys.stderr)
 
     def main(self):
+        verbose = self.config['kxh']['verbose']
         if not self.config['kxh']['fast']:
+            if verbose:
+                print_verbose('==> kxh: client: Syncing files...')
             self._sync_files()
+        if verbose:
+            print_verbose('==> kxh: client: Connecting to remote host...')
         self._ssh()
 
 

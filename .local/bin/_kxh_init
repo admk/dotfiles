@@ -1,5 +1,18 @@
 #!/bin/bash -l
 
+DARKGRAY='\033[1;30m'
+LIGHTGRAY='\033[0;37m'
+RED='\033[0;31m'
+LIGHTRED='\033[1;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+LIGHTPURPLE='\033[1;35m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
+SET='\033[0m'
+
 # inputs
 export KXH_NAME=${KXH_NAME:-kxh}
 export KXH_OLD_HOME=${KXH_OLD_HOME:-$HOME}
@@ -15,7 +28,7 @@ elif [[ $KXH_MODE == 'hermetic' ]]; then
     export XDG_HOME=$KXH_HOME
     export HOME=$KXH_HOME
 else
-    echo 'Unsupported KXH_MODE $KXH_MODE' >&2
+    echo -e "${RED}Unsupported KXH_MODE $KXH_MODE${SET}" >&2
     exit 1
 fi
 export KXH_INIT=$KXH_HOME/.local/bin/_kxh_init
@@ -29,23 +42,23 @@ export XDG_CACHE_HOME="$XDG_HOME/.cache"
 # export PATH="$KXH_HOME/.local/bin:$KXH_CONDA_PREFIX/bin:$PATH"
 if [[ $KXH_VERBOSE == '1' ]]; then
     echo
-    echo ">>> kxh init >>>"
-    echo "\$KXH_HOST=$KXH_HOST"
-    echo "\$HOME=$HOME"
-    echo "\$KXH_OLD_HOME=$KXH_OLD_HOME"
-    echo "\$KXH_NAME=$KXH_NAME"
-    echo "\$KXH_HOME=$KXH_HOME"
-    echo "\$KXH_INIT=$KXH_INIT"
-    echo "\$KXH_CONDA_PREFIX=$KXH_CONDA_PREFIX"
-    echo "\$KXH_PYTHON=$KXH_PYTHON"
-    echo "\$KXH_SHELL=$KXH_SHELL"
-    echo "\$KXH_FALLBACK_SHELL=$KXH_FALLBACK_SHELL"
-    echo "\$XDG_HOME=$XDG_HOME"
-    echo "\$XDG_CONFIG_HOME=$XDG_CONFIG_HOME"
-    echo "\$XDG_DATA_HOME=$XDG_DATA_HOME"
-    echo "\$XDG_CACHE_HOME=$XDG_CACHE_HOME"
-    echo "\$PATH=$PATH"
-    echo "args: $@"
+    echo -e "${LIGHTGRAY}==> kxh: init${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_HOST=$KXH_HOST${SET}"
+    echo -e "${LIGHTGRAY}\$HOME=$HOME${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_OLD_HOME=$KXH_OLD_HOME${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_NAME=$KXH_NAME${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_HOME=$KXH_HOME${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_INIT=$KXH_INIT${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_CONDA_PREFIX=$KXH_CONDA_PREFIX${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_PYTHON=$KXH_PYTHON${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_SHELL=$KXH_SHELL${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_FALLBACK_SHELL=$KXH_FALLBACK_SHELL${SET}"
+    echo -e "${LIGHTGRAY}\$XDG_HOME=$XDG_HOME${SET}"
+    echo -e "${LIGHTGRAY}\$XDG_CONFIG_HOME=$XDG_CONFIG_HOME${SET}"
+    echo -e "${LIGHTGRAY}\$XDG_DATA_HOME=$XDG_DATA_HOME${SET}"
+    echo -e "${LIGHTGRAY}\$XDG_CACHE_HOME=$XDG_CACHE_HOME${SET}"
+    echo -e "${LIGHTGRAY}\$PATH=$PATH${SET}"
+    echo -e "${LIGHTGRAY}args: $@${SET}"
     OUT=/dev/stdout
     ERR=/dev/stderr
 else
@@ -72,18 +85,18 @@ if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
     elif [[ $ARCH == 'arm64' ]]; then
         ARCH='aarch64'
     else
-        echo 'Unsupported ARCH $ARCH' >$ERR
+        echo -e "${RED}==> kxh: Unsupported ARCH $ARCH${SET}" >$ERR
         exec $KXH_FALLBACK_SHELL "$@"
     fi
     CONDA_URL=$CONDA_SRC/Miniconda3-py311_24.1.2-0-$OS-$ARCH.sh
-    echo "Downloading miniconda3 from $CONDA_URL to $CONDA_INSTALLER..."
+    echo -e "${BLUE}==> kxh: Downloading miniconda3 from $CONDA_URL to $CONDA_INSTALLER...${SET}"
     curl --progress-bar -L $CONDA_URL -o $CONDA_INSTALLER 1>$OUT 2>$ERR
-    echo "Installing miniconda3 to $KXH_CONDA_PREFIX..."
+    echo -e "${BLUE}==> kxh: Installing miniconda3 to $KXH_CONDA_PREFIX...${SET}"
     sh $CONDA_INSTALLER -u -b -p $KXH_CONDA_PREFIX 1>$OUT 2>$ERR
     if [ -f $CONDA_INSTALLER ]; then
         rm $CONDA_INSTALLER
     fi
-    echo "Installing starship..."
+    echo -e "${BLUE}Installing starship...${SET}"
     $KXH_CONDA_PREFIX/bin/conda install -y -c conda-forge starship 1>$OUT 2>$ERR
 fi
 
@@ -111,24 +124,24 @@ if [[ -f $sync_list && ! -z $SSH_CONNECTION ]]; then
     done
     if [[ ${#delete_list[@]} > 0 ]]; then
         if [[ $KXH_VERBOSE == '1' ]]; then
-            echo "Removing $delete_list..."
+            echo -e "${LIGHTGRAY}==> kxh: Removing $delete_list...${SET}"
         fi
         rm -f ${delete_list[@]}
     fi
 fi
 if [[ $KXH_VERBOSE == '1' ]]; then
-    echo "\$KXH_PYTHON=$KXH_PYTHON"
+    echo -e "${LIGHTGRAY}\$KXH_PYTHON=$KXH_PYTHON${SET}"
     PYTHONNOUSERSITE=1 $KXH_PYTHON -m site
-    echo "<<< kxh init <<<"
+    echo -e "${LIGHTGRAY}==> kxh: init end${SET}"
     echo
 fi
 if [ ! -f $KXH_SHELL ]; then
-    echo "Installing xonsh..."
+    echo -e "${BLUE}==> kxh: Installing xonsh...${SET}"
     PYTHONNOUSERSITE=1 $KXH_PYTHON -m pip install \
         -r $XDG_CONFIG_HOME/xonsh/requirements.txt 1>$OUT 2>$ERR
 fi
 if [ ! -f $KXH_OLD_HOME/.local/bin/xh ]; then
-    echo "Creating xh in $KXH_OLD_HOME/.local/bin..."
+    echo -e "${YELLOW}==> kxh: Creating xh in $KXH_OLD_HOME/.local/bin...${SET}"
     mkdir -p $KXH_OLD_HOME/.local/bin
     cat >$KXH_OLD_HOME/.local/bin/xh <<EOF
 #!/bin/bash --norc
@@ -144,7 +157,7 @@ fi
 #     exec $SHELL "$@"
 # fi
 if [ ! -f $KXH_SHELL ]; then
-    echo 'Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.' >$ERR
+    echo -e "${RED}Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
     exec $KXH_FALLBACK_SHELL "$@"
 else
     SHELL=$KXH_SHELL exec $KXH_SHELL "$@"
