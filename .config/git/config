@@ -72,8 +72,6 @@
     insteadOf = git://github.com/
     insteadOf = gh:
     insteadOf = github:
-[gpg]
-    program = gpg
 [init]
     defaultBranch = main
 [rerere]
@@ -82,3 +80,7 @@
 	ui = auto
 [credential]
     helper = cache --timeout=3600
+[gpg]
+	format = ssh
+[commit]
+    gpgSign = true
