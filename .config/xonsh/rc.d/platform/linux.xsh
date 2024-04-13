@@ -124,17 +124,18 @@ def _install_homebrew():
         'tmux',
         'btop',
         'atuin',
-        'carapace',
+        ('carapace', 'rsteube/tap/carapace'),
     ]
     to_install = []
     for pkg in pkgs:
+        pkg, src = pkg if isinstance(pkg, tuple) else (pkg, pkg)
         if not pf'/home/linuxbrew/.linuxbrew/bin/{pkg}'.exists():
-            to_install.append(pkg)
+            to_install.append(src)
     if not to_install:
         return
     print(f'Installing homebrew packages: {", ".join(to_install)}.')
     use_proxy = False
-    if 'carapace' in to_install:
+    if any('/tap/' in s for s in to_install):
         use_proxy = True
     if use_proxy:
         print(f'Using proxy {$PROXY!r} for GitHub.')
@@ -147,8 +148,6 @@ def _install_homebrew():
         from contextlib import nullcontext
         context = nullcontext()
     with context:
-        if 'carapace' in to_install:
-            brew tap rsteube/homebrew-tap
         brew install @(to_install)
 
 

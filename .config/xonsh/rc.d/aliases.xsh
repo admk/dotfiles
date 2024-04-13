@@ -24,6 +24,7 @@ aliases |= {
     'gpsf': 'git push --force-with-lease',
     'gpl': 'git pull',
     'gc': 'git commit',
+    'gca': 'git commit --amend --no-edit',
     'gs': 'git status',
     'ga': 'git add',
     'gd': 'git diff',
@@ -136,7 +137,8 @@ def _pydb(args, stdin=None):
     print('Waiting for client to attach to 5678...')
     with ${...}.swap(WANDB_MODE='disabled'):
         if stdin is not None:
-            echo @(stdin) | python -m debugpy --listen 5678 --wait-for-client @(args)
+            echo @(stdin) | \
+                python -m debugpy --listen 5678 --wait-for-client @(args)
         else:
             python -m debugpy --listen 5678 --wait-for-client @(args)
 

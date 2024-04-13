@@ -74,6 +74,17 @@ def write_config(path, default_config, subscriptions):
                 'url': 'http://www.gstatic.com/generate_204',
                 'interval': 7200,
             },
+            {
+                'name': 'Select',
+                'type': 'select',
+                'proxies': [p['name'] for p in subscriptions],
+            },
+            {
+                'name': 'Cheap',
+                'type': 'select',
+                'proxies': [
+                    p['name'] for p in subscriptions if '0.1X' in p['name']],
+            }
         ]
     with open(path, 'w', encoding='utf-8') as f:
         yaml.dump(
