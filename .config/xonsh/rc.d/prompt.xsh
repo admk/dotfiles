@@ -19,36 +19,34 @@ def _starship_main():
         @(f'{$KXH_CONDA_PREFIX}/bin/conda') install \
             @(quite_flag) -y -c conda-forge starship
 
-    $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
     aliases['starship'] = file
     if ${...}.get('KXH_VERBOSE') == '1':
         print(f'kxh: starship: using {file!r}')
+    # $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
+    $XONTRIB_PROMPT_STARSHIP_LEFT_CONFIG = f"{$XDG_CONFIG_HOME}/starship_left.toml"
+    $XONTRIB_PROMPT_STARSHIP_RIGHT_CONFIG = f"{$XDG_CONFIG_HOME}/starship_right.toml"
     xontrib load prompt_starship
 
-    # FIXME this occasionally breaks starship config file
     if 'SSH_CONNECTION' in ${...}:
-        if pf'{file}'.exists():
-            # enable line breaks in starship prompt when using SSH
-            # as the prompt could be very long
-            starship config line_break.disabled false
-            starship config add_newline true
-    else:
-        # omit initial newline on shell startup
-        # this config exists in starship.toml:
-        # starship config add_newline false
-        # and print a newline after every command
-        @events.on_pre_prompt
-        def on_pre_prompt():
-            global _preprompt_linebreak
-            if _preprompt_linebreak:
-                print()
-            else:
-                _preprompt_linebreak = True
+        global _preprompt_linebreak
+        _preprompt_linebreak = True
 
-        @events.on_post_spec_run_clear
-        def print_while_ls(spec=None, **kwargs):
-            global _preprompt_linebreak
-            _preprompt_linebreak = False
+    # omit initial newline on shell startup
+    # this config exists in starship.toml:
+    # starship config add_newline false
+    # and print a newline after every command
+    @events.on_pre_prompt
+    def on_pre_prompt():
+        global _preprompt_linebreak
+        if _preprompt_linebreak:
+            print()
+        else:
+            _preprompt_linebreak = True
+
+    @events.on_post_spec_run_clear
+    def print_while_ls(spec=None, **kwargs):
+        global _preprompt_linebreak
+        _preprompt_linebreak = False
 
 
 _starship_main()
