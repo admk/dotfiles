@@ -84,8 +84,9 @@ def print_error(message, *args, **kwargs):
 class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
-        [+d | ++dry] [+v | ++verbose] [+D | ++debug] [+F | ++force-reinstall]
-        [+f | ++fast] [(+N | ++name) NAME] [(+r | ++rc) RC]
+        [+d | ++dry] [+v | ++verbose] [+D | ++debug]
+        [+F | ++force-reinstall] [+S | ++sync-only] [+f | ++fast]
+        [(+N | ++name) NAME] [(+r | ++rc) RC]
         [(+h | ++hermetic) | (+s | ++semi-hermetic) | (+n | ++non-hermetic)]
         [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
         [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
@@ -100,6 +101,7 @@ Options:
     +d, ++dry: dry run.
     +D, ++debug: debug mode.
     +F, ++force-reinstall: force reinstall on remote host.
+    +S, ++sync-only: sync files only.
     +f, ++fast: skip file sync.
     (+r | ++rc) RC: use custom RC file.
     (+N | ++name) NAME: use custom name instead of "kxh".
@@ -116,6 +118,7 @@ Options:
             ('v', 'verbose'): store_true,
             ('D', 'debug'): store_true,
             ('F', 'force-reinstall'): store_true,
+            ('S', 'sync-only'): store_true,
             ('f', 'fast'): store_true,
             ('h', 'hermetic'): store_true,
             ('s', 'semi-hermetic'): store_true,
@@ -438,6 +441,10 @@ class KXH:
             if verbose:
                 print_verbose('==> kxh: client: Syncing files...')
             self._sync_files()
+        if self.config['kxh']['sync_only']:
+            if verbose:
+                print_verbose('==> kxh: client: Sync done.')
+            return
         if verbose:
             print_verbose('==> kxh: client: Connecting to remote host...')
         self._ssh()
