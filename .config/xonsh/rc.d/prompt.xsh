@@ -14,14 +14,14 @@ _preprompt_linebreak = False
 def _starship_main():
     file = f'{$KXH_CONDA_PREFIX}/bin/starship'
     if not pf'{file}'.exists():
-        print(f'kxh: starship: {file!r} not found, installing...')
+        print(f'kxh ==> starship: {file!r} not found, installing...')
         quite_flag = '-q' if ${...}.get('KXH_VERBOSE') != '1' else ''
         @(f'{$KXH_CONDA_PREFIX}/bin/conda') install \
             @(quite_flag) -y -c conda-forge starship
 
     aliases['starship'] = file
     if ${...}.get('KXH_VERBOSE') == '1':
-        print(f'kxh: starship: using {file!r}')
+        print(f'kxh ==> starship: using {file!r}')
     # $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
     $XONTRIB_PROMPT_STARSHIP_LEFT_CONFIG = f"{$XDG_CONFIG_HOME}/starship_left.toml"
     $XONTRIB_PROMPT_STARSHIP_RIGHT_CONFIG = f"{$XDG_CONFIG_HOME}/starship_right.toml"

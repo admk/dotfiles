@@ -7,7 +7,7 @@ $XONSH_HISTORY_MATCH_ANYWHERE = True
 $HISTCONTROL = 'ignoredups'
 # $MOUSE_SUPPORT = True
 $XONSH_SHOW_TRACEBACK = ${...}.get('KXH_DEBUG', False)
-$XONSH_TRACEBACK_LOGFILE = f'{$XDG_CACHE_HOME}/xonsh-traceback.log'
+$XONSH_TRACEBACK_LOGFILE = f'{$XDG_CACHE_HOME}/xonsh/traceback.log'
 $MULTILINE_PROMPT = ' '
 $SUGGEST_COMMANDS = False
 $XONSH_AUTOPAIR = True
@@ -58,4 +58,4 @@ def _vscode_shell_integration():
 
 
 _vscode_shell_integration()
-del _vscode_shell_integration
+del _vscode_shell_integration, _which

@@ -275,7 +275,7 @@ class KXH:
             output = subprocess.check_output(command, stderr=err, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
-                print_error(f'==> kxh: Error: {error_message}', file=sys.stderr)
+                print_error(f'kxh ==> Error: {error_message}', file=sys.stderr)
                 exit(1)
             else:
                 raise e
@@ -288,7 +288,7 @@ class KXH:
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
         dry = self.config['kxh']['dry']
         if verbose or dry:
-            print_verbose(f'==> kxh: run_shell: {command}')
+            print_verbose(f'kxh ==> run_shell: {command}')
         else:
             kwargs.setdefault('stdout', subprocess.DEVNULL)
         if dry:
@@ -297,7 +297,7 @@ class KXH:
             subprocess.run(command, shell=True, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
-                print_error(f'==> kxh: Error: {error_message}', file=sys.stderr)
+                print_error(f'kxh ==> Error: {error_message}', file=sys.stderr)
                 exit(1)
             else:
                 raise e
@@ -377,7 +377,7 @@ class KXH:
         git_repo = os.path.join(home, '.git')
         if not os.path.exists(git_repo):
             print_error(
-                '==> kxh: Error: kxh recursively is not yet supported.',
+                'kxh ==> Error: kxh recursively is not yet supported.',
                 file=sys.stderr)
             exit(1)
         if self.config['kxh']['force_reinstall']:
@@ -439,14 +439,14 @@ class KXH:
         verbose = self.config['kxh']['verbose']
         if not self.config['kxh']['fast']:
             if verbose:
-                print_verbose('==> kxh: client: Syncing files...')
+                print_verbose('kxh ==> client: Syncing files...')
             self._sync_files()
         if self.config['kxh']['sync_only']:
             if verbose:
-                print_verbose('==> kxh: client: Sync done.')
+                print_verbose('kxh ==> client: Sync done.')
             return
         if verbose:
-            print_verbose('==> kxh: client: Connecting to remote host...')
+            print_verbose('kxh ==> client: Connecting to remote host...')
         self._ssh()
 
 

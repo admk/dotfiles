@@ -5,7 +5,7 @@ import shutil
 _carapace_exec = shutil.which('carapace')
 if _carapace_exec:
     if ${...}.get('KXH_VERBOSE') == '1':
-        print(f'kxh: carapace: using {_carapace_exec!r}')
+        print(f'kxh ==> carapace: using {_carapace_exec!r}')
     $COMPLETIONS_CONFIRM = True
     if $(uname).strip() != 'Darwin':
         exec($(@(_carapace_exec) _carapace xonsh))
