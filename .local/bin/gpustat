@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+exec $KXH_CONDA_PREFIX/bin/gpustat "$@"
