@@ -18,7 +18,7 @@ if [ -z "$user_exists" ]; then
     password=$(openssl rand -base64 21)
     ssh "$server" "\
         adduser --disabled-password --gecos '' $user && \
-        {echo '$user:$password' | chpasswd} && \
+        {echo '$user:$password' | chpasswd ;} && \
         usermod -a -G shared $user"
     echo "User '$user' created on '$server' with password $password."
 else

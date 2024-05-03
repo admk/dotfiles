@@ -183,5 +183,5 @@ def ssh_exit_all():
         return
     for p in sockets:
         p = socket_dir / p
-        print(f'Closing {p}...')
-        execx(f'ssh -O exit -o ControlPath="{p}" bogus')
+        if p.exists():
+            execx(f'ssh -O exit -o ControlPath="{p}" bogus')

@@ -115,6 +115,15 @@ def user_specific(verbose):
     _verbose_source(user_rc, verbose, verbose)
 
 
+def git_config(config):
+    gitconf = str(p'$HOME/.gitconfig')
+    for k, v in config.items():
+        ev = $(git config -f @(gitconf) --get @(k)).strip()
+        if ev == v:
+            continue
+        git config -f @(gitconf) @(k) @(v)
+
+
 def main():
     if 'KXH_OLD_HOME' in ${...}:
         $PATH.insert(0, '$KXH_OLD_HOME/.local/bin')
