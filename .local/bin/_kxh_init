@@ -40,9 +40,9 @@ export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
 export XDG_CACHE_HOME="$XDG_HOME/.cache"
 # export PATH="$KXH_HOME/.local/bin:$KXH_CONDA_PREFIX/bin:$PATH"
-if [[ $KXH_VERBOSE == '1' ]]; then
+if [[ $KXH_DEBUG == '1' ]]; then
     echo
-    echo -e "${LIGHTGRAY}==> kxh: init${SET}"
+    echo -e "${LIGHTGRAY}kxh server ==> init${SET}"
     echo -e "${LIGHTGRAY}\$KXH_HOST=$KXH_HOST${SET}"
     echo -e "${LIGHTGRAY}\$HOME=$HOME${SET}"
     echo -e "${LIGHTGRAY}\$KXH_OLD_HOME=$KXH_OLD_HOME${SET}"
@@ -85,13 +85,13 @@ if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
     elif [[ $ARCH == 'arm64' ]]; then
         ARCH='aarch64'
     else
-        echo -e "${RED}==> kxh: Unsupported ARCH $ARCH${SET}" >$ERR
+        echo -e "${RED}kxh server ==> Unsupported ARCH $ARCH${SET}" >$ERR
         exec $KXH_FALLBACK_SHELL "$@"
     fi
     CONDA_URL=$CONDA_SRC/Miniconda3-py311_24.1.2-0-$OS-$ARCH.sh
-    echo -e "${BLUE}==> kxh: Downloading miniconda3 from $CONDA_URL to $CONDA_INSTALLER...${SET}"
+    echo -e "${BLUE}kxh server ==> Downloading miniconda3 from $CONDA_URL to $CONDA_INSTALLER...${SET}"
     curl --progress-bar -L $CONDA_URL -o $CONDA_INSTALLER 1>$OUT 2>$ERR
-    echo -e "${BLUE}==> kxh: Installing miniconda3 to $KXH_CONDA_PREFIX...${SET}"
+    echo -e "${BLUE}kxh server ==> Installing miniconda3 to $KXH_CONDA_PREFIX...${SET}"
     sh $CONDA_INSTALLER -u -b -p $KXH_CONDA_PREFIX 1>$OUT 2>$ERR
     if [ -f $CONDA_INSTALLER ]; then
         rm $CONDA_INSTALLER
@@ -123,25 +123,25 @@ if [[ -f $sync_list && ! -z $SSH_CONNECTION ]]; then
         done
     done
     if [[ ${#delete_list[@]} > 0 ]]; then
-        if [[ $KXH_VERBOSE == '1' ]]; then
-            echo -e "${LIGHTGRAY}==> kxh: Removing $delete_list...${SET}"
+        if [[ $KXH_DEBUG == '1' ]]; then
+            echo -e "${LIGHTGRAY}kxh server ==> Removing $delete_list...${SET}"
         fi
         rm -f ${delete_list[@]}
     fi
 fi
-if [[ $KXH_VERBOSE == '1' ]]; then
+if [[ $KXH_DEBUG == '1' ]]; then
     echo -e "${LIGHTGRAY}\$KXH_PYTHON=$KXH_PYTHON${SET}"
     PYTHONNOUSERSITE=1 $KXH_PYTHON -m site
-    echo -e "${LIGHTGRAY}==> kxh: init end${SET}"
+    echo -e "${LIGHTGRAY}kxh server ==> init end${SET}"
     echo
 fi
 if [ ! -f $KXH_SHELL ]; then
-    echo -e "${BLUE}==> kxh: Installing xonsh...${SET}"
+    echo -e "${BLUE}kxh server ==> Installing xonsh...${SET}"
     PYTHONNOUSERSITE=1 $KXH_PYTHON -m pip install \
         -r $XDG_CONFIG_HOME/xonsh/requirements.txt 1>$OUT 2>$ERR
 fi
 if [ ! -f $KXH_OLD_HOME/.local/bin/xh ]; then
-    echo -e "${YELLOW}==> kxh: Creating xh in $KXH_OLD_HOME/.local/bin...${SET}"
+    echo -e "${YELLOW}kxh server ==> Creating xh in $KXH_OLD_HOME/.local/bin...${SET}"
     mkdir -p $KXH_OLD_HOME/.local/bin
     cat >$KXH_OLD_HOME/.local/bin/xh <<EOF
 #!/bin/bash --norc

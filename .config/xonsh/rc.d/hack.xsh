@@ -4,7 +4,7 @@ def _bad_file_descriptor_hack():
     gc.disable()
 
     @events.on_postcommand
-    def _on_postcommand(cmd, rtn, out, ts):
+    def _on_postcommand(cmd, rtn, out, ts, **kwargs):
         gc.collect()
 
 
@@ -14,7 +14,7 @@ del _bad_file_descriptor_hack
 
 def _indentation_hack():
     @events.on_transform_command
-    def _on_transform_command(cmd):
+    def _on_transform_command(cmd, **kwargs):
         indent = 1000
         lines = cmd.splitlines()
         if len(lines) == 1:

@@ -2,7 +2,7 @@ from shutil import which as _which
 
 
 @events.on_transform_command
-def _transform_bangbang(cmd):
+def _transform_bangbang(cmd, **kwargs):
     import re
     cmd = cmd.replace('!!', $(history show -1).strip())
     cmd = re.sub(r'!(-?\d+)', r'$(history show \1)', cmd)
@@ -14,14 +14,14 @@ _preprompt_linebreak = False
 def _starship_main():
     file = f'{$KXH_CONDA_PREFIX}/bin/starship'
     if not pf'{file}'.exists():
-        print(f'kxh ==> starship: {file!r} not found, installing...')
+        print(f'kxh shell ==> starship: {file!r} not found, installing...')
         quite_flag = '-q' if ${...}.get('KXH_VERBOSE') != '1' else ''
         @(f'{$KXH_CONDA_PREFIX}/bin/conda') install \
             @(quite_flag) -y -c conda-forge starship
 
     aliases['starship'] = file
-    if ${...}.get('KXH_VERBOSE') == '1':
-        print(f'kxh ==> starship: using {file!r}')
+    if ${...}.get('KXH_DEBUG') == '1':
+        print(f'kxh shell ==> starship: using {file!r}')
     # $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
     $XONTRIB_PROMPT_STARSHIP_LEFT_CONFIG = f"{$XDG_CONFIG_HOME}/starship_left.toml"
     $XONTRIB_PROMPT_STARSHIP_RIGHT_CONFIG = f"{$XDG_CONFIG_HOME}/starship_right.toml"
@@ -36,7 +36,7 @@ def _starship_main():
     # starship config add_newline false
     # and print a newline after every command
     @events.on_pre_prompt
-    def on_pre_prompt():
+    def on_pre_prompt(**kwargs):
         global _preprompt_linebreak
         if _preprompt_linebreak:
             print()

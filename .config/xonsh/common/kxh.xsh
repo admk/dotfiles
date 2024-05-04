@@ -15,7 +15,7 @@ def debug(enable):
         return
     except ImportError:
         pass
-    print('kxh: debugger (debugpy, ipdb, or pdb) not found.')
+    print('kxh shell ==> debugger (debugpy, ipdb, or pdb) not found.')
 
 
 def add_border(title, hl_title, src, hl_src):
@@ -40,7 +40,7 @@ def _verbose_source(filename, verbose, verbose_src, dec_key=None):
         src_fn = f'source @({filename!r})'
         hl_src_fn = pygments.highlight(src_fn, lexer, formatter).strip('\n')
         if not verbose_src:
-            print('kxh:', hl_src_fn)
+            print('kxh shell ==>', hl_src_fn)
     if dec_key is not None:
         from cryptography.fernet import Fernet
         with open(filename, 'r', encoding='utf-8') as f:
@@ -73,7 +73,7 @@ def ssh_host_specific(verbose):
         if os.path.exists(host_rc):
             key = f'{cache_home}/kxh/key'
             if not os.path.exists(key):
-                print(f'kxh: missing key to decrypt {host_rc!r}.')
+                print(f'kxh shell ==> missing key to decrypt {host_rc!r}.')
                 return
             key = open(key, 'r', encoding='utf-8').read().strip()
             _verbose_source(host_rc, verbose, verbose, key)
@@ -81,7 +81,7 @@ def ssh_host_specific(verbose):
     host_rcs = config_host_rcs
     host = ${...}.get('KXH_HOST', '')
     if verbose:
-        print(f'kxh: host={host}')
+        print(f'kxh shell ==> host={host}')
     verbose_src = True
     for rc in os.listdir(host_rcs):
         rc_file = os.path.join(host_rcs, rc)
@@ -97,7 +97,7 @@ def platform_specific(verbose):
     uname = $(uname).lower().strip()
     platform_rc = pf'$XONSH_CONFIG_DIR/rc.d/platform/{uname}.xsh'
     if verbose:
-        print(f'kxh: platform={uname}')
+        print(f'kxh shell ==> platform={uname}')
     if not platform_rc.exists():
         return
     _verbose_source(platform_rc, verbose, False)

@@ -74,16 +74,16 @@ def write_config(path, default_config, subscriptions):
                 'url': 'http://www.gstatic.com/generate_204',
                 'interval': 7200,
             },
-            {
-                'name': 'Select',
-                'type': 'select',
-                'proxies': [p['name'] for p in subscriptions],
-            },
+            # {
+            #     'name': 'Select',
+            #     'type': 'select',
+            #     'proxies': [p['name'] for p in subscriptions],
+            # },
             {
                 'name': 'Cheap',
                 'type': 'select',
                 'proxies': [
-                    p['name'] for p in subscriptions if '0.1X' in p['name']],
+                    p['name'] for p in subscriptions if '0.5x' in p['name']],
             }
         ]
     with open(path, 'w', encoding='utf-8') as f:
@@ -99,6 +99,7 @@ def main(args):
         raise ValueError(f'Config file not found: {args.config}.') from e
     print(f'Fetching subscriptions from {args.url}')
     subscriptions = fetch_subscriptions(args.url)
+    print(f'Found {len(subscriptions)} subscriptions. Writing config...')
     with tempfile.NamedTemporaryFile('w', delete=True) as f:
         write_config(f.name, default_config, subscriptions)
         f.flush()

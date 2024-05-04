@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import copy
+import glob
 import shutil
 import argparse
 import subprocess
@@ -61,7 +62,7 @@ class colors:
     OKBLUE = '\033[94m'
     OKCYAN = '\033[96m'
     OKGREEN = '\033[92m'
-    VERBOSE = '\033[0;37m'
+    DEBUG = '\033[0;37m'
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     BOLD = '\033[1m'
@@ -70,7 +71,11 @@ class colors:
 
 
 def print_verbose(message, *args, **kwargs):
-    print(f'{colors.VERBOSE}{message}{colors.ENDC}', *args, **kwargs)
+    print(f'{colors.OKBLUE}{message}{colors.ENDC}', *args, **kwargs)
+
+
+def print_debug(message, *args, **kwargs):
+    print(f'{colors.DEBUG}{message}{colors.ENDC}', *args, **kwargs)
 
 
 def print_warning(message, *args, **kwargs):
@@ -175,6 +180,8 @@ Options:
         del kxh_args.hermetic
         del kxh_args.semi_hermetic
         del kxh_args.non_hermetic
+        if kxh_args.debug:
+            kxh_args.verbose = True
         if ':' in ssh_args.destination:
             dest, port = ssh_args.destination.split(':')
             ssh_args.destination = dest
@@ -261,11 +268,12 @@ class KXH:
             print(add_border('KXH Config', None, src, hl_src))
         self.config = config
 
-    def _run(self, command, error_message=None, verbose=None, **kwargs):
+    def _run(self, command, error_message=None, verbose=None, debug=None, **kwargs):
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
+        debug = debug if debug is not None else self.config['kxh']['debug']
         dry = self.config['kxh']['dry']
-        if verbose or dry:
-            print_verbose(f"kxh.run: {' '.join(command)}")
+        if debug or dry:
+            print_debug(f"kxh client ==> run: {' '.join(command)}")
             err = sys.stderr
         else:
             err = subprocess.DEVNULL
@@ -275,21 +283,24 @@ class KXH:
             output = subprocess.check_output(command, stderr=err, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
-                print_error(f'kxh ==> Error: {error_message}', file=sys.stderr)
+                print_error(f'kxh client ==> Error: {error_message}', file=sys.stderr)
                 exit(1)
             else:
                 raise e
         output = output.decode('utf-8')
-        if verbose:
-            print_verbose(output)
+        if debug:
+            print_debug(f'kxh client ==> Output: {output}')
         return output
 
-    def _run_shell(self, command, error_message=None, verbose=None, **kwargs):
+    def _run_shell(
+        self, command, error_message=None, verbose=None, debug=None, **kwargs
+    ):
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
+        debug = debug if debug is not None else self.config['kxh']['debug']
         dry = self.config['kxh']['dry']
         if verbose or dry:
-            print_verbose(f'kxh ==> run_shell: {command}')
-        else:
+            print_verbose(f'kxh client ==> run_shell: {command}')
+        if not debug:
             kwargs.setdefault('stdout', subprocess.DEVNULL)
         if dry:
             return
@@ -297,7 +308,7 @@ class KXH:
             subprocess.run(command, shell=True, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
-                print_error(f'kxh ==> Error: {error_message}', file=sys.stderr)
+                print_error(f'kxh client ==> Error: {error_message}', file=sys.stderr)
                 exit(1)
             else:
                 raise e
@@ -339,7 +350,9 @@ class KXH:
     def _shared_files(self):
         name = self.config['kxh']['name']
         shared_dir = os.path.join(self.config_home, name, 'share')
-        return [os.path.join(shared_dir, f) for f in os.listdir(shared_dir)]
+        shared_dir = os.path.join(shared_dir, '**/**')
+        files = list(glob.iglob(shared_dir, recursive=True))
+        return files
 
     def _file_list_file(self):
         name = self.config['kxh']['name']
@@ -357,8 +370,9 @@ class KXH:
         files = [
             os.path.relpath(f, self.config['kxh']['home'])
             for f in custom_files]
-        if self.config['kxh']['verbose']:
-            print_verbose(f'Custom files: {custom_files}')
+        if self.config['kxh']['debug']:
+            vcf = '\n  ' + '\n  '.join(custom_files)
+            print_debug(f"kxh client ==> Custom files: {vcf}")
         files.append(os.path.relpath(sync_file, home))
         file_list += '\n'.join(files) + '\n'
         f.write(file_list)
@@ -377,7 +391,7 @@ class KXH:
         git_repo = os.path.join(home, '.git')
         if not os.path.exists(git_repo):
             print_error(
-                'kxh ==> Error: kxh recursively is not yet supported.',
+                'kxh client ==> Error: kxh recursively is not yet supported.',
                 file=sys.stderr)
             exit(1)
         if self.config['kxh']['force_reinstall']:
@@ -439,14 +453,14 @@ class KXH:
         verbose = self.config['kxh']['verbose']
         if not self.config['kxh']['fast']:
             if verbose:
-                print_verbose('kxh ==> client: Syncing files...')
+                print_verbose('kxh client ==> Syncing files...')
             self._sync_files()
         if self.config['kxh']['sync_only']:
             if verbose:
-                print_verbose('kxh ==> client: Sync done.')
+                print_verbose('kxh client ==> Sync done.')
             return
         if verbose:
-            print_verbose('kxh ==> client: Connecting to remote host...')
+            print_verbose('kxh client ==> Connecting to remote host...')
         self._ssh()
 
 
