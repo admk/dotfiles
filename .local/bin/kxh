@@ -351,8 +351,7 @@ class KXH:
         name = self.config['kxh']['name']
         shared_dir = os.path.join(self.config_home, name, 'share')
         shared_dir = os.path.join(shared_dir, '**/**')
-        files = list(glob.iglob(shared_dir, recursive=True))
-        return files
+        return glob.glob(shared_dir, recursive=True)
 
     def _file_list_file(self):
         name = self.config['kxh']['name']
