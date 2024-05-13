@@ -407,7 +407,7 @@ class KXH:
         file_list = self._file_list_file()
         rsync_cmd = [
             f"SHELL={shutil.which('bash')}",
-            "rsync --archive --compress --human-readable",
+            "rsync --archive --no-owner --no-group --compress --human-readable",
             "--update --partial --progress --checksum --copy-links",
             f"--rsh {' '.join(self.ssh_cmd)!r}",
             f"--files-from {file_list}",
