@@ -5,7 +5,7 @@
 !.config/tmux/tmux.conf
 !.config/xonsh/*
 !.config/starship.toml
-!.local/bin/
+!.local/bin/*
 !.gitignore
 !LICENSE
 !README.md
