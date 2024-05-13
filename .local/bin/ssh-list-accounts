@@ -1,0 +1,4 @@
+#!/bin/bash
+
+accounts=$(ssh $@ 'cat /etc/passwd | grep "home" | cut -d: -f1 | tr "\n" " "' 2>/dev/null)
+echo "Host: $@, Accounts: $accounts"
