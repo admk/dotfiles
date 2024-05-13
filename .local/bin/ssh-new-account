@@ -1,28 +1,11 @@
 #!/bin/bash
 
-set -x
-
 # Check if the required arguments are provided
 user="$1"
 server="$2"
 if [ -z "$user" ] || [ -z "$server" ]; then
     echo "Usage: $0 <username> <server>"
     exit 1
-fi
-
-# Create the new user on the remote server
-user_exists=$(ssh "$server" "id -u $user" 2>/dev/null)
-if [ -z "$user_exists" ]; then
-    # Add user, generate a random password
-    # and set the password for the new user
-    password=$(openssl rand -base64 21)
-    ssh "$server" "\
-        adduser --disabled-password --gecos '' $user && \
-        {echo '$user:$password' | chpasswd ;} && \
-        usermod -a -G shared $user"
-    echo "User '$user' created on '$server' with password $password."
-else
-    echo "Error: User '$user' already exists on '$server'."
 fi
 
 # Check if the SSH key pair exists locally, generate if not
@@ -35,10 +18,35 @@ else
     echo "Key pair already exists for $user."
 fi
 
-# Copy the public keys to the remote server's new user
-ssh-copy-id -f -i $HOME/.ssh/id_rsa.pub $user@$server
-ssh-copy-id -f -i $key_path.pub $user@$server
-echo "Public key copied to the new account."
+# Read the public keys
+admin_key=$(cat $HOME/.ssh/id_rsa.pub)
+user_key=$(cat $key_path.pub)
+
+# Create the new user on the remote server
+user_exists=$(ssh "$server" "id -u $user" 2>/dev/null)
+if [ ! -z "$user_exists" ]; then
+    echo "Error: User '$user' already exists on '$server'." >&2
+    echo -n "Run anyway? (y/n) "
+    read -r confirm
+    if [ "$confirm" != "y" ]; then
+        exit 1
+    fi
+fi
+# Add user, generate a random password
+# and set the password for the new user
+password=$(openssl rand -base64 21)
+read -r -d '' cmd <<EOF
+adduser --disabled-password --gecos '' $user
+echo '$user:$password' | chpasswd
+mkdir -p /home/$user/.ssh
+echo "$admin_key" >> /home/$user/.ssh/authorized_keys
+echo "$user_key" >> /home/$user/.ssh/authorized_keys
+chown -R $user:$user /home/$user/.ssh
+chmod 700 /home/$user/.ssh
+chmod 600 /home/$user/.ssh/authorized_keys
+EOF
+ssh "$server" "$cmd"
+echo "User '$user' created on '$server' with password $password."
 
 # Open Finder with the key files selected
 open -R $key_path $key_path.pub
