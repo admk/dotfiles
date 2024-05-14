@@ -6,7 +6,7 @@ from shutil import which as _which
 def _env_exec(env, cmd=None, setmode='off'):
     if setmode not in ('toggle', 'update', 'off'):
         raise ValueError(f'invalid setmode: {setmode!r}')
-    def wrapper(args):
+    def wrapper(args, stdin=None, stdout=None, stderr=None, spec=None):
         args, _env = env(args)
         if cmd is not None:
             args = [cmd] + args
@@ -14,7 +14,12 @@ def _env_exec(env, cmd=None, setmode='off'):
             with ${...}.swap(**_env):
                 args = [repr(a) if ' ' in a else a for a in args]
                 # FIXME doesn't work with pipes
-                return execx(' '.join(args))
+                from xonsh.procs.pipelines import STDOUT_CAPTURE_KINDS
+                if spec.captured in STDOUT_CAPTURE_KINDS:
+                    return $(@(args))
+                if not spec.last_in_pipeline:
+                    return $(@(args))
+                return !(@(args))
         if setmode == 'off':
             return
         match = all(${...}.get(k) == v for k, v in _env.items())
@@ -41,7 +46,10 @@ def register_env_alias(names, cmd=None, setmode='off'):
         nonlocal names
         names = [names] if isinstance(names, str) else names
         for name in names:
-            aliases.register(name)(_wraps(env)(_env_exec(env, cmd, setmode)))
+            wrapped = _env_exec(env, cmd, setmode)
+            # FIXME functools.wraps(env)(wrapped)
+            # doesn't work with xonsh aliases
+            aliases.register(name)(wrapped)
     return wrapper
 
 
