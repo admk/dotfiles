@@ -98,6 +98,9 @@ def _refresh():
 @aliases.register('tmux')
 def _tmux(args):
     tm = $(@(_which('which')) 'tmux').strip()
+    if not tm:
+        print('tmux not found.')
+        return 1
     socket = $(@(tm) -V).strip().replace('tmux ', '')
     @(tm) -L @(socket) @(args)
 

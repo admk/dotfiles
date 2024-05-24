@@ -42,6 +42,7 @@ def _env_exec(env, cmd=None, setmode='off'):
 
 
 def register_env_alias(names, cmd=None, setmode='off'):
+    import inspect
     def wrapper(env):
         nonlocal names
         names = [names] if isinstance(names, str) else names
@@ -49,6 +50,7 @@ def register_env_alias(names, cmd=None, setmode='off'):
             wrapped = _env_exec(env, cmd, setmode)
             # FIXME functools.wraps(env)(wrapped)
             # doesn't work with xonsh aliases
+            wrapped.src = inspect.getsource(env)
             aliases.register(name)(wrapped)
     return wrapper
 
@@ -74,12 +76,12 @@ def bash_like_alias(args):
         if isinstance(v, list):
             src = _syntax_highlight(' '.join(v))
             return f'"{src}"'
+        elif hasattr(v, 'src'):
+            src = _syntax_highlight(v.src)
+            return f'"{src}"'
         elif inspect.isfunction(v):
             src = _syntax_highlight(_dedent(inspect.getsource(v)))
             return f'"""\n{src}\n"""'
-        elif isinstance(v, ExecAlias):
-            src = _syntax_highlight(v.src)
-            return f'"{src}"'
         return _syntax_highlight(str(v))
     if not args:
         args = aliases.keys()
