@@ -42,11 +42,12 @@ def highlight(src, lang):
     return pygments.highlight(src, lexer, formatter).strip('\n')
 
 
-def add_border(title, hl_title, src, hl_src):
+def add_border(title, hl_title, src, hl_src, indent=0):
     hl_title = hl_title or title
     hl_src = hl_src or src
     width = max(len(l) for l in src.split('\n'))
-    width = max(width, len(title))
+    if title:
+        width = max(width, len(title))
     lines = ['╭─' + '─' * width + '─╮']
     if title:
         lines.append('│ ' + hl_title + ' ' * (width - len(title)) + ' │')
@@ -54,36 +55,33 @@ def add_border(title, hl_title, src, hl_src):
     for hl_line, line in zip(hl_src.split('\n'), src.split('\n')):
         lines.append('│ ' + hl_line + ' ' * (width - len(line)) + ' │')
     lines.append('╰─' + '─' * width + '─╯')
+    lines = [f'{" " * indent}{l}' for l in lines]
     return '\n'.join(lines)
 
 
 class colors:
     HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
     DEBUG = '\033[0;37m'
+    VERBOSE = '\033[94m'
+    INFO = '\033[92m'
     WARNING = '\033[93m'
-    FAIL = '\033[91m'
+    ERROR = '\033[91m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+    OKCYAN = '\033[96m'
     ENDC = '\033[0m'
 
 
-def print_verbose(message, *args, **kwargs):
-    print(f'{colors.OKBLUE}{message}{colors.ENDC}', *args, **kwargs)
-
-
-def print_debug(message, *args, **kwargs):
-    print(f'{colors.DEBUG}{message}{colors.ENDC}', *args, **kwargs)
-
-
-def print_warning(message, *args, **kwargs):
-    print(f'{colors.WARNING}{message}{colors.ENDC}', *args, **kwargs)
-
-
-def print_error(message, *args, **kwargs):
-    print(f'{colors.FAIL}{message}{colors.ENDC}', *args, **kwargs)
+def print_message(flag, message, *args, use_color=True, **kwargs):
+    color = getattr(colors, flag.upper()) if use_color else ''
+    if flag == 'raw':
+        print(message, *args, **kwargs)
+        return
+    if flag == 'error':
+        if use_color:
+            color = f'{colors.BOLD}{color}'
+        kwargs.setdefault('file', sys.stderr)
+    print(f'{color}kxh {flag} ==> {message}{colors.ENDC}', *args, **kwargs)
 
 
 class KxhArgumentParser(argparse.ArgumentParser):
@@ -205,11 +203,11 @@ Options:
         return command_line
 
     def print_usage(self):
-        print(f'Usage:\n{self._USAGE}')
+        print_message('info', f'Usage:\n{self._USAGE}')
 
     def error(self, message):
         self.print_usage()
-        print_error(message.replace('--kxh-', '+'))
+        print_message('error', message.replace('--kxh-', '+'))
         exit(1)
 
 
@@ -256,7 +254,7 @@ class KXH:
         self.ssh_cmd = parser.unparse_ssh_args(config['ssh'], dest=False)
         name = config['kxh']['name']
         if ' ' in name:
-            print_error('KXH name cannot contain spaces.', file=sys.stderr)
+            print_message('error', 'KXH name cannot contain spaces.')
             exit(1)
         home = os.environ.get('KXH_HOME', None)
         if not home:
@@ -265,7 +263,9 @@ class KXH:
         if config['kxh']['verbose']:
             src = tomlkit.dumps(config)
             hl_src = highlight(src, 'toml')
-            print(add_border('KXH Config', None, src, hl_src))
+            hl_src = add_border(None, None, src, hl_src)
+            print_message('verbose', 'KXH Config:')
+            print(hl_src)
         self.config = config
 
     def _run(self, command, error_message=None, verbose=None, debug=None, **kwargs):
@@ -273,7 +273,7 @@ class KXH:
         debug = debug if debug is not None else self.config['kxh']['debug']
         dry = self.config['kxh']['dry']
         if debug or dry:
-            print_debug(f"kxh client ==> run: {' '.join(command)}")
+            print_message('debug', f"run: {' '.join(command)}")
             err = sys.stderr
         else:
             err = subprocess.DEVNULL
@@ -283,13 +283,13 @@ class KXH:
             output = subprocess.check_output(command, stderr=err, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
-                print_error(f'kxh client ==> Error: {error_message}', file=sys.stderr)
+                print_message('error', f'{error_message}')
                 exit(1)
             else:
                 raise e
         output = output.decode('utf-8')
         if debug:
-            print_debug(f'kxh client ==> Output: {output}')
+            print_message('debug', f'Output: {output}')
         return output
 
     def _run_shell(
@@ -299,7 +299,7 @@ class KXH:
         debug = debug if debug is not None else self.config['kxh']['debug']
         dry = self.config['kxh']['dry']
         if verbose or dry:
-            print_verbose(f'kxh client ==> run_shell: {command}')
+            print_message('verbose', f'run_shell: {command}')
         if not debug:
             kwargs.setdefault('stdout', subprocess.DEVNULL)
         if dry:
@@ -308,7 +308,7 @@ class KXH:
             subprocess.run(command, shell=True, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
-                print_error(f'kxh client ==> Error: {error_message}', file=sys.stderr)
+                print_message('error', f'{error_message}')
                 exit(1)
             else:
                 raise e
@@ -371,11 +371,15 @@ class KXH:
             for f in custom_files]
         if self.config['kxh']['debug']:
             vcf = '\n  ' + '\n  '.join(custom_files)
-            print_debug(f"kxh client ==> Custom files: {vcf}")
+            print_message('debug', f"Custom files: {vcf}")
         files.append(os.path.relpath(sync_file, home))
         file_list += '\n'.join(files) + '\n'
         f.write(file_list)
         f.close()
+        missing_files = [
+            f for f in files if not os.path.exists(os.path.join(home, f))]
+        if missing_files:
+            print_message('warning', f'Missing files: {missing_files!r}')
         return sync_file
 
     def _sync_files(self):
@@ -389,9 +393,7 @@ class KXH:
                 f'Failed to clone {url!r} to {home!r}.')
         git_repo = os.path.join(home, '.git')
         if not os.path.exists(git_repo):
-            print_error(
-                'kxh client ==> Error: kxh recursively is not yet supported.',
-                file=sys.stderr)
+            print_message('error', 'kxh recursively is not yet supported.')
             exit(1)
         if self.config['kxh']['force_reinstall']:
             dest = self.config['ssh']['destination']
@@ -399,7 +401,7 @@ class KXH:
             ask = f'{colors.WARNING}{colors.BOLD}{ask}{colors.ENDC} [y/N] '
             if input(ask) != 'y':
                 exit(0)
-            print_warning(f'Reinstalling .{name}...')
+            print_message('warning', f'Reinstalling {name}...')
             rm_cmd = f'rm -rf .{name} .local/bin/xh'
             self._run(
                 self.ssh_cmd + [dest, rm_cmd],
@@ -452,14 +454,14 @@ class KXH:
         verbose = self.config['kxh']['verbose']
         if not self.config['kxh']['fast']:
             if verbose:
-                print_verbose('kxh client ==> Syncing files...')
+                print_message('verbose', 'Syncing files...')
             self._sync_files()
         if self.config['kxh']['sync_only']:
             if verbose:
-                print_verbose('kxh client ==> Sync done.')
+                print_message('verbose', 'Sync done.')
             return
         if verbose:
-            print_verbose('kxh client ==> Connecting to remote host...')
+            print_message('verbose', 'Connecting to remote host...')
         self._ssh()
 
 
