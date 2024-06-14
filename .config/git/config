@@ -22,7 +22,7 @@
     pretty=format:%C(bold red)%h%Creset%C(yellow)%d%Creset %s %Cgreen(%ad) %C(bold blue)<%an>%Creset
 [core]
     autocrlf = input
-    pager = colordiff | less --tabs=4 -RFX
+    pager = "!colordiff 2>/dev/null || cat | less --tabs=4 -RFX"
     untrackedcache = true
     fsmonitor = false
 [color]
@@ -67,11 +67,11 @@
     rebase = false
 [fetch]
     writeCommitGraph = true
-[url "git@github.com:"]
-    insteadOf = https://github.com/
-    insteadOf = git://github.com/
-    insteadOf = gh:
-    insteadOf = github:
+# [url "git@github.com:"]
+#     insteadOf = https://github.com/
+#     insteadOf = git://github.com/
+#     insteadOf = gh:
+#     insteadOf = github:
 [init]
     defaultBranch = main
 [rerere]
