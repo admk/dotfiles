@@ -19,7 +19,7 @@ def _env_exec(env, cmd=None, setmode='off'):
                     return $(@(args))
                 if not spec.last_in_pipeline:
                     return $(@(args))
-                return !(@(args))
+                return execx(' '.join(args))
         if setmode == 'off':
             return
         match = all(${...}.get(k) == v for k, v in _env.items())

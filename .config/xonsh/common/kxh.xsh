@@ -3,18 +3,25 @@ def debug(enable):
         return
     $XONSH_DEBUG = True
     $XONSH_SHOW_TRACEBACK = True
+    $XONSH_TRACE_SUBPROC = True
     try:
-        import ipdb
-        ipdb.set_trace()
-        return
+        import debugpy
     except ImportError:
         pass
-    try:
-        import pdb
-        pdb.set_trace()
+    else:
+        debugpy.listen(5678)
+        print('kxh shell ==> debugger (debugpy) listening on port 5678.')
+        debugpy.wait_for_client()
         return
+    try:
+        import ipdb as debugger
+    except ImportError:
+        import pdb as debugger
     except ImportError:
         pass
+    else:
+        debugger.set_trace()
+        return
     print('kxh shell ==> debugger (debugpy, ipdb, or pdb) not found.')
 
 
