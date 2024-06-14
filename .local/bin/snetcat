@@ -1,0 +1,6 @@
+#!/bin/bash
+IFS=';'
+rows=$(squeue -h -o '%j;%T;%u;%R;%k' | grep 'sash_' | grep 'RUNNING')
+row=$(echo "$rows" | sed -n "$1p")
+read -r name state user nodes port <<< $row
+exec nc $nodes $port

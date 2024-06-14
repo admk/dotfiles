@@ -38,8 +38,9 @@ def parse_node_info(node_info):
             if not k.startswith('gres/'):
                 continue
             if k == 'gres/gpu':
-                continue
-            k = k.replace('gres/gpu:', '')
+                k = 'gpu'
+            else:
+                k = k.replace('gres/gpu:', '')
             default = {
                 'state': state,
                 'partition': partition,
