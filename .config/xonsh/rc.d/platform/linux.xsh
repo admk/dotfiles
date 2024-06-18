@@ -16,8 +16,8 @@ aliases |= {
 }
 
 
-@aliases.register('sa')
-def sash(args):
+@aliases.register('ss')
+def ssshd(args):
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu_type', type=str)
@@ -32,7 +32,8 @@ def sash(args):
     except KeyError:
         print(f'Unknown GPU type: {args.gpu_type}')
         return
-    command = f'sash -N 1 -p {partition} '
+    channel = ${...}.get('SLURM_CHANNEL', '#random')
+    command = f'ssshd -N 1 -p {partition} '
     if gpu_type:
         command += f'--gres={gpu_type}:{args.num_gpus} '
     else:
@@ -40,7 +41,8 @@ def sash(args):
     command += f'-c {args.cpus_per_gpu} '
     command += " ".join(remaining_args)
     command += ' -- slack chat send '
-    command += f'\"Job $SLURM_JOB_ID started on $SLURM_NODELIST\" \"#update-bnuc\"'
+    command += f'\"Job $SLURM_JOB_ID started on $SLURM_NODELIST, '
+    command += f'connect with ssh $USER@$SLURM_NODELIST -p $PORT\" \"{channel}\"'
     print(command)
     execx(command)
 

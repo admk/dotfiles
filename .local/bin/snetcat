@@ -1,6 +1,15 @@
 #!/bin/bash
 IFS=';'
-rows=$(squeue -h -o '%j;%T;%u;%R;%k' | grep 'sash_' | grep 'RUNNING')
+rows=$(squeue --me -h -o '%j;%T;%u;%R;%k' | grep 'sash_' | grep 'RUNNING')
+if [ -z "$rows" ]; then
+    echo "No running jobs found"
+    exit 1
+fi
+if [ -z "$1" ]; then
+    echo "Running jobs:"
+    echo "$rows"
+    exit 0
+fi
 row=$(echo "$rows" | sed -n "$1p")
 read -r name state user nodes port <<< $row
 exec nc $nodes $port

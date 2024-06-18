@@ -4,8 +4,6 @@ import sys
 import time
 import shlex
 import shutil
-import socket
-import getpass
 import datetime
 import argparse
 import subprocess
@@ -28,7 +26,12 @@ SLURM_SCRIPT = """#!/bin/bash
 cd $HOME
 
 # find open port
-PORT=$(python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
+PORT=$(python3 -c "
+    import socket
+    s=socket.socket()
+    s.bind(('', 0))
+    print(s.getsockname()[1])
+    s.close()")
 scontrol update JobId="$SLURM_JOB_ID" Comment="$PORT"
 
 echo "********************************************************************"
@@ -47,8 +50,8 @@ echo "********************************************************************"
 # {queue_cmd}
 
 # start sshd server on the available port
-/usr/sbin/sshd -D -p $PORT -f /dev/null -h $HOME/.ssh/id_rsa
-# sleep {time_in_seconds}
+/usr/sbin/sshd -D -p $PORT -f /dev/null -h $KXH_OLD_HOME/.ssh/id_rsa
+echo "Error: sshd exited unexpectedly"
 """
 
 
