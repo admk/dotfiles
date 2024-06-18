@@ -48,6 +48,9 @@ aliases |= {
     'ssh-exit': 'ssh -O exit',
     'vim': f"{_which('vim')} -u $KXH_HOME/.config/nvim/init.vim",
     'clash-start': 'klash $CLASH_SUBSCRIPTION --config $XDG_CONFIG_HOME/kxh/share/clash.yaml',
+    'gh': '$KXH_CONDA_PREFIX/bin/gh',
+    'cs': '$KXH_CONDA_PREFIX/bin/gh copilot suggest',
+    'ce': '$KXH_CONDA_PREFIX/bin/gh copilot explain',
 }
 register_dep_aliases({
     'rcp': 'rsync --progress --recursive --archive',

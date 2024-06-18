@@ -12,14 +12,7 @@ def _transform_bangbang(cmd, **kwargs):
 _preprompt_linebreak = False
 
 def _starship_main():
-    file = f'{$KXH_CONDA_PREFIX}/bin/starship'
-    if not pf'{file}'.exists():
-        print(f'kxh shell ==> starship: {file!r} not found, installing...')
-        quite_flag = '-q' if ${...}.get('KXH_VERBOSE') != '1' else ''
-        @(f'{$KXH_CONDA_PREFIX}/bin/conda') install \
-            @(quite_flag) -y -c conda-forge starship
-
-    aliases['starship'] = file
+    aliases['starship'] = file = f'{$KXH_CONDA_PREFIX}/bin/starship'
     if ${...}.get('KXH_DEBUG') == '1':
         print(f'kxh shell ==> starship: using {file!r}')
     # $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
@@ -55,3 +48,7 @@ del _starship_main
 
 if _which('atuin'):
     execx($(atuin init xonsh --disable-up-arrow))
+
+
+if ${...}.get('TERM_PROGRAM') == 'iTerm.app':
+    xontrib load term_integration

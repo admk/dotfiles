@@ -26,3 +26,25 @@ def _conda_lazy(args):
     sys.modules["xontrib.conda"] = mod
     aliases['conda'] = _unthreadable(aliases['conda'])
     mod._conda_main(args)
+
+
+def conda_install_if_missing(names):
+    missings = [
+        name for name in names
+        if not pf'{$KXH_CONDA_PREFIX}/bin/{name}'.exists()]
+    if not missings:
+        return
+    missings_str = ",".join(missings)
+    print(f'kxh shell ==> conda: {missings_str!r} not found, installing...')
+    quite_flag = '-q' if ${...}.get('KXH_VERBOSE') != '1' else ''
+    @(f'{$KXH_CONDA_PREFIX}/bin/conda') install \
+        @(quite_flag) -y -c conda-forge @(missings)
+
+
+def _conda_install():
+    packages = ['starship', 'gh']
+    conda_install_if_missing(packages)
+
+
+_conda_install()
+del _conda_install
