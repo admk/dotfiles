@@ -18,6 +18,8 @@ def _starship_main():
     # $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
     $XONTRIB_PROMPT_STARSHIP_LEFT_CONFIG = f"{$XDG_CONFIG_HOME}/starship_left.toml"
     $XONTRIB_PROMPT_STARSHIP_RIGHT_CONFIG = f"{$XDG_CONFIG_HOME}/starship_right.toml"
+    $XONTRIB_PROMPT_STARSHIP_BOTTOM_CONFIG = f"{$XDG_CONFIG_HOME}/starship_bottom.toml"
+    $XONSH_STYLE_OVERRIDES['bottom-toolbar'] = 'noreverse'
     xontrib load prompt_starship
 
     if 'SSH_CONNECTION' in ${...}:
