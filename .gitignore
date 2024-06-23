@@ -1,6 +1,7 @@
 *
 !.config/git/config
-!.config/nvim/init.vim
+!.config/nvim/*.lua
+!.config/nvim/lua/*
 !.config/pip/pip.conf
 !.config/tmux/tmux.conf
 !.config/xonsh/*
