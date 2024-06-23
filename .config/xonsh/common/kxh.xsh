@@ -135,6 +135,7 @@ def main():
     if 'KXH_OLD_HOME' in ${...}:
         $PATH.insert(0, '$KXH_OLD_HOME/.local/bin')
     if 'KXH_HOME' in ${...}:
+        $PATH.insert(0, '$KXH_HOME/.local/share/bin')
         $PATH.insert(0, '$KXH_HOME/.local/bin')
 
     debug(${...}.get('KXH_DEBUG'))

@@ -35,6 +35,8 @@ if 'KXH_OLD_HOME' in ${...}:
 $PIP_CONFIG_FILE = f'{$XDG_CONFIG_HOME}/pip/pip.conf'
 $PIP_CACHE_DIR = f'{$XDG_CACHE_HOME}/pip'
 
+$N_PREFIX = $XDG_DATA_HOME
+
 $PYDEVD_DISABLE_FILE_VALIDATION = 1
 
 try:

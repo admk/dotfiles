@@ -1,7 +1,5 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
-format = "$all"
-
 add_newline = false
 
 [line_break]
