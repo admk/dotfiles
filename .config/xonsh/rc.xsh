@@ -16,7 +16,6 @@ def _xontrib_load():
         'pipeliner',
         # 'readable-traceback',
         'sh',
-        # 'term_integration',
     ]
     xontrib load -s @(xontribs)
     dep_xontribs = [

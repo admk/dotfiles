@@ -123,9 +123,10 @@ def _install_homebrew():
         xpip install xontrib-homebrew
         xontrib reload homebrew
     pkgs = [
-        'tmux',
-        'btop',
         'atuin',
+        'btop',
+        'lsd',
+        'tmux',
         ('carapace', 'rsteube/tap/carapace'),
     ]
     to_install = []
