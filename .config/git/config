@@ -69,9 +69,10 @@
     writeCommitGraph = true
 # [url "git@github.com:"]
 #     insteadOf = https://github.com/
-#     insteadOf = git://github.com/
-#     insteadOf = gh:
-#     insteadOf = github:
+[url "https://github.com/"]
+    insteadOf = git://github.com/
+    insteadOf = gh:
+    insteadOf = github:
 [init]
     defaultBranch = main
 [rerere]

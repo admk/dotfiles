@@ -42,7 +42,7 @@ def conda_install_if_missing(names):
 
 
 def _conda_install():
-    packages = ['starship', 'gh']
+    packages = ['starship']
     conda_install_if_missing(packages)
 
 

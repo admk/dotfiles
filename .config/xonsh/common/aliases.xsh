@@ -57,8 +57,12 @@ def register_env_alias(names, cmd=None, setmode='off'):
 
 def register_dep_aliases(dep_aliases):
     for a, cmd in dep_aliases.items():
-        if _which(cmd.split(' ')[0]):
+        cmds = [cmd] if isinstance(cmd, str) else cmd
+        for cmd in cmds:
+            if not _which(cmd.split(' ')[0]):
+                continue
             aliases[a] = cmd
+            break
 
 
 def bash_like_alias(args):

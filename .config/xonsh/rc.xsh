@@ -27,7 +27,7 @@ def _xontrib_load():
             cmd, xtb = cmd_xtb, cmd_xtb
         else:
             cmd, xtb = cmd_xtb
-        if !(which @(cmd)):
+        if _which(cmd):
             xontrib load @(xtb)
     aliases.pop('jc', None)
 

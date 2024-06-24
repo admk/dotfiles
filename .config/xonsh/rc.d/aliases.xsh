@@ -52,7 +52,7 @@ aliases |= {
 register_dep_aliases({
     'cat': 'bat',
     'rcp': 'rsync --progress --recursive --archive',
-    'ls': 'eza',
+    'ls': ['lsd', 'eza'],
     'cs': 'gh copilot suggest -t shell',
     'ce': 'gh copilot explain',
 })
