@@ -84,7 +84,7 @@ def _install_apts():
         'sudo',
         ('locale-gen', 'locales'),
         ('nc', 'netcat'),
-        ('nvim', 'neovim'),
+        # ('nvim', 'neovim'),  # too old
     ]
     to_install = []
     for e in execs:
@@ -127,6 +127,7 @@ def _install_homebrew():
         'btop',
         'lsd',
         'tmux',
+        'nvim',
         ('carapace', 'rsteube/tap/carapace'),
     ]
     to_install = []

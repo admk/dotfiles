@@ -30,9 +30,9 @@ keymap.set("n", "-", "<C-x>")
 -- }
 -- Commands {
 -- Sudo
-keymap.set("c", "w!!", "w !sudo tee % >/dev/null", opts)
+-- keymap.set("c", "w!!", "w !sudo tee % >/dev/null", opts)
 -- Current directory
-keymap.set("c", "cd.", "lcd %:p:h", opts)
+-- keymap.set("c", "cd.", "lcd %:p:h", opts)
 -- }
 -- Window {
 -- New tab

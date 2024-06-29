@@ -47,7 +47,6 @@ return {
 		event = "BufReadPre",
 		priority = 1200,
 		config = function()
-			local helpers = require("incline.helpers")
 			local devicons = require("nvim-web-devicons")
 			require("incline").setup({
 				-- window = {
@@ -77,7 +76,7 @@ return {
 					local ft_icon, ft_color = devicons.get_icon_color(filename)
 
 					local function get_git_diff()
-						local icons = { removed = "", changed = "", added = "" }
+						local icons = { removed = " ", changed = " ", added = " " }
 						local signs = vim.b[props.buf].gitsigns_status_dict
 						local labels = {}
 						if signs == nil then
@@ -118,7 +117,6 @@ return {
 						{ get_git_diff() },
 						{ (ft_icon or "") .. " ", guifg = ft_color, guibg = "none" },
 						{ filename .. " ", gui = vim.bo[props.buf].modified and "bold,italic" or "bold" },
-						{ "┊  " .. vim.api.nvim_win_get_number(props.win), group = "DevIconWindows" },
 					}
 				end,
 			})
@@ -130,7 +128,7 @@ return {
 		event = "VimEnter",
 		opts = function(_, opts)
 			local logo = [[
-⢀⣴⡾⠃⠄⠄⠄⠄⠄⠈⠺⠟⠛⠛⠛⠛⠻⢿⣿⣿⣿⣿⣶⣤⡀ 
+⢀⣴⡾⠃⠄⠄⠄⠄⠄⠈⠺⠟⠛⠛⠛⠛⠻⢿⣿⣿⣿⣿⣶⣤⡀
 ⢀⣴⣿⡿⠁⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⣸⣿⣿⣿⣿⣿⣿⣿⣷
 ⣴⣿⡿⡟⡼⢹⣷⢲⡶⣖⣾⣶⢄⠄⠄⠄⠄⠄⢀⣼⣿⢿⣿⣿⣿⣿⣿⣿⣿
 ⣾⣿⡟⣾⡸⢠⡿⢳⡿⠍⣼⣿⢏⣿⣷⢄⡀⠄⢠⣾⢻⣿⣸⣿⣿⣿⣿⣿⣿⣿
@@ -147,6 +145,52 @@ return {
 ]]
 			logo = string.rep("\n", 8) .. logo .. "\n\n"
 			opts.config.header = vim.split(logo, "\n")
+		end,
+	},
+	{
+		"nvim-lualine/lualine.nvim",
+		event = "VeryLazy",
+		config = function()
+			require("lualine").setup({
+				options = {
+					icons_enabled = true,
+					theme = "auto",
+					component_separators = { left = "", right = "" },
+					section_separators = { left = "", right = "" },
+					disabled_filetypes = {
+						statusline = {},
+						winbar = {},
+					},
+					ignore_focus = {},
+					always_divide_middle = true,
+					globalstatus = false,
+					refresh = {
+						statusline = 1000,
+						tabline = 1000,
+						winbar = 1000,
+					},
+				},
+				sections = {
+					lualine_a = { "mode" },
+					lualine_b = { "branch" },
+					lualine_c = { "filename" },
+					lualine_x = { "filetype" },
+					lualine_y = { "progress" },
+					lualine_z = { 'os.date("%a %d %H:%M")' },
+				},
+				inactive_sections = {
+					lualine_a = {},
+					lualine_b = {},
+					lualine_c = { "filename" },
+					lualine_x = {},
+					lualine_y = {},
+					lualine_z = {},
+				},
+				tabline = {},
+				winbar = {},
+				inactive_winbar = {},
+				extensions = {},
+			})
 		end,
 	},
 }

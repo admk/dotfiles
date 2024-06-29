@@ -19,10 +19,10 @@ vim.opt.showcmd = false
 vim.opt.showmode = false
 vim.opt.list = true
 vim.opt.listchars = {
-	tab = "» ",
-	trail = "·",
-	extends = ">",
-	precedes = "<",
+    tab = "» ",
+    trail = "·",
+    extends = ">",
+    precedes = "<",
 }
 vim.opt.showbreak = "↪"
 vim.opt.cmdheight = 1
@@ -36,6 +36,7 @@ vim.opt.shell = "zsh"
 -- Editor: {
 vim.g.mapleader = ","
 vim.opt.clipboard = "unnamed"
+vim.g.autoformat = false
 -- }
 -- Search: {
 vim.opt.incsearch = true
@@ -47,7 +48,7 @@ vim.opt.wrap = true
 vim.opt.linebreak = true
 vim.opt.textwidth = 79
 vim.opt.colorcolumn = "+1"
-vim.opt.formatoptions = rqlmB1
+vim.opt.formatoptions = "rqlmB1"
 -- }
 -- Indentation: {
 vim.opt.autoindent = true
@@ -79,7 +80,7 @@ vim.opt.splitright = true -- Put new windows right of current
 vim.opt.splitkeep = "cursor"
 vim.opt.conceallevel = 0
 if vim.fn.has("nvim-0.8") == 1 then
-	vim.opt.cmdheight = 0
+    vim.opt.cmdheight = 0
 end
 -- Undercurl
 vim.cmd([[let &t_Cs = "\e[4:3m"]])
