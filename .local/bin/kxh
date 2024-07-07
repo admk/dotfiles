@@ -175,9 +175,9 @@ Options:
         if kxh_args.non_hermetic:
             mode = 'non-hermetic'
         kxh_args.mode = mode
-        del kxh_args.hermetic
-        del kxh_args.semi_hermetic
-        del kxh_args.non_hermetic
+        del kxh_args.hermetic  # type: ignore
+        del kxh_args.semi_hermetic  # type: ignore
+        del kxh_args.non_hermetic  # type: ignore
         if kxh_args.debug:
             kxh_args.verbose = True
         if ':' in ssh_args.destination:
@@ -202,7 +202,7 @@ Options:
             command_line.append(parsed_args['destination'])
         return command_line
 
-    def print_usage(self):
+    def print_usage(self, file=None):
         print_message('info', f'Usage:\n{self._USAGE}')
 
     def error(self, message):
@@ -227,8 +227,8 @@ class KXH:
         'repo': 'https://github.com/admk/dotfiles.git',
     }
 
-    def _load_rc(self, rc):
-        rc = rc or os.path.join(self.config_home, 'kxh.toml')
+    def _load_rc(self, config_home, rc):
+        rc = rc or os.path.join(config_home, 'kxh.toml')
         if os.path.exists(rc):
             with open(rc, 'rb') as f:
                 config = tomlkit.load(f).unwrap()
@@ -237,27 +237,27 @@ class KXH:
         config.setdefault('kxh', copy.deepcopy(self.kxh_defaults))
         if 'key' not in config['kxh']:
             config['kxh']['key'] = Fernet.generate_key().decode('utf-8')
+        if 'config_dir' not in config['kxh']:
+            name = config['kxh']['name']
+            config['kxh']['config_dir'] = config_home
         config.setdefault('ssh', {})
         return config
 
     def __init__(self):
         super().__init__()
-        self.config_home = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-        self.cache_home = os.environ.get('XDG_CACHE_HOME', '~/.cache')
         parser = KxhArgumentParser()
         kxh_args, ssh_args = parser.parse_args()
-        config = self._load_rc(kxh_args.rc)
+        config_home = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+        cache_home = os.environ.get('XDG_CACHE_HOME', '~/.cache')
+        config = self._load_rc(config_home, kxh_args.rc)
         update(config.setdefault('kxh', {}), vars(kxh_args))
         ssh_args = {
             k: v for k, v in vars(ssh_args).items() if v is not False}
         update(config.setdefault('ssh', {}), ssh_args)
         self.ssh_cmd = parser.unparse_ssh_args(config['ssh'], dest=False)
-        name = config['kxh']['name']
-        if ' ' in name:
-            print_message('error', 'KXH name cannot contain spaces.')
-            exit(1)
         home = os.environ.get('KXH_HOME', None)
         if not home:
+            name = config['kxh']['name']
             home = os.path.join(os.environ['HOME'], f'.{name}')
         config['kxh'].setdefault('home', home)
         if config['kxh']['verbose']:
@@ -266,7 +266,13 @@ class KXH:
             hl_src = add_border(None, None, src, hl_src)
             print_message('verbose', 'KXH Config:')
             print(hl_src)
+        name = config['kxh']['name']
+        if ' ' in name:
+            print_message('error', 'KXH name cannot contain spaces.')
+            exit(1)
         self.config = config
+        self.config_home = os.path.join(config_home, name)
+        self.cache_home = os.path.join(cache_home, name)
 
     def _run(self, command, error_message=None, verbose=None, debug=None, **kwargs):
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
@@ -314,11 +320,12 @@ class KXH:
                 raise e
 
     def _ssh_host_specific_rcs(self):
+        config_dir = self.config['kxh']['config_dir']
         name = self.config['kxh']['name']
         key = self.config['kxh']['key']
-        rcs_dir = os.path.join(self.config_home, name, 'hosts')
+        rcs_dir = os.path.join(config_dir, 'hosts')
         os.makedirs(rcs_dir, exist_ok=True)
-        cache_rcs_dir = os.path.join(self.cache_home, name, 'hosts')
+        cache_rcs_dir = os.path.join(self.cache_home, 'hosts')
         if os.path.exists(cache_rcs_dir):
             shutil.rmtree(cache_rcs_dir)
         shutil.copytree(rcs_dir, cache_rcs_dir)
@@ -338,24 +345,32 @@ class KXH:
                 rcs.append(r.read())
         rcs = '\n'.join(rcs)
         enc = Fernet(key).encrypt(rcs.encode('utf-8'))
-        collate_rc = os.path.join(
-            self.cache_home, name, 'hosts_collated.xsh.enc')
+        collate_rc = os.path.join(self.cache_home, 'hosts_collated.xsh.enc')
         with open(collate_rc, 'w', encoding='utf-8') as f:
             f.write(enc.decode('utf-8'))
-        key_file = os.path.join(self.cache_home, name, 'key')
+        key_file = os.path.join(self.cache_home, 'key')
         with open(key_file, 'w', encoding='utf-8') as f:
             f.write(key)
         return [collate_rc, key_file]
 
     def _shared_files(self):
-        name = self.config['kxh']['name']
-        shared_dir = os.path.join(self.config_home, name, 'share')
-        shared_dir = os.path.join(shared_dir, '**/**')
-        return glob.glob(shared_dir, recursive=True)
+        config_dir = self.config['kxh']['config_dir']
+        shared_dir = os.path.join(config_dir, 'share')
+        shared_pat = os.path.join(shared_dir, '**/**')
+        shared_files = glob.glob(shared_pat, recursive=True)
+        shared_cache_dir = os.path.join(self.cache_home, 'share')
+        # create folder symlink to shared dir
+        if os.path.exists(shared_cache_dir):
+            if not os.path.islink(shared_cache_dir):
+                print_message(
+                    'error', f'{shared_cache_dir!r} is not a symlink.')
+        else:
+            os.symlink(shared_dir, shared_cache_dir)
+        shared_files = [os.path.relpath(f, shared_dir) for f in shared_files]
+        return [os.path.join(shared_cache_dir, f) for f in shared_files]
 
     def _file_list_file(self):
-        name = self.config['kxh']['name']
-        sync_file = os.path.join(self.cache_home, name, 'sync')
+        sync_file = os.path.join(self.cache_home, 'sync')
         os.makedirs(os.path.dirname(sync_file), exist_ok=True)
         f = open(sync_file, 'w', encoding='utf-8')
         home = self.config['kxh']['home']
