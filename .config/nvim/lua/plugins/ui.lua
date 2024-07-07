@@ -1,5 +1,28 @@
 return {
     {
+        "nvimdev/dashboard-nvim",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
+        event = "VimEnter",
+        opts = function(_, opts)
+            local logo = [[ 
+ona li ken pana toki nasin,
+la ni li toki ala nasin.]]
+            logo = string.rep("\n", 8) .. logo .. "\n\n"
+            opts.config.header = vim.split(logo, "\n")
+        end,
+    },
+    {
+        "nvim-lualine/lualine.nvim",
+        event = "VeryLazy",
+        opts = {
+            options = {
+                theme = "auto",
+                component_separators = { left = "", right = "" },
+                section_separators = { left = "", right = "" },
+            },
+        },
+    },
+    {
         "folke/noice.nvim",
         opts = {
             lsp = {
@@ -108,10 +131,10 @@ return {
 
                     local function get_diagnostic_label()
                         local icons = {
-                            error = "",
+                            error = "",
                             warn = "",
                             info = "",
-                            hint = "",
+                            hint = "",
                         }
                         local label = {}
 
@@ -119,15 +142,13 @@ return {
                             local n = #vim.diagnostic.get(
                                 props.buf,
                                 {
-                                    severity = vim.diagnostic.severity[string.upper(
-                                        severity
-                                    )],
+                                    severity = vim.diagnostic.severity[
+                                        string.upper(severity)],
                                 }
                             )
                             if n > 0 then
                                 table.insert(
-                                    label,
-                                    {
+                                    label, {
                                         icon .. " " .. n .. " ",
                                         group = "DiagnosticSign" .. severity,
                                     }
@@ -159,40 +180,13 @@ return {
         end,
     },
     {
-        "nvimdev/dashboard-nvim",
-        dependencies = { "nvim-tree/nvim-web-devicons" },
-        event = "VimEnter",
-        opts = function(_, opts)
-            local logo = [[
-⠀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣤⣤⣶⣶⣶⣶⣦⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣴⣶⣾⣿⣷⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⡿⣿⡿⣿⢿⣿⢿⣿⣿⣿⣿⣿⣿⣿⣿⡿⣿⣿⣿⢿⣟⣿⣿⢿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣶⣦⣄⠀⠀⠀
-⠀⠀⠀⠀⢰⣿⣿⢿⣻⣗⣿⣻⣟⣿⣻⢽⢿⣻⣗⣿⣺⣳⣻⣻⣻⣞⣟⣿⣟⣟⡯⣯⢷⣻⣻⣟⡿⡿⡿⣿⣿⢿⡽⣿⣻⡿⣿⣷⠀⠀
-⠀⣠⣤⣴⣾⣿⣿⣿⢾⣻⢯⣻⣺⣾⣾⢿⡿⣿⡺⣵⣿⡾⣟⡮⣷⣟⢮⣗⢿⣷⢿⡽⡽⣽⣺⡷⣿⣽⣽⣳⢿⢽⣺⢯⣻⢿⣿⡿⠀⠀
-⣾⣿⡿⣟⣿⡿⡾⣾⣽⣮⣯⡗⡠⠡⢉⢙⠹⢷⣯⣿⣻⠿⠻⠻⢿⣞⣿⢺⢙⢌⠣⡋⢟⣿⣟⡿⡻⡿⣿⢿⡿⣝⣾⣿⣾⣿⡟⠁⠀⠀
-⠸⣿⣿⣕⣟⣮⣿⣽⣯⣿⣽⠅⡂⠅⣦⡂⠌⡂⢻⡝⠡⢈⣠⠁⠄⠹⡏⡆⢕⣾⣷⢜⠰⣹⢯⠾⡙⢝⡾⡱⡿⡗⣟⢿⣿⣿⡄⠀⠀⠀
-⠀⢿⣿⣞⢾⣝⣞⣗⣿⣿⡗⡐⠄⣱⣿⠅⠅⡂⢽⡇⢈⠐⣧⣈⣄⣵⣷⡘⢔⢍⢋⠆⣕⣝⡮⡯⣝⡮⡪⡳⣳⡙⢷⢽⢹⣿⣷⡀⠀⠀
-⠀⠘⣿⣿⣷⣿⣾⣯⣿⣿⣦⣦⣡⣺⣽⣅⠅⡂⠽⣷⣄⢂⠐⠠⣸⣯⣿⢽⣶⣶⣵⣷⣿⡪⡯⣟⣗⣿⢸⢵⡹⣹⢼⣺⢧⢻⣿⣧⠀⠀
-⠀⠀⠈⠛⢻⣿⣿⣫⣳⡻⣚⢷⣿⣿⣿⣽⣶⣶⣿⣿⣽⣿⣿⣷⣿⣾⠁⠄⠐⣿⣾⣷⣷⣿⣾⣾⣼⣎⣧⡳⡕⣽⣻⡺⣝⢧⣿⣿⡇⠀
-⠀⠀⠀⠀⣿⣿⡣⣇⢆⡻⡸⣪⣳⠽⣭⢏⢿⣾⡅⢕⠨⢾⡷⡣⡙⡻⡗⠌⠊⣿⡾⡯⠿⡳⠿⢞⠞⡷⣿⣷⣵⣹⣼⣾⡾⠟⠿⢿⣿⣦
-⠀⠀⠀⢸⣿⡿⣜⣞⢞⢮⡳⣕⢯⢮⡳⣝⣕⡿⣷⠡⡊⡚⡣⢑⢌⡾⣿⠀⡁⢼⡷⡈⡢⣊⠌⡂⣅⢂⢊⢾⢞⢪⠪⠾⠂⠅⡊⣰⣿⣿
-⠀⠀⠀⠸⣿⣿⣜⣎⢯⡳⣝⡾⣽⣳⡳⣕⢵⢿⣟⣇⠪⡐⢌⢢⢾⣿⢿⠄⠠⠘⣯⢂⢂⢿⢐⠄⣻⡐⡐⡹⣜⣌⢪⠨⠨⢐⣴⣿⡿⠁
-⠀⠀⠀⠀⠙⠿⠿⣿⣿⣿⣾⣮⣷⣹⣣⣳⣻⣟⣿⣻⣮⣼⣴⣿⣻⣟⣿⣷⣳⣿⣿⣐⣔⣽⣢⣌⣞⣷⣔⣼⣻⣿⣿⣾⣬⣶⣿⡟⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠙⠛⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⢿⣿⡿⠟⠉⠙⠛⠛⠋⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-]]
-            logo = string.rep("\n", 8) .. logo .. "\n\n"
-            opts.config.header = vim.split(logo, "\n")
-        end,
-    },
-    {
-        "nvim-lualine/lualine.nvim",
-        event = "VeryLazy",
+        "akinsho/toggleterm.nvim",
+        version = "*",
+        config = true,
         opts = {
-            options = {
-                theme = "auto",
-                component_separators = { left = "", right = "" },
-                section_separators = { left = "", right = "" },
-            },
-        },
-    },
+            open_mapping = [[<c-\>]],
+            direction = "horizontal",
+            shade_terminals = false,
+        }
+    }
 }

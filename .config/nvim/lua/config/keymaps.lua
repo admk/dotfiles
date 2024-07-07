@@ -42,15 +42,12 @@ keymap.set("n", "<s-tab>", ":tabprev<Return>", opts)
 -- Split window
 keymap.set("n", "ss", ":split<Return>", opts)
 keymap.set("n", "sv", ":vsplit<Return>", opts)
--- Move window
-keymap.set("n", "sh", "<C-w>h")
-keymap.set("n", "sk", "<C-w>k")
-keymap.set("n", "sj", "<C-w>j")
-keymap.set("n", "sl", "<C-w>l")
+-- New terminal
+keymap.set("n", "<leader>ts", ":terminal<Return>", opts)
 -- Resize window
-keymap.set("n", "<C-w><left>", "<C-w><")
-keymap.set("n", "<C-w><right>", "<C-w>>")
-keymap.set("n", "<C-w><up>", "<C-w>+")
-keymap.set("n", "<C-w><down>", "<C-w>-")
+keymap.set("n", "=", [[<cmd>vertical resize +5<cr>]])
+keymap.set("n", "-", [[<cmd>vertical resize -5<cr>]])
+keymap.set("n", "+", [[<cmd>horizontal resize +2<cr>]])
+keymap.set("n", "_", [[<cmd>horizontal resize -2<cr>]])
 -- }
 -- vim: set fdm=marker fmr={,}:

@@ -27,13 +27,19 @@ return {
         },
         config = function(_, opts)
             local telescope = require("telescope")
+            local actions = require("telescope.actions")
             opts.defaults = vim.tbl_deep_extend("force", opts.defaults, {
                 wrap_results = true,
                 layout_strategy = "horizontal",
                 layout_config = { prompt_position = "top" },
                 sorting_strategy = "ascending",
                 winblend = 0,
-                mappings = { n = {} },
+                mappings = {
+                    n = {},
+                    i = {
+                        ["<c-t>"] = actions.select_tab,
+                    }
+                },
             })
             opts.pickers = {
                 diagnostics = {

@@ -29,7 +29,7 @@ vim.opt.cmdheight = 1
 vim.opt.laststatus = 3
 -- }
 -- Other: {
-vim.opt.shell = "zsh"
+vim.opt.shell = vim.fn.expand("$SHELL")
 -- }
 -- }
 -- Editing: {
@@ -44,7 +44,7 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 -- }
 -- Text flow: {
-vim.opt.wrap = true
+vim.opt.wrap = false
 vim.opt.linebreak = true
 vim.opt.textwidth = 79
 vim.opt.colorcolumn = "+1"
