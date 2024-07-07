@@ -25,5 +25,5 @@ if _carapace_exec:
         exec('\n'.join(_carapace_src))
         del _carapace_name, _carapace_src, _line_to_patch
     # Fix error when using python completer
-    XSH.completers.pop('python', None)
+    __xonsh__.completers.pop('python', None)
 del _carapace_exec

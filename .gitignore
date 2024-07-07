@@ -1,3 +1,4 @@
+# doesn't work?
 *
 !.config/git/config
 !.config/nvim/*.lua

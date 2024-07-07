@@ -84,7 +84,9 @@ def _install_apts():
         'sudo',
         ('locale-gen', 'locales'),
         ('nc', 'netcat'),
-        # ('nvim', 'neovim'),  # too old
+        # too old on 22.04
+        # 'npm',
+        # ('nvim', 'neovim'),
     ]
     to_install = []
     for e in execs:
@@ -127,6 +129,7 @@ def _install_homebrew():
         'btop',
         'lsd',
         'tmux',
+        'npm',
         'nvim',
         ('carapace', 'rsteube/tap/carapace'),
     ]
@@ -152,7 +155,7 @@ def _install_homebrew():
         from contextlib import nullcontext
         context = nullcontext()
     with context:
-        brew install @(to_install)
+        /home/linuxbrew/.linuxbrew/bin/brew install @(to_install)
 
 
 def _ubuntu_specific():

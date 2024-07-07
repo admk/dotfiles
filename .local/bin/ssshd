@@ -27,11 +27,11 @@ cd $HOME
 
 # find open port
 PORT=$(python3 -c "
-    import socket
-    s=socket.socket()
-    s.bind(('', 0))
-    print(s.getsockname()[1])
-    s.close()")
+import socket
+s=socket.socket()
+s.bind(('', 0))
+print(s.getsockname()[1])
+s.close()")
 scontrol update JobId="$SLURM_JOB_ID" Comment="$PORT"
 
 echo "********************************************************************"
@@ -50,7 +50,7 @@ echo "********************************************************************"
 # {queue_cmd}
 
 # start sshd server on the available port
-/usr/sbin/sshd -D -p $PORT -f /dev/null -h $KXH_OLD_HOME/.ssh/id_rsa
+/usr/sbin/sshd -D -p $PORT -f /dev/null -h ${{KXH_OLD_HOME:-~/.ssh/id_rsa}}
 echo "Error: sshd exited unexpectedly"
 """
 
