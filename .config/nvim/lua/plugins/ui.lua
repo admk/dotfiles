@@ -21,6 +21,19 @@ la ni li toki ala nasin.]]
                 section_separators = { left = "", right = "" },
             },
         },
+        config = function(_, opts)
+            local lualine = require("lualine")
+            local lazyvim = require("lazyvim")
+            local short_mode = function()
+                local mode = vim.api.nvim_get_mode()['mode']
+                mode = mode:gsub('\22', '^V')
+                mode = mode:gsub('\19', '^S')
+                return mode:upper()
+            end
+            opts.sections.lualine_a = { short_mode }
+            table.remove(opts.sections.lualine_c, 2)
+            lualine.setup(opts)
+        end,
     },
     {
         "folke/noice.nvim",
