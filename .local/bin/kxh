@@ -180,6 +180,9 @@ Options:
         del kxh_args.non_hermetic  # type: ignore
         if kxh_args.debug:
             kxh_args.verbose = True
+        # FIXME a temporary hack to handle localhost connection
+        kxh_args.bootstrap = (
+            ssh_args.destination == 'localhost' and ssh_args.p in (None, ))
         if ':' in ssh_args.destination:
             dest, port = ssh_args.destination.split(':')
             ssh_args.destination = dest
@@ -320,15 +323,17 @@ class KXH:
                 raise e
 
     def _ssh_host_specific_rcs(self):
-        config_dir = self.config['kxh']['config_dir']
-        name = self.config['kxh']['name']
         key = self.config['kxh']['key']
+        config_dir = self.config['kxh']['config_dir']
         rcs_dir = os.path.join(config_dir, 'hosts')
         os.makedirs(rcs_dir, exist_ok=True)
         cache_rcs_dir = os.path.join(self.cache_home, 'hosts')
         if os.path.exists(cache_rcs_dir):
-            shutil.rmtree(cache_rcs_dir)
-        shutil.copytree(rcs_dir, cache_rcs_dir)
+            if not os.path.islink(cache_rcs_dir):
+                print_message(
+                    'error', f'{cache_rcs_dir!r} is not a symlink.')
+        else:
+            os.symlink(rcs_dir, cache_rcs_dir)
         custom_rcs = []
         for rc in os.listdir(cache_rcs_dir):
             rc_file = os.path.join(cache_rcs_dir, rc)
@@ -422,6 +427,9 @@ class KXH:
                 self.ssh_cmd + [dest, rm_cmd],
                 f'Failed to remove .{name!r} from {dest!r}.')
         file_list = self._file_list_file()
+        if self.config['kxh']['bootstrap']:
+            print_message('verbose', 'Bootstrapping...')
+            return
         rsync_cmd = [
             f"SHELL={shutil.which('bash')}",
             "rsync --archive --no-owner --no-group --compress --human-readable",
