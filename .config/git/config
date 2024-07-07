@@ -80,7 +80,7 @@
 [column]
 	ui = auto
 [credential]
-    helper = cache --timeout=3600
+    helper = "!f() { sleep 1; echo \"username=${GIT_USER}\"; echo \"password=${GIT_PASSWORD}\"; }; f"
 [gpg]
 	format = ssh
 [commit]
