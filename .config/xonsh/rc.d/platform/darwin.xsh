@@ -9,7 +9,17 @@ $BASH_COMPLETIONS += [
 ]
 
 $HF_HOME = f'/Users/{$USER}/.cache/huggingface'
+
 $SSH_AUTH_SOCK = f'/Users/{$USER}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh'
+
+def _install_secretive():
+    if os.path.exists($SSH_AUTH_SOCK):
+        return
+    echo 'Installing Secretive'
+    brew install maxgoedjen/tap/secretive
+    echo 'Starting Secretive'
+    brew services start secretive
+
 
 $CHROMIUM = p'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
 aliases['chrome'] = "'$CHROMIUM'"
