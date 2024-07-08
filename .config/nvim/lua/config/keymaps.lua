@@ -26,6 +26,10 @@ keymap.set("v", ">", ">gv")
 -- Increment/decrement
 keymap.set("n", "+", "<C-a>")
 keymap.set("n", "-", "<C-x>")
+-- Center screen with offset, not working?
+-- keymap.set("n", "zz", function()
+--     vim.cmd("normal! zt" .. math.floor(vim.fn.winheight(0) / 3) .. "<c-y>")
+-- end, opts)
 -- }
 -- }
 -- Commands {

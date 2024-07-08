@@ -1,7 +1,7 @@
 return {
     {
         "catppuccin/nvim",
-        lazy = false,
+        lazy = true,
         name = "catppuccin",
         priority = 1000,
         config = function()
@@ -11,7 +11,10 @@ return {
     },
     {
         "folke/tokyonight.nvim",
-        lazy = true,
+        lazy = false,
         priority = 1000,
+        config = function()
+            vim.cmd([[hi Normal guibg=NONE ctermbg=NONE]])
+        end,
     },
 }

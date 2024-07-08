@@ -13,13 +13,20 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
     spec = {
-        { "LazyVim/LazyVim", import = "lazyvim.plugins" },
+        {
+            "LazyVim/LazyVim",
+            import = "lazyvim.plugins",
+            opts = {
+                colorscheme = "tokyonight",
+            },
+        },
+        { import = "lazyvim.plugins.extras.coding.copilot" },
+        { import = "lazyvim.plugins.extras.editor.mini-files" },
+        { import = "lazyvim.plugins.extras.dap.core" },
         { import = "lazyvim.plugins.extras.lang.markdown" },
         { import = "lazyvim.plugins.extras.lang.python" },
         { import = "lazyvim.plugins.extras.lang.tex" },
-        { import = "lazyvim.plugins.extras.editor.mini-files" },
-        { import = "lazyvim.plugins.extras.coding.copilot" },
-        { import = "lazyvim.plugins.extras.dap.core" },
+        { import = "lazyvim.plugins.extras.ui.edgy" },
         { import = "plugins" },
     },
     defaults = { lazy = false, version = false },

@@ -22,28 +22,30 @@ la ni li toki ala nasin.]]
             },
         },
         config = function(_, opts)
-            local lualine = require("lualine")
-            local lazyvim = require("lazyvim")
+            table.unpack = table.unpack or unpack
             local short_mode = function()
-                local mode = vim.api.nvim_get_mode()['mode']
-                mode = mode:gsub('\22', '^V')
-                mode = mode:gsub('\19', '^S')
+                local mode = vim.api.nvim_get_mode()["mode"]
+                mode = mode:gsub("\22", "^V")
+                mode = mode:gsub("\19", "^S")
                 return mode:upper()
             end
             opts.sections.lualine_a = { short_mode }
             table.remove(opts.sections.lualine_c, 2)
-            lualine.setup(opts)
+            local command, mode, dap, updates = table.unpack(
+                opts.sections.lualine_x, 1, 4)
+            opts.sections.lualine_x = { command, mode }
+            opts.sections.lualine_y = { dap, updates }
+            require("lualine").setup(opts)
         end,
     },
     {
         "folke/noice.nvim",
         opts = {
             lsp = {
-                -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
                 override = {
                     ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
                     ["vim.lsp.util.stylize_markdown"] = true,
-                    ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
+                    ["cmp.entry.get_documentation"] = true,
                 },
             },
             presets = {
@@ -127,13 +129,10 @@ la ni li toki ala nasin.]]
                         end
                         for name, icon in pairs(icons) do
                             if tonumber(signs[name]) and signs[name] > 0 then
-                                table.insert(
-                                    labels,
-                                    {
-                                        icon .. signs[name] .. " ",
-                                        group = "Diff" .. name,
-                                    }
-                                )
+                                table.insert(labels, {
+                                    icon .. signs[name] .. " ",
+                                    group = "Diff" .. name,
+                                })
                             end
                         end
                         if #labels > 0 then
@@ -152,20 +151,16 @@ la ni li toki ala nasin.]]
                         local label = {}
 
                         for severity, icon in pairs(icons) do
-                            local n = #vim.diagnostic.get(
-                                props.buf,
-                                {
-                                    severity = vim.diagnostic.severity[
-                                        string.upper(severity)],
-                                }
-                            )
+                            local n = #vim.diagnostic.get(props.buf, {
+                                severity = vim.diagnostic.severity[string.upper(
+                                    severity
+                                )],
+                            })
                             if n > 0 then
-                                table.insert(
-                                    label, {
-                                        icon .. " " .. n .. " ",
-                                        group = "DiagnosticSign" .. severity,
-                                    }
-                                )
+                                table.insert(label, {
+                                    icon .. " " .. n .. " ",
+                                    group = "DiagnosticSign" .. severity,
+                                })
                             end
                         end
                         if #label > 0 then
@@ -200,6 +195,6 @@ la ni li toki ala nasin.]]
             open_mapping = [[<c-\>]],
             direction = "horizontal",
             shade_terminals = false,
-        }
-    }
+        },
+    },
 }
