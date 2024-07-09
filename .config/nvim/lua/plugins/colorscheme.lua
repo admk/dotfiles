@@ -4,17 +4,20 @@ return {
         lazy = true,
         name = "catppuccin",
         priority = 1000,
-        config = function()
-            vim.cmd([[colorscheme catppuccin]])
-            -- vim.cmd([[hi Normal guibg=NONE ctermbg=NONE]])
-        end,
     },
     {
         "folke/tokyonight.nvim",
-        lazy = false,
+        lazy = true,
         priority = 1000,
-        config = function()
-            vim.cmd([[hi Normal guibg=NONE ctermbg=NONE]])
-        end,
+    },
+    {
+        "LazyVim/LazyVim",
+        opts = {
+            colorscheme = function()
+                require("catppuccin").load()
+                vim.cmd("colorscheme catppuccin")
+                vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
+            end,
+        },
     },
 }

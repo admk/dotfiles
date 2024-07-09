@@ -1,4 +1,6 @@
 return {
+    { import = "lazyvim.plugins.extras.editor.mini-files" },
+    { import = "lazyvim.plugins.extras.ui.edgy" },
     {
         "nvimdev/dashboard-nvim",
         dependencies = { "nvim-tree/nvim-web-devicons" },
@@ -58,11 +60,24 @@ la ni li toki ala nasin.]]
     },
     {
         "rcarriga/nvim-notify",
+        keys = {
+            {
+                "<C-c>",
+                function()
+                    require("notify").dismiss()
+                end,
+                desc = "Dismiss notification",
+            },
+        },
         opts = {
             timeout = 5000,
             top_down = false,
             stages = "slide",
         },
+    },
+    {
+        "nvim-neo-tree/neo-tree.nvim",
+        version = "*",
     },
     {
         "akinsho/bufferline.nvim",
@@ -188,13 +203,14 @@ la ni li toki ala nasin.]]
         end,
     },
     {
-        "akinsho/toggleterm.nvim",
-        version = "*",
-        config = true,
-        opts = {
-            open_mapping = [[<c-\>]],
-            direction = "horizontal",
-            shade_terminals = false,
-        },
+        "rachartier/tiny-inline-diagnostic.nvim",
+        dependencies = { "neovim/nvim-lspconfig" },
+        event = "VeryLazy",
+        config = function()
+            vim.diagnostic.config({
+                virtual_text = false,
+            })
+            require('tiny-inline-diagnostic').setup()
+        end
     },
 }

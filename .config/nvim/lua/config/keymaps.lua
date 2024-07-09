@@ -28,7 +28,8 @@ keymap.set("n", "+", "<C-a>")
 keymap.set("n", "-", "<C-x>")
 -- Center screen with offset, not working?
 -- keymap.set("n", "zz", function()
---     vim.cmd("normal! zt" .. math.floor(vim.fn.winheight(0) / 3) .. "<c-y>")
+--     local keys = "zt" .. math.floor(vim.fn.winheight(0) / 4) .. "<c-y>"
+--     vim.api.nvim_feedkeys(keys, "n", false)
 -- end, opts)
 -- }
 -- }
