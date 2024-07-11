@@ -1,6 +1,7 @@
 cryptography
 gpustat ; sys_platform == 'linux'
 libtmux
+neovim-remote
 prompt-toolkit
 tabulate
 task-spooler-utils

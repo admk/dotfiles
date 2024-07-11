@@ -85,3 +85,5 @@
 	format = ssh
 [commit]
     gpgSign = true
+[http]
+    postBuffer = 524288000

@@ -34,6 +34,7 @@ aliases |= {
     'grep': 'grep --color=auto',
     'http-here': 'python -m http.server',
     'k': 'kxh',
+    'nvr': '$KXH_CONDA_PREFIX/bin/nvr',
     'py': 'python',
     'ipy': 'ipython',
     'pio': 'python3 -m pip install --index-url https://pypi.org/simple/',
@@ -149,7 +150,7 @@ def _pydb(args, stdin=None):
     if 'NVIM' in ${...}:
         client = 'nvim'
         # auto-attach to debugpy in nvim
-        cmd = f"<c-\\\\><c-n>;lua require('dap')._run_py_attach_config({port})<CR>"
+        cmd = f"<c-/>;DapPyAttach({port})<CR>"
         execx(f'nvr --remote-send "{cmd}"')
     else:
         client = 'client'

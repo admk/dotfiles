@@ -38,7 +38,12 @@ return {
                 end
                 dap.run(py_attach_config)
             end
-            dap._run_py_attach_config = run_py_attach_config
+            vim.api.nvim_create_user_command(
+                'DapPyAttach',
+                function(cmd_opts)
+                    run_py_attach_config(cmd_opts.args[1])
+                end,
+                { nargs = 1 })
             vim.keymap.set(
                 'n', '<leader>dd', run_py_attach_config,
                 { noremap = true, silent = true, desc = py_attach_config.name })
