@@ -14,6 +14,7 @@ return {
             local dap = require('dap')
             local dapui = require('dapui')
 
+            require("dap.ext.vscode").load_launchjs('launch.json')
             dapui.setup()
             require("nvim-dap-virtual-text").setup({
                 enabled = false,
@@ -28,11 +29,16 @@ return {
                 host = '127.0.0.1',
                 port = 5678,
             }
-            table.insert(dap.configurations.python, 0, py_attach_config)
-
-            local run_py_attach_config = function()
+            -- table.insert(dap.configurations.python, 1, py_attach_config)
+            local run_py_attach_config = function(port)
+                if port ~= nil then
+                    py_attach_config.port = port
+                    py_attach_config.name = string.format(
+                        'Attach remote (localhost:%d)', port)
+                end
                 dap.run(py_attach_config)
             end
+            dap._run_py_attach_config = run_py_attach_config
             vim.keymap.set(
                 'n', '<leader>dd', run_py_attach_config,
                 { noremap = true, silent = true, desc = py_attach_config.name })

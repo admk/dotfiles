@@ -75,6 +75,9 @@ def ssh_host_specific(verbose):
     config_home = ${...}.get('XDG_CONFIG_HOME', '~/.config')
     config_host_rcs = f'{config_home}/kxh/hosts/'
     if not os.path.exists(config_host_rcs):
+        if 'SSH_CONNECTION' not in ${...}:
+            print(f'kxh shell ==> path {config_host_rcs!r} does not exist.')
+            return
         cache_home = ${...}.get('XDG_CACHE_HOME', '~/.cache')
         host_rc = f'{cache_home}/kxh/hosts_collated.xsh.enc'
         if os.path.exists(host_rc):

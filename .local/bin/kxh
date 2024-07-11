@@ -231,7 +231,7 @@ class KXH:
     }
 
     def _load_rc(self, config_home, rc):
-        rc = rc or os.path.join(config_home, 'kxh.toml')
+        rc = rc or os.path.join(config_home, 'kxh', 'config.toml')
         if os.path.exists(rc):
             with open(rc, 'rb') as f:
                 config = tomlkit.load(f).unwrap()
@@ -361,8 +361,6 @@ class KXH:
     def _shared_files(self):
         config_dir = self.config['kxh']['config_dir']
         shared_dir = os.path.join(config_dir, 'share')
-        shared_pat = os.path.join(shared_dir, '**/**')
-        shared_files = glob.glob(shared_pat, recursive=True)
         shared_cache_dir = os.path.join(self.cache_home, 'share')
         # create folder symlink to shared dir
         if os.path.exists(shared_cache_dir):
@@ -371,8 +369,9 @@ class KXH:
                     'error', f'{shared_cache_dir!r} is not a symlink.')
         else:
             os.symlink(shared_dir, shared_cache_dir)
-        shared_files = [os.path.relpath(f, shared_dir) for f in shared_files]
-        return [os.path.join(shared_cache_dir, f) for f in shared_files]
+        shared_pat = os.path.join(shared_cache_dir, '**', '**')
+        shared_files = glob.glob(shared_pat, recursive=True)
+        return shared_files
 
     def _file_list_file(self):
         sync_file = os.path.join(self.cache_home, 'sync')

@@ -40,6 +40,7 @@ aliases |= {
     'l': 'ls',
     'la': 'ls -a',
     'll': 'ls -la',
+    'lg': 'lazygit',
     'ash':
         "autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' "
         "-o ExitOnForwardFailure=yes -nNT",
@@ -122,7 +123,12 @@ def _tmux_reattach(args):
 @aliases.register('pydb')
 @_unthreadable
 def _pydb(args, stdin=None):
-    port = 5678
+    port = ${...}.get('PYDB_PORT')
+    if not port:
+        import socket
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('', 0))
+            port = s.getsockname()[1]
     processes = $(lsof -i tcp:@(port)) if _which('lsof') else None
     if processes:
         pids = []
@@ -140,13 +146,22 @@ def _pydb(args, stdin=None):
             else:
                 print('Aborting')
                 return
-    print('Waiting for client to attach to 5678...')
+    if 'NVIM' in ${...}:
+        client = 'nvim'
+        # auto-attach to debugpy in nvim
+        cmd = f"<c-\\\\><c-n>;lua require('dap')._run_py_attach_config({port})<CR>"
+        execx(f'nvr --remote-send "{cmd}"')
+    else:
+        client = 'client'
+    print(f'Waiting for {client} to attach to {port}...')
     with ${...}.swap(WANDB_MODE='disabled'):
         if stdin is not None:
             echo @(stdin) | \
-                python -m debugpy --listen 5678 --wait-for-client @(args)
+                python -m debugpy --listen @(port) --wait-for-client @(args)
         else:
-            python -m debugpy --listen 5678 --wait-for-client @(args)
+            python -m debugpy --listen @(port) --wait-for-client @(args)
+
+${...}.setdefault('PYDB_PORT', 5678)
 
 
 @register_env_alias('hfoff', setmode='toggle')

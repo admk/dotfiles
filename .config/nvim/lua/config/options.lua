@@ -44,7 +44,7 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 -- }
 -- Text flow: {
-vim.opt.wrap = false
+vim.opt.wrap = true
 vim.opt.linebreak = true
 vim.opt.textwidth = 79
 vim.opt.colorcolumn = "+1"

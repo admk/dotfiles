@@ -104,6 +104,7 @@ def _install_apts():
 
 def _install_homebrew():
     if $USER != "root":
+        $PATH.append('/home/linuxbrew/.linuxbrew/bin')
         return
     if not p'/home/linuxbrew/.linuxbrew/bin/brew'.exists():
         print('Installing Homebrew...')
