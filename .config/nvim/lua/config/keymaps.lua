@@ -34,6 +34,8 @@ keymap.set("n", "-", "<C-x>")
 -- }
 -- }
 -- Commands {
+keymap.set("c", "<C-A>", "<Home>", opts)
+keymap.set("c", "<C-E>", "<End>", opts)
 -- Sudo
 -- keymap.set("c", "w!!", "w !sudo tee % >/dev/null", opts)
 -- Current directory

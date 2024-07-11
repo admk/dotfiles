@@ -4,6 +4,7 @@ return {
         "mfussenegger/nvim-dap",
         dependencies = {
             "rcarriga/nvim-dap-ui",
+            "rcarriga/cmp-dap",
             "williamboman/mason.nvim",
             "jay-babu/mason-nvim-dap.nvim",
             "mfussenegger/nvim-dap-python",
@@ -51,6 +52,18 @@ return {
             dap.listeners.after.event_initialized.dapui_config = dapui.open
             dap.listeners.before.event_terminated.dapui_config = dapui.close
             dap.listeners.before.event_exited.dapui_config = dapui.close
+
+            local cmp = require('cmp')
+            cmp.setup({
+                enabled = function()
+                    local buftype = vim.api.nvim_buf_get_option(0, "buftype")
+                    return buftype ~= "prompt"
+                        or require("cmp_dap").is_dap_buffer()
+                end
+            })
+            cmp.setup.filetype(
+                { "dap-repl", "dapui_watches", "dapui_hover" },
+                { sources = { { name = "dap" }, }, })
         end
     },
 }
