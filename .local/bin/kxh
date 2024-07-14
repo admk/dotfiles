@@ -4,8 +4,10 @@ import re
 import sys
 import copy
 import glob
+import shlex
 import shutil
 import argparse
+import tempfile
 import subprocess
 
 import tomlkit
@@ -240,9 +242,6 @@ class KXH:
         config.setdefault('kxh', copy.deepcopy(self.kxh_defaults))
         if 'key' not in config['kxh']:
             config['kxh']['key'] = Fernet.generate_key().decode('utf-8')
-        if 'config_dir' not in config['kxh']:
-            name = config['kxh']['name']
-            config['kxh']['config_dir'] = config_home
         config.setdefault('ssh', {})
         return config
 
@@ -324,19 +323,11 @@ class KXH:
 
     def _ssh_host_specific_rcs(self):
         key = self.config['kxh']['key']
-        config_dir = self.config['kxh']['config_dir']
-        rcs_dir = os.path.join(config_dir, 'hosts')
+        rcs_dir = os.path.join(self.config_home, 'hosts')
         os.makedirs(rcs_dir, exist_ok=True)
-        cache_rcs_dir = os.path.join(self.cache_home, 'hosts')
-        if os.path.exists(cache_rcs_dir):
-            if not os.path.islink(cache_rcs_dir):
-                print_message(
-                    'error', f'{cache_rcs_dir!r} is not a symlink.')
-        else:
-            os.symlink(rcs_dir, cache_rcs_dir)
         custom_rcs = []
-        for rc in os.listdir(cache_rcs_dir):
-            rc_file = os.path.join(cache_rcs_dir, rc)
+        for rc in os.listdir(rcs_dir):
+            rc_file = os.path.join(rcs_dir, rc)
             if not os.path.isfile(rc_file):
                 continue
             rc_name = os.path.splitext(rc)[0]
@@ -345,7 +336,7 @@ class KXH:
         rcs = []
         for rc in custom_rcs:
             with open(rc, 'r', encoding='utf-8') as r:
-                rc = os.path.relpath(rc, self.config['kxh']['home'])
+                rc = os.path.relpath(rc, self.config_home)
                 rcs.append(f'# --- {rc} ---')
                 rcs.append(r.read())
         rcs = '\n'.join(rcs)
@@ -358,31 +349,59 @@ class KXH:
             f.write(key)
         return [collate_rc, key_file]
 
+    def _rsync(self, source, destination, file_list=None, sync_file=None):
+        is_remote = ':' in destination
+        rsync_cmd = [
+            f"SHELL={shutil.which('bash')}",
+            "rsync --archive --no-owner --no-group --compress --human-readable",
+            "--update --partial --progress --checksum --copy-links"
+        ]
+        if is_remote:
+            rsync_cmd.append(f"--rsh {' '.join(self.ssh_cmd)!r}")
+        file_list_file = None
+        if file_list is not None:
+            if sync_file is not None:
+                file_list_file = open(sync_file, 'w', encoding='utf-8')
+                home = self.config['kxh']['home']
+                rel_sync_file = os.path.relpath(sync_file, home)
+                file_list.append(rel_sync_file)
+            else:
+                file_list_file = tempfile.NamedTemporaryFile(
+                    mode='w', delete=True)
+            file_list_file.write('\n'.join(file_list) + '\n')
+            file_list_file.flush()
+            rsync_cmd.append(f"--files-from {file_list_file.name}")
+        source = shlex.quote(source)
+        destination = shlex.quote(destination)
+        rsync_cmd.append(f"{source} {destination}")
+        self._run_shell(
+            ' '.join(rsync_cmd),
+            f'Failed to rsync files from {source!r} to {destination!r}.')
+        if file_list_file is not None:
+            file_list_file.close()
+
     def _shared_files(self):
-        config_dir = self.config['kxh']['config_dir']
-        shared_dir = os.path.join(config_dir, 'share')
-        shared_cache_dir = os.path.join(self.cache_home, 'share')
-        # create folder symlink to shared dir
-        if os.path.exists(shared_cache_dir):
-            if not os.path.islink(shared_cache_dir):
-                print_message(
-                    'error', f'{shared_cache_dir!r} is not a symlink.')
-        else:
-            os.symlink(shared_dir, shared_cache_dir)
-        shared_pat = os.path.join(shared_cache_dir, '**', '**')
-        shared_files = glob.glob(shared_pat, recursive=True)
-        return shared_files
+        name = self.config['kxh']['name']
+        shared_dir = os.path.join(self.config_home, 'share')
+        shared_pat = os.path.join(shared_dir, '**', '**')
+        shared_files = glob.glob(
+            shared_pat, recursive=True, include_hidden=True)
+        # omit directories
+        shared_files = [f for f in shared_files if os.path.isfile(f)]
+        shared_files = [
+            os.path.relpath(f, shared_dir) for f in shared_files]
+        shared_files = list(sorted(set(shared_files)))
+        cached_shared_dir = os.path.join(self.cache_home, 'share')
+        self._rsync(shared_dir, cached_shared_dir, shared_files)
+        return [os.path.join(self.cache_home, 'share', f) for f in shared_files]
 
     def _file_list_file(self):
-        sync_file = os.path.join(self.cache_home, 'sync')
-        os.makedirs(os.path.dirname(sync_file), exist_ok=True)
-        f = open(sync_file, 'w', encoding='utf-8')
         home = self.config['kxh']['home']
         file_list = self._run(
             ['git', 'ls-files'],
             f'Failed to list files in {home!r}.',
             verbose=False, cwd=home)
-        file_list = file_list or ''
+        file_list = file_list.strip().split('\n') if file_list else []
         custom_files = self._ssh_host_specific_rcs()
         custom_files += self._shared_files()
         files = [
@@ -391,15 +410,12 @@ class KXH:
         if self.config['kxh']['debug']:
             vcf = '\n  ' + '\n  '.join(custom_files)
             print_message('debug', f"Custom files: {vcf}")
-        files.append(os.path.relpath(sync_file, home))
-        file_list += '\n'.join(files) + '\n'
-        f.write(file_list)
-        f.close()
+        file_list += files
         missing_files = [
             f for f in files if not os.path.exists(os.path.join(home, f))]
         if missing_files:
             print_message('warning', f'Missing files: {missing_files!r}')
-        return sync_file
+        return file_list
 
     def _sync_files(self):
         url = self.config['kxh']['repo']
@@ -429,18 +445,8 @@ class KXH:
         if self.config['kxh']['bootstrap']:
             print_message('verbose', 'Bootstrapping...')
             return
-        rsync_cmd = [
-            f"SHELL={shutil.which('bash')}",
-            "rsync --archive --no-owner --no-group --compress --human-readable",
-            "--update --partial --progress --checksum --copy-links",
-            f"--rsh {' '.join(self.ssh_cmd)!r}",
-            f"--files-from {file_list}",
-            f"\'{home}/\' {dest}:.{name}"
-        ]
-        rsync_cmd = ' '.join(rsync_cmd)
-        self._run_shell(
-            rsync_cmd,
-            f'Failed to rsync files to {dest!r}.')
+        sync_file = os.path.join(self.cache_home, 'sync')
+        self._rsync(home, f'{dest}:.{name}', file_list, sync_file)
 
     def _ssh(self):
         name = self.config['kxh']['name']

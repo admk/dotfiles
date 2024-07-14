@@ -106,6 +106,9 @@ delete_list=()
 if [[ -f $sync_list && ! -z $SSH_CONNECTION ]]; then
     hot_dirs=(
         $XDG_CONFIG_HOME/xonsh/rc.d
+        $XDG_CONFIG_HOME/nvim/lua/plugins
+        $XDG_CONFIG_HOME/nvim/lua/config
+        $XDG_CACHE_HOME/kxh/share
     )
     for hot_dir in ${hot_dirs[@]}; do
         if [ ! -d $hot_dir ]; then
