@@ -50,7 +50,7 @@ echo "********************************************************************"
 # {queue_cmd}
 
 # start sshd server on the available port
-/usr/sbin/sshd -D -p $PORT -f /dev/null -h ${{KXH_OLD_HOME:-~/.ssh/id_rsa}}
+/usr/sbin/sshd -D -p $PORT -f /dev/null -h ${{KXH_OLD_HOME:-~}}/.ssh/id_rsa
 echo "Error: sshd exited unexpectedly"
 """
 

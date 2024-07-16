@@ -1,13 +1,13 @@
 return {
     {
         "catppuccin/nvim",
-        lazy = true,
+        lazy = false,
         name = "catppuccin",
         priority = 1000,
     },
     {
         "folke/tokyonight.nvim",
-        lazy = true,
+        lazy = false,
         priority = 1000,
     },
     {

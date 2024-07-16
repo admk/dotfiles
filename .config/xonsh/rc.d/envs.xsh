@@ -49,6 +49,14 @@ except KeyError:
     pass
 
 
+def _nvim_shell_integration():
+    if ${...}.get('NVIM') is None:
+        return
+    if not _which('nvim'):
+        return
+    $EDITOR = f'{$KXH_CONDA_PREFIX}/bin/nvr --remote-wait'
+
+
 def _vscode_shell_integration():
     if ${...}.get('TERM_PROGRAM') != 'vscode':
         return
@@ -61,5 +69,6 @@ def _vscode_shell_integration():
     $EDITOR = old_editor
 
 
+_nvim_shell_integration()
 _vscode_shell_integration()
-del _vscode_shell_integration, _which
+del _nvim_shell_integration, _vscode_shell_integration, _which

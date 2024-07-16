@@ -43,14 +43,11 @@ keymap.set("c", "<C-E>", "<End>", opts)
 -- }
 -- Window {
 -- New tab
-keymap.set("n", "te", ":tabedit ")
 keymap.set("n", "<tab>", ":tabnext<Return>", opts)
 keymap.set("n", "<s-tab>", ":tabprev<Return>", opts)
--- Split window
-keymap.set("n", "ss", ":split<Return>", opts)
-keymap.set("n", "sv", ":vsplit<Return>", opts)
 -- New terminal
 keymap.set("n", "<leader>ts", ":terminal<Return>", opts)
+keymap.set("t", "<C-\\>", "<C-\\><C-n>", opts)
 -- Resize window
 keymap.set("n", "=", [[<cmd>vertical resize +5<cr>]])
 keymap.set("n", "-", [[<cmd>vertical resize -5<cr>]])

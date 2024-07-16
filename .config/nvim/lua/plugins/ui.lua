@@ -65,6 +65,7 @@ la ni li toki ala nasin.]]
                 "<C-c>",
                 function()
                     require("notify").dismiss()
+                    vim.cmd("nohlsearch")
                 end,
                 desc = "Dismiss notification",
             },

@@ -57,6 +57,7 @@ register_dep_aliases({
     'ls': ['lsd', 'eza'],
     'cs': 'gh copilot suggest -t shell',
     'ce': 'gh copilot explain',
+    'wttr': 'curl wttr.in',
 })
 
 
