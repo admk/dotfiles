@@ -208,3 +208,44 @@ def ssh_exit_all():
         p = socket_dir / p
         if p.exists():
             execx(f'ssh -O exit -o ControlPath="{p}" bogus')
+
+
+@aliases.register('ssh-forward')
+def ssh_forward(args):
+    import argparse
+    parser = argparse.ArgumentParser(
+        prog='ssh-forward',
+        description='Forward a remote port to a local port.')
+    parser.add_argument(
+        'host', help='Remote host to forward port to.')
+    parser.add_argument(
+        'remote_port', type=int, help='Remote port to forward.')
+    parser.add_argument(
+        'local_port', type=int, nargs='?', help='Local port to forward to.')
+    parser.add_argument(
+        '-c', '--cancel', action='store_true', help='Close existing connection.')
+    args = parser.parse_args(args)
+    route = f'{args.local_port}:localhost:{args.remote_port}'
+    r = !(lsof -i tcp:@(args.local_port))
+    if args.cancel:
+        if r:
+            r = !(xthread ssh -O cancel -L @(route) @(args.host) 2>&1)
+            if not r:
+                print(r.output)
+                print('Failed to cancel existing connection.')
+                return 1
+        else:
+            print(f'Local port {args.local_port} is not in use.')
+            return 1
+        return 0
+    if r:
+        print(r.output)
+        print(f'Local port {args.local_port} is in use.')
+    r = !(xthread ssh -fNT -O forward -L @(route) -o ExitOnForwardFailure=yes @(args.host) 2>&1)
+    if not r:
+        print(r.output)
+        print('Failed to forward port to remote host.')
+        return 1
+    print(
+        f'Forwarded remote port {args.remote_port} '
+        f'to local port {args.local_port}.')

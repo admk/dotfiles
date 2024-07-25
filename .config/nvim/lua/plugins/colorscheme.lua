@@ -16,7 +16,7 @@ return {
             colorscheme = function()
                 require("catppuccin").load()
                 vim.cmd("colorscheme catppuccin")
-                vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
+                -- vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
             end,
         },
     },

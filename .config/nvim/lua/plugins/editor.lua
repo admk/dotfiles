@@ -1,4 +1,5 @@
 return {
+    { "echasnovski/mini.pairs", enabled = false },
     { import = "lazyvim.plugins.extras.coding.copilot" },
     {
         "kylechui/nvim-surround",
@@ -8,7 +9,6 @@ return {
             require("nvim-surround").setup({})
         end,
     },
-    { "echasnovski/mini.comment", version = false },
     {
         "dinhhuy258/git.nvim",
         event = "BufReadPre",

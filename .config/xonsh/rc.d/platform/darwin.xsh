@@ -9,8 +9,13 @@ $BASH_COMPLETIONS += [
 ]
 
 $HF_HOME = f'/Users/{$USER}/.cache/huggingface'
-
 $SSH_AUTH_SOCK = f'/Users/{$USER}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh'
+if 'DBUS_LAUNCHD_SESSION_BUS_SOCKET' in ${...}:
+    $DBUS_SESSION_BUS_ADDRESS = f'unix:path={$DBUS_LAUNCHD_SESSION_BUS_SOCKET}'
+
+$CHROMIUM = p'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
+$BROWSER = 'open'
+
 
 def _install_secretive():
     if os.path.exists($SSH_AUTH_SOCK):
@@ -20,11 +25,6 @@ def _install_secretive():
     echo 'Starting Secretive'
     brew services start secretive
 
-
-$CHROMIUM = p'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
-aliases['chrome'] = "'$CHROMIUM'"
-
-$BROWSER = 'open'
 
 @aliases.register('proxy-browser-alt')
 def proxy_browser_alt(args):
@@ -60,3 +60,8 @@ def proxy_browser(args):
         echo 'Failed to start browser'
         return
     ssh -S @(socket_path) -O exit @(args)
+
+
+aliases |= {
+    'chrome': "'$CHROMIUM'",
+}

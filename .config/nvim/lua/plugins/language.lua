@@ -4,6 +4,9 @@ return {
     { import = "lazyvim.plugins.extras.lang.tex" },
     {
         "nvim-treesitter/nvim-treesitter",
+        dependencies = {
+            "LiadOz/nvim-dap-repl-highlights",
+        },
         opts = {
             ensure_installed = {
                 "cpp",
@@ -14,6 +17,7 @@ return {
                 "python",
                 "rust",
                 "typst",
+                "dap_repl",
             },
             query_linter = {
                 enable = true,
@@ -21,6 +25,18 @@ return {
                 lint_events = { "BufWrite", "CursorHold" },
             },
         },
+        config = function (_, opts)
+            require("nvim-dap-repl-highlights").setup()
+            require("nvim-treesitter.configs").setup(opts)
+            -- vim.g.vimtex_compiler_progname = 'nvr'
+            vim.g.vimtex_quickfix_mode = 0
+            vim.g.vimtex_view_method = "sioyek"
+            vim.g.vimtex_view_sioyek_sync = 1
+            vim.g.vimtex_view_sioyek_activate = 0
+            -- vim.g.vimtex_view_method = "skim"
+            -- vim.g.vimtex_view_skim_sync = 1
+            -- vim.g.vimtex_view_skim_activate = 0
+        end
     },
     {
         "williamboman/mason.nvim",
@@ -91,5 +107,13 @@ return {
         "abhishekmukherg/xonsh-vim",
         event = "VeryLazy",
         ft = "xonsh",
+    },
+    {
+        'chomosuke/typst-preview.nvim',
+        ft = "typst",
+        version = '0.3.*',
+        build = function()
+            require('typst-preview').update()
+        end,
     }
 }

@@ -6,9 +6,7 @@ return {
         dependencies = { "nvim-tree/nvim-web-devicons" },
         event = "VimEnter",
         opts = function(_, opts)
-            local logo = [[ 
-ona li ken pana toki nasin,
-la ni li toki ala nasin.]]
+            local logo = [[󱥄 󱥌 󱤉 󱥔 󱥩 󱤰 ]]
             logo = string.rep("\n", 8) .. logo .. "\n\n"
             opts.config.header = vim.split(logo, "\n")
         end,
@@ -37,6 +35,7 @@ la ni li toki ala nasin.]]
                 opts.sections.lualine_x, 1, 4)
             opts.sections.lualine_x = { command, mode }
             opts.sections.lualine_y = { dap, updates }
+            opts.sections.lualine_z = { function() return '' end }
             require("lualine").setup(opts)
         end,
     },
@@ -168,9 +167,8 @@ la ni li toki ala nasin.]]
 
                         for severity, icon in pairs(icons) do
                             local n = #vim.diagnostic.get(props.buf, {
-                                severity = vim.diagnostic.severity[string.upper(
-                                    severity
-                                )],
+                                severity = vim.diagnostic.severity[
+                                    string.upper(severity)],
                             })
                             if n > 0 then
                                 table.insert(label, {

@@ -3,6 +3,7 @@ gpustat ; sys_platform == 'linux'
 libtmux
 neovim-remote
 prompt-toolkit
+sioyek ; sys_platform == 'darwin'
 tabulate
 task-spooler-utils
 xonsh-autoxsh
@@ -17,7 +18,7 @@ xontrib-cmd-durations
 xontrib-ergopack
 xontrib-fish-completer
 xontrib-history-encrypt
-xontrib-homebrew ; sys_platform == "darwin"
+xontrib-homebrew ; sys_platform == 'darwin'
 xontrib-onepath
 xontrib-output-search
 xontrib-pipeliner
