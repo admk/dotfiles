@@ -2,6 +2,7 @@ $PATH = [
     '/opt/homebrew/opt/coreutils/libexec/gnubin',
 ] + $PATH + [
     '/Applications/Visual Studio Code.app/Contents/Resources/app/bin',
+    '$KXH_HOME/.local/bin/darwin',
 ]
 $BASH_COMPLETIONS += [
     '/opt/homebrew/etc/bash_completion.d',

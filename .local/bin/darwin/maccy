@@ -1,0 +1,53 @@
+#!/usr/bin/env kxh_python
+import os
+import sys
+import time
+import sqlite3
+import argparse
+
+
+def parse_args(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', '--last', type=int, default=0)
+    parser.add_argument('-s', '--search', type=str, default=None)
+    parser.add_argument('-d', '--date', type=str, default=None)
+    return parser.parse_args(args)
+
+
+def main(args):
+    path = "~/Library/Containers/org.p0deje.Maccy/Data/Library"
+    path = os.path.join(path, "Application Support/Maccy/Storage.sqlite")
+    path = os.path.expanduser(path)
+    if not os.path.exists(path):
+        print(f'Maccy database ({path!r}) not found.')
+        return -1
+    db = sqlite3.connect(path)
+    query = """
+    SELECT ZVALUE FROM ZHISTORYITEMCONTENT
+    WHERE ZTYPE = 'public.utf8-plain-text'
+    """
+    if args.search:
+        query += f"AND ZVALUE LIKE '%{args.search}%'\n"
+    if args.date:
+        import parsedatetime
+        cal = parsedatetime.Calendar()
+        time_struct, parse_status = cal.parse(args.date)
+        if parse_status == 0:
+            print(f"Failed to parse date: {args.date}")
+            return -2
+        timestamp = int(time.mktime(time_struct)) - 978307200
+        query += f"""AND Z_PK in (
+            SELECT Z_PK FROM ZHISTORYITEM
+            WHERE ZFIRSTCOPIEDAT > {timestamp}
+        )\n"""
+    query += "ORDER BY Z_PK\n"
+    if args.last:
+        query += f"DESC LIMIT {args.last}\n"
+    result = db.execute(query)
+    for ros in result:
+        print(ros[0].decode('utf-8'))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(parse_args(sys.argv[1:])))
