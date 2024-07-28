@@ -1,0 +1,21 @@
+# general
+shell = "/Users/ko/.local/bin/xh"
+live_config_reload = true
+
+# color
+import = [
+    "~/.config/alacritty/themes/themes/catppuccin_latte.toml",
+]
+
+[font]
+normal.family = "IosevkaTerm Nerd Font Mono"
+normal.style = "Regular"
+italic.style = "Light Italic"
+size = 19
+builtin_box_drawing = false
+
+[window]
+dynamic_padding = true
+padding = { x = 0, y = 0 }
+decorations = "Full"
+resize_increments = true
