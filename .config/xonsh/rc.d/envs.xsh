@@ -71,4 +71,8 @@ def _vscode_shell_integration():
 
 _nvim_shell_integration()
 _vscode_shell_integration()
-del _nvim_shell_integration, _vscode_shell_integration, _which
+del (
+    _nvim_shell_integration,
+    _vscode_shell_integration,
+    _which,
+)

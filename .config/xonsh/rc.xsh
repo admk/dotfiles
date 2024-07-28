@@ -32,11 +32,13 @@ def _xontrib_load():
 
 
 def _rc_path():
+    import os
     $PATH = [
         '/usr/local/bin',
         '/usr/sbin',
         '/sbin',
     ] + $PATH
+    os.environ['PATH'] = ':'.join($PATH)
 
 
 def _rc_main():

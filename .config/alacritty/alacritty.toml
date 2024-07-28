@@ -1,10 +1,8 @@
 # general
 shell = "/Users/ko/.local/bin/xh"
 live_config_reload = true
-
-# color
 import = [
-    "~/.config/alacritty/themes/themes/catppuccin_latte.toml",
+    "~/.config/alacritty/_active_theme.toml",
 ]
 
 [font]
@@ -16,6 +14,6 @@ builtin_box_drawing = false
 
 [window]
 dynamic_padding = true
-padding = { x = 0, y = 0 }
+padding = { x = 8, y = 5 }
 decorations = "Full"
 resize_increments = true

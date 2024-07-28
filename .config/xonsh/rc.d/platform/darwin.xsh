@@ -19,12 +19,35 @@ $BROWSER = 'open'
 
 
 def _install_secretive():
+    import os
     if os.path.exists($SSH_AUTH_SOCK):
         return
     echo 'Installing Secretive'
     brew install maxgoedjen/tap/secretive
     echo 'Starting Secretive'
     brew services start secretive
+
+
+def _alacritty_color():
+    mode = $(defaults read -g AppleInterfaceStyle 2>/dev/null)
+    if not mode:
+        mode = "Light"
+    if mode == "Dark":
+        theme = "catppuccin_mocha"
+    elif mode == "Light":
+        theme = "catppuccin_latte"
+    else:
+        theme = "catppuccin"
+    ln -sf $XDG_CONFIG_HOME/alacritty/themes/themes/@(theme).toml $XDG_CONFIG_HOME/alacritty/_active_theme.toml
+    touch $XDG_CONFIG_HOME/alacritty/alacritty.toml
+
+
+_install_secretive()
+_alacritty_color()
+del (
+    _install_secretive,
+    _alacritty_color,
+)
 
 
 @aliases.register('proxy-browser-alt')
