@@ -18,7 +18,7 @@ return {
             options = {
                 theme = "auto",
                 component_separators = { left = "", right = "" },
-                section_separators = { left = "", right = "" },
+                section_separators = { left = '', right = '' },
             },
         },
         config = function(_, opts)
@@ -29,7 +29,9 @@ return {
                 mode = mode:gsub("\19", "^S")
                 return mode:upper()
             end
-            opts.sections.lualine_a = { short_mode }
+            opts.sections.lualine_a = {
+                { short_mode, separator = { left = '' }, right_padding = 2 },
+            }
             table.remove(opts.sections.lualine_c, 2)
             local command, mode, dap, updates = table.unpack(
                 opts.sections.lualine_x, 1, 4)

@@ -163,7 +163,7 @@ def _pydb(args, stdin=None):
         else:
             python -m debugpy --listen @(port) --wait-for-client @(args)
 
-${...}.setdefault('PYDB_PORT', 5678)
+# ${...}.setdefault('PYDB_PORT', 5678)
 
 
 @register_env_alias('hfoff', setmode='toggle')
@@ -224,12 +224,16 @@ def ssh_forward(args):
         'local_port', type=int, nargs='?', help='Local port to forward to.')
     parser.add_argument(
         '-c', '--cancel', action='store_true', help='Close existing connection.')
+    parser.add_argument(
+        '-b', '--browse', action='store_true', help='Open browser to remote port.')
     args = parser.parse_args(args)
+    if args.local_port is None:
+        args.local_port = args.remote_port
     route = f'{args.local_port}:localhost:{args.remote_port}'
     r = !(lsof -i tcp:@(args.local_port))
     if args.cancel:
         if r:
-            r = !(xthread ssh -O cancel -L @(route) @(args.host) 2>&1)
+            r = !(@thread ssh -O cancel -L @(route) @(args.host) 2>&1)
             if not r:
                 print(r.output)
                 print('Failed to cancel existing connection.')
@@ -241,11 +245,14 @@ def ssh_forward(args):
     if r:
         print(r.output)
         print(f'Local port {args.local_port} is in use.')
-    r = !(xthread ssh -fNT -O forward -L @(route) -o ExitOnForwardFailure=yes @(args.host) 2>&1)
+    r = !(@thread ssh -fNT -O forward -L @(route) -o ExitOnForwardFailure=yes @(args.host) 2>&1)
     if not r:
         print(r.output)
+        print(r.errors)
         print('Failed to forward port to remote host.')
         return 1
     print(
         f'Forwarded remote port {args.remote_port} '
         f'to local port {args.local_port}.')
+    if args.browse:
+        execx(f'open http://localhost:{args.local_port}')

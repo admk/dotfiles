@@ -8,8 +8,9 @@ return {
                 pane = { enabled = false },
                 filetypes = {
                     xonsh = true,
-                    yaml = false,
-                    markdown = false,
+                    yaml = true,
+                    json = true,
+                    markdown = true,
                     help = false,
                     gitcommit = false,
                     gitrebase = false,
