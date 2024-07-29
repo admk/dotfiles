@@ -28,17 +28,14 @@ def _install_secretive():
     brew services start secretive
 
 
-def _alacritty_color():
+def _alacritty_theme():
     mode = $(defaults read -g AppleInterfaceStyle 2>/dev/null)
     if not mode:
-        mode = "Light"
-    if mode == "Dark":
-        theme = "catppuccin_mocha"
-    elif mode == "Light":
-        theme = "catppuccin_latte"
-    else:
-        theme = "catppuccin"
-    ln -sf $XDG_CONFIG_HOME/alacritty/themes/themes/@(theme).toml $XDG_CONFIG_HOME/alacritty/_active_theme.toml
+        mode = 'Light'
+    theme = ${...}.get('ALACRITTY_DARK_THEME', 'tokyonight_night')
+    if mode == 'Light':
+        theme = ${...}.get('ALACRITTY_LIGHT_THEME', 'tokyonight_day')
+    ln -sf $XDG_CONFIG_HOME/alacritty/themes/@(theme).toml $XDG_CONFIG_HOME/alacritty/_active_theme.toml
     touch $XDG_CONFIG_HOME/alacritty/alacritty.toml
 
 
@@ -46,7 +43,7 @@ _install_secretive()
 _alacritty_color()
 del (
     _install_secretive,
-    _alacritty_color,
+    _alacritty_theme,
 )
 
 

@@ -1,0 +1,19 @@
+# general
+shell = "/Users/ko/.local/bin/xh"
+live_config_reload = true
+import = [
+    "~/.config/alacritty/_active_theme.toml",
+]
+
+[font]
+normal.family = "IosevkaTerm Nerd Font Mono"
+normal.style = "Regular"
+italic.style = "Light Italic"
+size = 19
+builtin_box_drawing = false
+
+[window]
+dynamic_padding = true
+padding = { x = 8, y = 5 }
+decorations = "Full"
+resize_increments = true

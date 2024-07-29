@@ -3,4 +3,33 @@ gui:
   showFileIcons: true
   spinner:
     frames: ['', '', '', '', '', '']
+  theme:
+    activeBorderColor:
+      - "#89ddff"
+      - bold
+    inactiveViewSelectedLineBgColor:
+      - "#2c2f3d"
+    inactiveBorderColor:
+      - "#2c2f3d"
+    optionsTextColor:
+      - "#3d59a1"
+    selectedLineBgColor:
+      - "#292e42"
+      - bold
+    searchingActiveBorderColor:
+      - "#ff9e64"
+      - "bold"
+    cherryPickedCommitFgColor:
+      - "#7aa2f7"
+    cherryPickedCommitBgColor:
+      - "#bb9af7"
+    markedBaseCommitFgColor:
+      - "#7aa2f7"
+    markedBaseCommitBgColor:
+      - "#e0af68"
+    unstagedChangesColor:
+      - "#db4b4b"
+    defaultFgColor:
+      - "#c0caf5"
 
+disableStartupPopups: true
