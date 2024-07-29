@@ -40,7 +40,7 @@ def _alacritty_theme():
 
 
 _install_secretive()
-_alacritty_color()
+_alacritty_theme()
 del (
     _install_secretive,
     _alacritty_theme,
