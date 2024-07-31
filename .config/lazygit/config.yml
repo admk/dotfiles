@@ -29,7 +29,7 @@ gui:
       - "#e0af68"
     unstagedChangesColor:
       - "#db4b4b"
-    defaultFgColor:
-      - "#c0caf5"
+    # defaultFgColor:
+    #   - "#c0caf5"
 
 disableStartupPopups: true

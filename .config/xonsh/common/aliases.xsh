@@ -67,7 +67,10 @@ def register_dep_aliases(dep_aliases):
 
 def bash_like_alias(args):
     import inspect
-    from xonsh.lazyimps import pyghooks, pygments
+    try:
+        from xonsh.lib.lazyimps import pyghooks, pygments
+    except ImportError:
+        from xonsh.lazyimps import pyghooks, pygments
     from xonsh.aliases import ExecAlias
     lexer = formatter = None
     def _syntax_highlight(v):

@@ -106,7 +106,7 @@ def submit_slurm_job(args):
     jobid = output.decode().split()[-1]
     print(f"jobid: {jobid}")
     print ('Now waiting for the job to start...')
-    time.sleep(1)
+    time.sleep(3)
     cmd = ['squeue', '-h', '-j', jobid, '-o', '%T;%u;%R;%k']
     status, user, node, port = subprocess.check_output(cmd).decode().split(';')
     status = status.strip().lower()
