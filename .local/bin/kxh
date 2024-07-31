@@ -354,7 +354,7 @@ class KXH:
         rsync_cmd = [
             f"SHELL={shutil.which('bash')}",
             "rsync --archive --no-owner --no-group --compress --human-readable",
-            "--update --partial --progress --checksum --copy-links"
+            "--update --delete --partial --progress --checksum --copy-links"
         ]
         if is_remote:
             rsync_cmd.append(f"--rsh {' '.join(self.ssh_cmd)!r}")
@@ -367,7 +367,7 @@ class KXH:
                 file_list.append(rel_sync_file)
             else:
                 file_list_file = tempfile.NamedTemporaryFile(
-                    mode='w', delete=True)
+                    'w', encoding='utf-8', delete=True)
             file_list_file.write('\n'.join(file_list) + '\n')
             file_list_file.flush()
             rsync_cmd.append(f"--files-from {file_list_file.name}")
@@ -408,7 +408,7 @@ class KXH:
             os.path.relpath(f, self.config['kxh']['home'])
             for f in custom_files]
         if self.config['kxh']['debug']:
-            vcf = '\n  ' + '\n  '.join(custom_files)
+            vcf = '\n  ' + '\n  '.join(files)
             print_message('debug', f"Custom files: {vcf}")
         file_list += files
         missing_files = [
