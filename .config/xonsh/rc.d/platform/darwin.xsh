@@ -29,7 +29,11 @@ def _install_secretive():
 
 
 def _auto_theme():
+    last_mode = $(cat $XDG_CACHE_HOME/kxh/last_color_mode 2>/dev/null)
     mode = $(defaults read -g AppleInterfaceStyle 2>/dev/null)
+    if mode == last_mode:
+        return
+    echo @(mode) > $XDG_CACHE_HOME/kxh/last_color_mode
     if not mode:
         mode = 'Light'
     theme = ${...}.get('DARK_THEME', 'tokyonight_night')
@@ -38,16 +42,9 @@ def _auto_theme():
     if 'ALACRITTY_SOCKET' in ${...}:
         alacritty_dir = f'{$XDG_CONFIG_HOME}/alacritty'
         ln -sf @(alacritty_dir)/themes/@(theme).toml @(alacritty_dir)/_active_theme.toml
-        touch @(alacritty_dir)/alacritty/alacritty.toml
+        touch @(alacritty_dir)/alacritty.toml
     if 'KITTY_PID' in ${...}:
-        # theme = ${...}.get('KITTY_DARK_THEME', 'Tokyo Night')
-        # if mode == 'Light':
-        #     theme = ${...}.get('KITTY_LIGHT_THEME', 'Tokyo Night Day')
-        # kitty_conf = f'{$XDG_CONFIG_HOME}/kitty/kitty.conf'
-        # theme_in_use = !(grep -E @(f"^# {theme}$") @(kitty_conf) >/dev/null)
-        # if not theme_in_use:
-        #     kitten themes --reload-in=all @(theme)
-        kitty @ set-colors -ac $XDG_CONFIG_HOME/kitty/themes/@(theme).conf
+        kitty @ set-colors -a -c $XDG_CONFIG_HOME/kitty/themes/@(theme).conf
 
 _install_secretive()
 _auto_theme()

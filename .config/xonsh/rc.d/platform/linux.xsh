@@ -132,6 +132,7 @@ def _install_homebrew():
         'tmux',
         'npm',
         'nvim',
+        'yazi',
         ('carapace', 'rsteube/tap/carapace'),
     ]
     to_install = []

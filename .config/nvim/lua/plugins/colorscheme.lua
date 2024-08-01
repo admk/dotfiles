@@ -1,13 +1,22 @@
 return {
     {
+        "f-person/auto-dark-mode.nvim",
+        opts = {
+            update_interval = 10000,
+            set_dark_mode = function()
+                vim.api.nvim_set_option_value('background', 'dark', {})
+            end,
+            set_light_mode = function()
+                vim.api.nvim_set_option_value('background', 'light', {})
+            end,
+        },
+    },
+    {
         "catppuccin/nvim",
-        lazy = false,
-        name = "catppuccin",
         priority = 1000,
     },
     {
         "folke/tokyonight.nvim",
-        lazy = false,
         priority = 1000,
     },
     {

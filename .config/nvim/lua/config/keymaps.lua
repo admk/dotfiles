@@ -20,6 +20,8 @@ keymap.set("n", "<C-c>", ":nohlsearch<Return>", opts)
 keymap.set("n", "`", "%")
 keymap.set("n", "H", "^")
 keymap.set("n", "L", "$")
+keymap.set("i", "<C-a>", "<Home>")
+keymap.set("i", "<C-e>", "<End>")
 -- Visual mode
 keymap.set("v", "<", "<gv")
 keymap.set("v", ">", ">gv")

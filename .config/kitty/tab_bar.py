@@ -1,4 +1,5 @@
-import datetime
+import os
+import subprocess
 
 from kitty.boss import get_boss
 from kitty.fast_data_types import Screen
@@ -54,12 +55,19 @@ def draw_right_status(
 
 
 def create_cells(tab: TabBarData) -> list[str]:
-    now = datetime.datetime.now()
     title = tab.title
+    # if title.rindex(title[-1]) + 1 > 30:
+    #     title = f'{title[:30]}…'
+    # elif (title.rindex(title[-1]) + 1) % 2 == 0:
+    #     title = title.center(6)
+    # else:
+    #     title = title.center(5)
+    battery_cmd = os.path.expanduser("~/.kxh/.local/bin/battery")
+    battery = subprocess.run(
+        [battery_cmd], stdout=subprocess.PIPE).stdout.decode("utf-8")
     return [
-        f'{title[:30]}…' if title.rindex(title[-1]) + 1 > 30 else (title.center(6) if (title.rindex(title[-1]) + 1) % 2 == 0 else title.center(5)),
-        # now.strftime("%d %b"),
-        # now.strftime("%H:%M"),
+        title,
+        battery,
     ]
 
 

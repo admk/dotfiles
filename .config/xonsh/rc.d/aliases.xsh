@@ -101,6 +101,16 @@ def _refresh():
     execx("source $XONSH_CONFIG_DIR/rc.d/*.xsh")
 
 
+@aliases.register('yy')
+def _yy(args):
+    tmp = $(mktemp -t 'yazi-cwd.XXXXXX')
+    yazi @(args) --cwd-file @(tmp)
+    cwd = $(cat -- @(tmp))
+    if os.path.isdir(cwd) and cwd != $PWD:
+        cd @(cwd)
+    rm -f @(tmp)
+
+
 @aliases.register('tmux')
 def _tmux(args):
     tm = $(@(_which('which')) 'tmux').strip()
