@@ -5,6 +5,9 @@ import = [
     "~/.config/alacritty/_active_theme.toml",
 ]
 
+[env]
+TERM = "xterm-256color"
+
 [font]
 normal.family = "IosevkaTerm Nerd Font Mono"
 normal.style = "Regular"
