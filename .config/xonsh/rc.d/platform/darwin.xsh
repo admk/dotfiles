@@ -28,22 +28,32 @@ def _install_secretive():
     brew services start secretive
 
 
-def _alacritty_theme():
+def _auto_theme():
     mode = $(defaults read -g AppleInterfaceStyle 2>/dev/null)
     if not mode:
         mode = 'Light'
-    theme = ${...}.get('ALACRITTY_DARK_THEME', 'tokyonight_night')
+    theme = ${...}.get('DARK_THEME', 'tokyonight_night')
     if mode == 'Light':
-        theme = ${...}.get('ALACRITTY_LIGHT_THEME', 'tokyonight_day')
-    ln -sf $XDG_CONFIG_HOME/alacritty/themes/@(theme).toml $XDG_CONFIG_HOME/alacritty/_active_theme.toml
-    touch $XDG_CONFIG_HOME/alacritty/alacritty.toml
-
+        theme = ${...}.get('LIGHT_THEME', 'tokyonight_day')
+    if 'ALACRITTY_SOCKET' in ${...}:
+        alacritty_dir = f'{$XDG_CONFIG_HOME}/alacritty'
+        ln -sf @(alacritty_dir)/themes/@(theme).toml @(alacritty_dir)/_active_theme.toml
+        touch @(alacritty_dir)/alacritty/alacritty.toml
+    if 'KITTY_PID' in ${...}:
+        # theme = ${...}.get('KITTY_DARK_THEME', 'Tokyo Night')
+        # if mode == 'Light':
+        #     theme = ${...}.get('KITTY_LIGHT_THEME', 'Tokyo Night Day')
+        # kitty_conf = f'{$XDG_CONFIG_HOME}/kitty/kitty.conf'
+        # theme_in_use = !(grep -E @(f"^# {theme}$") @(kitty_conf) >/dev/null)
+        # if not theme_in_use:
+        #     kitten themes --reload-in=all @(theme)
+        kitty @ set-colors -ac $XDG_CONFIG_HOME/kitty/themes/@(theme).conf
 
 _install_secretive()
-_alacritty_theme()
+_auto_theme()
 del (
     _install_secretive,
-    _alacritty_theme,
+    _auto_theme,
 )
 
 
