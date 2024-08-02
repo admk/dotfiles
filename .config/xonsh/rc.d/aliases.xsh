@@ -19,7 +19,6 @@ aliases |= {
     'b': 'brew',
     'bup': 'brew update && brew upgrade && brew cleanup',
     'dl': 'curl --location --fail --continue-at - --progress-bar',
-    'g': 'git',
     'gps': 'git push',
     'gpsf': 'git push --force-with-lease',
     'gpl': 'git pull',
@@ -69,6 +68,14 @@ def _supercomma():
     cd @("../" * (len($__ALIAS_NAME)))
 
 
+@aliases.register('g')
+@aliases.return_command
+def _git(args):
+    if not args:
+        return ['git', 'status']
+    return ['git', *args]
+
+
 @aliases.register('pwgen')
 def _pwgen(args):
     import argparse
@@ -101,7 +108,7 @@ def _refresh():
     execx("source $XONSH_CONFIG_DIR/rc.d/*.xsh")
 
 
-@aliases.register('yy')
+@aliases.register('y')
 def _yy(args):
     tmp = $(mktemp -t 'yazi-cwd.XXXXXX')
     yazi @(args) --cwd-file @(tmp)
