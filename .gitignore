@@ -1,13 +1,1 @@
-# doesn't work?
 *
-!.config/git/config
-!.config/nvim/*.lua
-!.config/nvim/lua/*
-!.config/pip/pip.conf
-!.config/tmux/tmux.conf
-!.config/xonsh/*
-!.config/starship.toml
-!.local/bin/*
-!.gitignore
-!LICENSE
-!README.md

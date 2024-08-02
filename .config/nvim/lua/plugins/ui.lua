@@ -70,7 +70,10 @@ return {
             {
                 "<C-c>",
                 function()
-                    require("notify").dismiss()
+                    require("notify").dismiss({
+                        pending = true,
+                        silent = true,
+                    })
                     vim.cmd("nohlsearch")
                 end,
                 desc = "Dismiss notification",
@@ -95,12 +98,13 @@ return {
                 filter_rules = {
                     bo = {
                         filetype = {
-                            "neo-tree", "neo-tree-popup", "notify",
-                            "noice", "incline",
+                            "neo-tree", "neo-tree-popup",
+                            "notify", "noice", "incline",
                         },
                         buftype = { "terminal", "quickfix" },
                     },
                 },
+                show_prompt = false,
             })
             require("neo-tree").setup(opts)
         end,
