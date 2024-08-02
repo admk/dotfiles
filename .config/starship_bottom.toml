@@ -83,3 +83,11 @@ shell = 'bash'
 when = '[ -f ./wandb/settings ]'
 format = 'with [$symbol($output )]($style)'
 style = 'bold cyan'
+
+[custom.yazi]
+command = 'echo $YAZI_LEVEL'
+symbol = '󰇥 '
+shell = 'bash'
+when = '[ ! -z $YAZI_LEVEL ]'
+format = 'at [$symbol($output )]($style)'
+style = 'bold yellow'
