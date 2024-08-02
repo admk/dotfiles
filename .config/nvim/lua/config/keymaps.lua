@@ -1,8 +1,9 @@
+-- Common {
 local keymap = vim.keymap
 local opts = { noremap = true, silent = true }
-
+-- }
 -- Editing {
--- Essential {
+-- Essential
 keymap.set("n", ";", ":", opts)
 keymap.set("n", ":", ";", opts)
 keymap.set("v", ";", ":", opts)
@@ -11,11 +12,8 @@ keymap.set("n", "j", "gj", opts)
 keymap.set("n", "k", "gk", opts)
 keymap.set("n", "Y", "y$", opts)
 keymap.set("i", "jk", "<Esc>", opts)
--- }
--- Search {
+-- Search
 keymap.set("n", "<C-c>", ":nohlsearch<Return>", opts)
--- }
--- Editing {
 -- Jumps
 keymap.set("n", "`", "%")
 keymap.set("n", "H", "^")
@@ -33,7 +31,6 @@ keymap.set("n", "-", "<C-x>")
 --     local keys = "zt" .. math.floor(vim.fn.winheight(0) / 4) .. "<c-y>"
 --     vim.api.nvim_feedkeys(keys, "n", false)
 -- end, opts)
--- }
 -- }
 -- Commands {
 keymap.set("c", "<C-A>", "<Home>", opts)

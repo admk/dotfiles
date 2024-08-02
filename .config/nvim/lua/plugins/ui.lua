@@ -18,7 +18,7 @@ return {
             options = {
                 theme = "auto",
                 component_separators = { left = "", right = "" },
-                section_separators = { left = '', right = '' },
+                section_separators = { left = "", right = "" },
             },
         },
         config = function(_, opts)
@@ -30,19 +30,24 @@ return {
                 return mode:upper()
             end
             opts.sections.lualine_a = {
-                { short_mode, separator = { left = '' }, right_padding = 2 },
+                { short_mode, separator = { left = "" }, right_padding = 2 },
             }
             table.remove(opts.sections.lualine_c, 2)
-            local command, mode, dap, updates = table.unpack(
-                opts.sections.lualine_x, 1, 4)
+            local command, mode, dap, updates =
+                table.unpack(opts.sections.lualine_x, 1, 4)
             opts.sections.lualine_x = { command, mode }
             opts.sections.lualine_y = { dap, updates }
-            opts.sections.lualine_z = { function() return '' end }
+            opts.sections.lualine_z = {
+                function()
+                    return ""
+                end,
+            }
             require("lualine").setup(opts)
         end,
     },
     {
         "folke/noice.nvim",
+        commit = "d9328ef903168b6f52385a751eb384ae7e906c6f",
         opts = {
             lsp = {
                 override = {
@@ -80,6 +85,25 @@ return {
     {
         "nvim-neo-tree/neo-tree.nvim",
         version = "*",
+        dependencies = {
+            { "s1n7ax/nvim-window-picker", version = "*" },
+        },
+        config = function(_, opts)
+            require("window-picker").setup({
+                hint = "floating-big-letter",
+                include_current = false,
+                filter_rules = {
+                    bo = {
+                        filetype = {
+                            "neo-tree", "neo-tree-popup", "notify",
+                            "noice", "incline",
+                        },
+                        buftype = { "terminal", "quickfix" },
+                    },
+                },
+            })
+            require("neo-tree").setup(opts)
+        end,
     },
     {
         "akinsho/bufferline.nvim",
@@ -169,8 +193,9 @@ return {
 
                         for severity, icon in pairs(icons) do
                             local n = #vim.diagnostic.get(props.buf, {
-                                severity = vim.diagnostic.severity[
-                                    string.upper(severity)],
+                                severity = vim.diagnostic.severity[string.upper(
+                                    severity
+                                )],
                             })
                             if n > 0 then
                                 table.insert(label, {
@@ -211,7 +236,7 @@ return {
             vim.diagnostic.config({
                 virtual_text = false,
             })
-            require('tiny-inline-diagnostic').setup()
-        end
+            require("tiny-inline-diagnostic").setup()
+        end,
     },
 }

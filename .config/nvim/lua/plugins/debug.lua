@@ -1,6 +1,25 @@
 return {
     { import = "lazyvim.plugins.extras.dap.core" },
     {
+        import = "lazyvim.plugins.extras.test.core",
+    },
+    {
+        "nvim-neotest/neotest",
+        dependencies = {
+            "nvim-neotest/neotest-python",
+            "nvim-treesitter/nvim-treesitter",
+        },
+        config = function(_, opts)
+            opts.adapters = {
+                require("neotest-python")({
+                    runner = "pytest",
+                    python = "python",
+                }),
+            }
+            require('neotest').setup(opts)
+        end,
+    },
+    {
         "mfussenegger/nvim-dap",
         dependencies = {
             "rcarriga/nvim-dap-ui",
