@@ -1,7 +1,5 @@
 return {
-    -- { import = "lazyvim.plugins.extras.lang.markdown" },
     { import = "lazyvim.plugins.extras.lang.python" },
-    { import = "lazyvim.plugins.extras.lang.tex" },
     {
         "nvim-treesitter/nvim-treesitter",
         dependencies = {
@@ -108,12 +106,4 @@ return {
         event = "VeryLazy",
         ft = "xonsh",
     },
-    {
-        'chomosuke/typst-preview.nvim',
-        ft = "typst",
-        version = '0.3.*',
-        build = function()
-            require('typst-preview').update()
-        end,
-    }
 }

@@ -61,6 +61,14 @@ vim.opt.shiftwidth = 4
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
 vim.opt.backspace = { "start", "eol", "indent" }
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = "markdown",
+    callback = function()
+        vim.opt.shiftwidth = 2
+        vim.opt.tabstop = 2
+        vim.opt.softtabstop = 2
+    end,
+})
 -- }
 -- Folding {
 vim.opt.foldmethod = "syntax"
