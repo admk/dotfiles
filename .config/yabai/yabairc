@@ -1,0 +1,54 @@
+#!/usr/bin/env sh
+
+yabai -m config layout bsp
+yabai -m config split_type auto
+yabai -m config window_placement second_child
+
+yabai -m config top_padding 12
+yabai -m config bottom_padding 12
+yabai -m config left_padding 12
+yabai -m config right_padding 12
+yabai -m config window_gap 12
+yabai -m config external_bar all:36:0
+
+yabai -m config auto_balance off
+yabai -m config split_ratio 0.50
+
+yabai -m config mouse_follows_focus off
+yabai -m config focus_follows_mouse off
+
+yabai -m config insert_feedback_color 0xE02d74da
+
+yabai -m config mouse_modifier alt
+yabai -m config mouse_action1 move
+yabai -m config mouse_action2 resize
+yabai -m config mouse_drop_action swap
+
+# exclude apps from tiling
+ignored_apps=(
+    "BetterZip"
+    "Clash Verge"
+    "Home"
+    "Installer"
+    "Logi Options"
+    "Logitech Options"
+    "Parallels"
+    "Photo Booth"
+    "Preview"
+    "QuickTime Player"
+    "Reminders"
+    "Stickies"
+    "System Information"
+    "System Settings"
+    "Telegram"
+    "iPhone Mirroring"
+)
+for app in "${ignored_apps[@]}";
+    do yabai -m rule --add app="${app}" manage=off;
+done;
+yabai -m rule --add label="Finder" app="^Finder$" title="(Copy|Connect|Move|Info|Pref)" manage=off
+yabai -m rule --add label="Safari" app="^Safari$" title="^(General|Tabs|Passwords|Websites|Extensions|AutoFill|Search|Security|Privacy|Advance)$" manage=off
+
+borders &
+
+echo "yabai configuration loaded.."
