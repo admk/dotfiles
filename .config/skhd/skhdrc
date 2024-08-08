@@ -7,8 +7,8 @@ lalt - 0x2B : yabai -m window --focus next || yabai -m window --focus first
 lalt - 0x2F : yabai -m window --focus prev || yabai -m window --focus last
 lalt - h : yabai -m window --focus west || yabai -m space --focus prev || skhd -k "ctrl - left"
 lalt - l : yabai -m window --focus east || yabai -m space --focus next || skhd -k "ctrl - right"
-lalt - j : yabai -m window --focus south || yabai -m window --focus stack.next || yabai -m window --focus stack.first
-lalt - k : yabai -m window --focus north || yabai -m window --focus stack.prev || yabai -m window --focus stack.last
+lalt - j : yabai -m window --focus stack.next || yabai -m window --focus south || yabai -m window --focus stack.first
+lalt - k : yabai -m window --focus stack.prev || yabai -m window --focus north || yabai -m window --focus stack.last
 # zoom
 shift + lalt - f : yabai -m window --toggle zoom-fullscreen
 lalt - f : yabai -m window --toggle zoom-parent

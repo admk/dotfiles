@@ -4,6 +4,16 @@ if is_remote then
 end
 return {
     {
+        'mikesmithgh/kitty-scrollback.nvim',
+        enabled = true,
+        lazy = true,
+        cmd = { 'KittyScrollbackGenerateKittens', 'KittyScrollbackCheckHealth' },
+        event = { 'User KittyScrollbackLaunch' },
+        config = function()
+            require('kitty-scrollback').setup()
+        end,
+    },
+    {
         "f-person/auto-dark-mode.nvim",
         opts = {
             update_interval = 10000,
