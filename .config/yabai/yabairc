@@ -43,12 +43,10 @@ ignored_apps=(
     "Telegram"
     "iPhone Mirroring"
 )
-for app in "${ignored_apps[@]}";
-    do yabai -m rule --add app="${app}" manage=off;
-done;
+for app in "${ignored_apps[@]}"; do
+    yabai -m rule --add app="${app}" manage=off
+done
 yabai -m rule --add label="Finder" app="^Finder$" title="(Copy|Connect|Move|Info|Pref)" manage=off
 yabai -m rule --add label="Safari" app="^Safari$" title="^(General|Tabs|Passwords|Websites|Extensions|AutoFill|Search|Security|Privacy|Advance)$" manage=off
-
-borders &
 
 echo "yabai configuration loaded.."
