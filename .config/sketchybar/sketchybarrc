@@ -1,0 +1,45 @@
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+ITEM_DIR="$CONFIG_DIR/items"
+
+# Load global styles, colors and icons
+source "$CONFIG_DIR/globalstyles.sh"
+
+POPUP_CLICK_SCRIPT="sketchybar --set \$NAME popup.drawing=toggle"
+POPUP_OFF="sketchybar --set \$NAME popup.drawing=off"
+
+sketchybar --bar "${bar[@]}" --default "${item_defaults[@]}"
+
+# Left
+source "$ITEM_DIR/apple.sh"
+source "$ITEM_DIR/yabai.sh"
+source "$ITEM_DIR/spaces.sh"
+
+# Right
+source "$ITEM_DIR/control_center.sh"
+source "$ITEM_DIR/datetime.sh"
+source "$ITEM_DIR/cpu.sh"
+source "$ITEM_DIR/battery.sh"
+source "$ITEM_DIR/volume.sh"
+source "$ITEM_DIR/music.sh"
+
+sketchybar \
+    --add bracket left_side logo yabai '/space\..*/' \
+    --set left_side "${bracket_defaults[@]}" \
+    --add bracket status_icons volume_icon volume music cpu battery date clock control_center \
+    --set status_icons "${bracket_defaults[@]}"
+
+sketchybar --hotload on
+sketchybar --update
+
+yabai -m config external_bar "all:32:0"
+
+borders_options=(
+    style=round
+    width=8.0
+    hidpi=off
+    inactive_color=$(getcolor black 10)
+    active_color=$HIGHLIGHT
+)
+borders "${borders_options[@]}"
+
+# vim: set ft=sh:
