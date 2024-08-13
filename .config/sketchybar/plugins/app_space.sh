@@ -21,15 +21,19 @@ update_icons() {
         create_icons "$CURRENT_SID"
         # LABEL=$BAR_COLOR
         PADDING=$PADDINGS
+        YOFFSET=1
     else
         # LABEL_COLOR=$LABEL_COLOR
         BACKGROUND_COLOR=$TRANSPARENT
         PADDING=$LEFT_PADDING
+        YOFFSET=0
     fi
 
     sketchybar --animate tanh 10 \
-        --set space.$SID icon.highlight=$SELECTED \
+        --set space.$SID \
+        icon.highlight=$SELECTED \
         label.highlight=$SELECTED \
+        label.y_offset=$YOFFSET \
         background.color=$BACKGROUND_COLOR \
         icon.padding_left=$LEFT_PADDING \
         label.padding_right=$PADDING

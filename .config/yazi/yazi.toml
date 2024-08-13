@@ -1,0 +1,16 @@
+[manager]
+ratio = [2, 4, 3]
+linemode = "mtime"
+
+[[opener.edit]]
+run = 'kitty @ launch --type=tab --title=Preferences ~/.local/bin/xh -c "nvim \"$@\""'
+block = false
+for = "macos"
+
+[[plugin.prepend_previewers]]
+mime = "application/{,g}zip"
+run = "lsar"
+
+[[plugin.prepend_previewers]]
+mime = "application/x-{tar,bzip*,7z-compressed,xz,rar}"
+run = "lsar"

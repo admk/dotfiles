@@ -68,10 +68,7 @@ getcolor() {
         black) local color=$black ;;
         trueblack) local color=$trueblack ;;
         white) local color=$white ;;
-        *)
-            echo "Invalid color name: $color_name" >&2
-            return 1
-        ;;
+        *) local color=${color_name:1} ;;
     esac
 
     echo $opacity${color:1}
@@ -79,6 +76,11 @@ getcolor() {
 
 # Pick color based on day of week
 daily_color() {
+    if [ -f $CONFIG_DIR/daily_color.sh ]; then
+        source $CONFIG_DIR/daily_color.sh
+        echo "#ff${DAILY_COLOR:1}"
+        return
+    fi
     local COLORS=("blue" "teal" "cyan" "green" "yellow" "orange" "red" "purple")
     DAY_OF_WEEK=$(date +%u)
     echo ${COLORS[$DAY_OF_WEEK]}
@@ -90,7 +92,7 @@ RANDOMHIGHLIGHT=$(daily_color)
 
 # Bar and item colors
 export BAR_COLOR=$(getcolor black 50)
-export BAR_BORDER_COLOR=$(getcolor black 50)
+export BAR_BORDER_COLOR=$(getcolor $RANDOMHIGHLIGHT 75)
 export HIGHLIGHT=$(getcolor $RANDOMHIGHLIGHT)
 export HIGHLIGHT_75=$(getcolor $RANDOMHIGHLIGHT 75)
 export HIGHLIGHT_50=$(getcolor $RANDOMHIGHLIGHT 50)

@@ -12,7 +12,6 @@ set_icon() {
         LAST_STACK_INDEX=$(yabai -m query --windows stack-index --window stack.last | jq '.["stack-index"]')
         ICON=$YABAI_STACK
         LABEL="$(printf "%s/%s" "$STACK_INDEX" "$LAST_STACK_INDEX")"
-        COLOR=$(getcolor yellow)
     elif [[ $FLOATING == "true" ]]; then
         ICON=$YABAI_FLOAT
     elif [[ $FULLSCREEN == "true" ]]; then

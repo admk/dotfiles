@@ -25,29 +25,4 @@ return {
             end,
         },
     },
-    { import = "lazyvim.plugins.extras.lang.tex" },
-    {
-        'chomosuke/typst-preview.nvim',
-        ft = "typst",
-        version = '0.3.*',
-        build = function()
-            require('typst-preview').update()
-        end,
-    },
-    {
-        "OXY2DEV/markview.nvim",
-        lazy = false,
-        dependencies = {
-            "nvim-treesitter/nvim-treesitter",
-            "nvim-tree/nvim-web-devicons"
-        },
-        opts = {
-            checkboxes = {
-                enabled = true,
-                checked = { text = "󰄵", hl = "MarkviewCheckboxChecked" },
-                unchecked = { text = "󰄱", hl = "MarkviewCheckboxUnhecked" },
-                pending = { text = "󱋭", hl = "MarkviewCheckboxPending" },
-            },
-        },
-    },
 }

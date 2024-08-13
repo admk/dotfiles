@@ -1,3 +1,4 @@
+echo $PATH
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 ITEM_DIR="$CONFIG_DIR/items"
 
@@ -25,8 +26,8 @@ source "$ITEM_DIR/music.sh"
 sketchybar \
     --add bracket left_side logo yabai '/space\..*/' \
     --set left_side "${bracket_defaults[@]}" \
-    --add bracket status_icons volume_icon volume music cpu battery date clock control_center \
-    --set status_icons "${bracket_defaults[@]}"
+    --add bracket right_side volume_icon volume music cpu battery date clock control_center \
+    --set right_side "${bracket_defaults[@]}"
 
 sketchybar --hotload on
 sketchybar --update
@@ -37,9 +38,10 @@ borders_options=(
     style=round
     width=8.0
     hidpi=off
-    inactive_color=$(getcolor black 10)
-    active_color=$HIGHLIGHT
+    inactive_color="$(getcolor black 10)"
+    active_color="$HIGHLIGHT"
 )
-borders "${borders_options[@]}"
+borders "${borders_options[@]}" &
+kitty @ set-colors -a -c "active_tab_background=#${HIGHLIGHT:4}"
 
 # vim: set ft=sh:

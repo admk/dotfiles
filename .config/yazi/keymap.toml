@@ -4,5 +4,6 @@ prepend_keymap = [
     { on = [ "c", "m" ], run = "plugin chmod", desc = "Chmod on selected files" },
     { on = "f", run = "plugin jump-to-char", desc = "Jump to char" },
     { on = "T", run = "plugin --sync max-preview", desc = "Maximize or restore preview" },
+    { on = "<C-t>", run = "plugin --sync hide-preview", desc = "Hide or show preview" },
     { on = "F", run = "plugin smart-filter", desc = "Smart filter" },
 ]

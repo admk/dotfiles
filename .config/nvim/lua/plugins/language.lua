@@ -103,5 +103,8 @@ return {
         "abhishekmukherg/xonsh-vim",
         event = "VeryLazy",
         ft = "xonsh",
+        config = function (_, opts)
+            vim.opt.commentstring = "# %s"
+        end
     },
 }

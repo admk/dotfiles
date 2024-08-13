@@ -1,36 +1,42 @@
-# yabai
-# float
-lalt - b : yabai -m space --layout $(yabai -m query --spaces --space | jq -r 'if .type == "bsp" then "float" else "bsp" end')
-shift + lalt - space : yabai -m window --toggle float
-# focus
-lalt - 0x2B : yabai -m window --focus next || yabai -m window --focus first
-lalt - 0x2F : yabai -m window --focus prev || yabai -m window --focus last
-lalt - h : yabai -m window --focus west || yabai -m space --focus prev || skhd -k "ctrl - left"
-lalt - l : yabai -m window --focus east || yabai -m space --focus next || skhd -k "ctrl - right"
-lalt - j : yabai -m window --focus stack.next || yabai -m window --focus south || yabai -m window --focus stack.first
-lalt - k : yabai -m window --focus stack.prev || yabai -m window --focus north || yabai -m window --focus stack.last
-# zoom
-shift + lalt - f : yabai -m window --toggle zoom-fullscreen
-lalt - f : yabai -m window --toggle zoom-parent
-# move (shift + alt + h/j/k/l)
-shift + lalt - h : yabai -m window --warp west # || yabai -m window --space prev
-shift + lalt - l : yabai -m window --warp east # || yabai -m window --space next
-shift + lalt - j : yabai -m window --warp south
-shift + lalt - k : yabai -m window --warp north
-# stack (ctrl + alt + h/j/k/l)
-ctrl + lalt - h : ~/.config/yabai/stack west
-ctrl + lalt - l : ~/.config/yabai/stack east
-ctrl + lalt - j : ~/.config/yabai/stack south
-ctrl + lalt - k : ~/.config/yabai/stack north
-# resize (cmd + alt + h/j/k/l)
-cmd + lalt - h : yabai -m window west --resize right:-20:0 2> /dev/null || yabai -m window --resize right:-20:0
-cmd + lalt - j : yabai -m window north --resize bottom:0:20 2> /dev/null || yabai -m window --resize bottom:0:20
-cmd + lalt - k : yabai -m window south --resize top:0:-20 2> /dev/null || yabai -m window --resize top:0:-20
-cmd + lalt - l : yabai -m window east --resize left:20:0 2> /dev/null || yabai -m window --resize left:20:0
-
-# macos
-lalt - d : osascript -e "tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode"
-
-# apps
-# lalt - return : /Applications/kitty.app/Contents/MacOS/kitty --single-instance -d ~
-
+# yabai {
+# float {
+alt - b : yabai -m space --layout $(yabai -m query --spaces --space | jq -r 'if .type == "bsp" then "float" else "bsp" end')
+shift + alt - space : yabai -m window --toggle float
+# }
+# focus {
+alt - 0x2B : yabai -m window --focus next || yabai -m window --focus first
+alt - 0x2F : yabai -m window --focus prev || yabai -m window --focus last
+alt - h : yabai -m window --focus west || yabai -m space --focus prev || skhd -k "ctrl - left"
+alt - l : yabai -m window --focus east || yabai -m space --focus next || skhd -k "ctrl - right"
+alt - j : yabai -m window --focus stack.next || yabai -m window --focus south || yabai -m window --focus stack.first
+alt - k : yabai -m window --focus stack.prev || yabai -m window --focus north || yabai -m window --focus stack.last
+# }
+# zoom {
+shift + alt - f : yabai -m window --toggle zoom-fullscreen
+alt - f : yabai -m window --toggle zoom-parent
+# }
+# move (shift + alt + h/j/k/l) {
+shift + alt - h : yabai -m window --warp west # || yabai -m window --space prev
+shift + alt - l : yabai -m window --warp east # || yabai -m window --space next
+shift + alt - j : yabai -m window --warp south
+shift + alt - k : yabai -m window --warp north
+# }
+# stack (ctrl + alt + h/j/k/l) {
+ctrl + alt - h : ~/.config/yabai/stack west
+ctrl + alt - l : ~/.config/yabai/stack east
+ctrl + alt - j : ~/.config/yabai/stack south
+ctrl + alt - k : ~/.config/yabai/stack north
+# }
+# resize (cmd + alt + h/j/k/l) {
+cmd + alt - h : yabai -m window west --resize right:-20:0 2> /dev/null || yabai -m window --resize right:-20:0
+cmd + alt - j : yabai -m window north --resize bottom:0:20 2> /dev/null || yabai -m window --resize bottom:0:20
+cmd + alt - k : yabai -m window south --resize top:0:-20 2> /dev/null || yabai -m window --resize top:0:-20
+cmd + alt - l : yabai -m window east --resize left:20:0 2> /dev/null || yabai -m window --resize left:20:0
+# }
+# }
+# macos {
+# dark mode toggle {
+alt - d : osascript -e "tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode"
+# }
+# }
+# vim: foldmethod=marker foldmarker={,}

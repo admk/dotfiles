@@ -29,22 +29,7 @@ def _install_secretive():
 
 
 def _auto_theme(force=False):
-    last_mode = $(cat $XDG_CACHE_HOME/kxh/last_color_mode 2>/dev/null)
-    mode = $(defaults read -g AppleInterfaceStyle 2>/dev/null)
-    if not mode:
-        mode = 'Light'
-    if not force and mode == last_mode:
-        return
-    echo @(mode) > $XDG_CACHE_HOME/kxh/last_color_mode
-    theme = ${...}.get('DARK_THEME', 'tokyonight_night')
-    if mode == 'Light':
-        theme = ${...}.get('LIGHT_THEME', 'tokyonight_day')
-    if 'ALACRITTY_SOCKET' in ${...}:
-        alacritty_dir = f'{$XDG_CONFIG_HOME}/alacritty'
-        ln -sf @(alacritty_dir)/themes/@(theme).toml @(alacritty_dir)/_active_theme.toml
-        touch @(alacritty_dir)/alacritty.toml
-    if 'KITTY_PID' in ${...}:
-        kitty @ set-colors -a -c $XDG_CONFIG_HOME/kitty/themes/@(theme).conf
+    system-color > /dev/null
 
 
 @aliases.register('toggle-dark-mode')

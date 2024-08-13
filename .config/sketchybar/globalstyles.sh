@@ -68,14 +68,14 @@ bracket_defaults=(
     background.color=$BAR_COLOR
     background.corner_radius=$PADDINGS
     background.border_width=2
-    background.border_color=$HIGHLIGHT_75
+    background.border_color=$BAR_BORDER_COLOR
 )
 
 menu_defaults=(
     popup.blur_radius=20
     popup.background.color=$POPUP_BACKGROUND_COLOR
     popup.background.border_width=2
-    popup.background.border_color=$HIGHLIGHT_75
+    popup.background.border_color=$BAR_BORDER_COLOR
     popup.background.corner_radius=$PADDINGS
     popup.background.shadow.drawing=on
     popup.background.shadow.color=$POPUP_BORDER_COLOR

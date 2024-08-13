@@ -79,6 +79,15 @@ vim.opt.foldnestmax = 2
 vim.opt.virtualedit = "block"
 vim.opt.mouse = "a"
 -- }
+-- Spell check: {
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { "markdown", "tex", "typst" },
+    callback = function()
+        vim.opt.spell = true
+        vim.opt.spelllang = "en_us"
+    end,
+})
+-- }
 -- }
 -- Other: {
 vim.opt.inccommand = "split"

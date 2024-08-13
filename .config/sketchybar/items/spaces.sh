@@ -9,10 +9,10 @@ spaces=(
     background.corner_radius=50
     icon.padding_left=2
     icon.padding_right=2
-    icon.y_offset=1
+    icon.y_offset=0
     # label.font="sketchybar-app-font:Regular:12.0"
     label.padding_right=4
-    label.y_offset=1
+    label.y_offset=0
     padding_left=$(($PADDINGS / 2))
     padding_right=$(($PADDINGS / 2))
 )
