@@ -26,14 +26,6 @@ return {
         config = function (_, opts)
             require("nvim-dap-repl-highlights").setup()
             require("nvim-treesitter.configs").setup(opts)
-            -- vim.g.vimtex_compiler_progname = 'nvr'
-            vim.g.vimtex_quickfix_mode = 0
-            vim.g.vimtex_view_method = "sioyek"
-            vim.g.vimtex_view_sioyek_sync = 1
-            vim.g.vimtex_view_sioyek_activate = 0
-            -- vim.g.vimtex_view_method = "skim"
-            -- vim.g.vimtex_view_skim_sync = 1
-            -- vim.g.vimtex_view_skim_activate = 0
         end
     },
     {
@@ -104,7 +96,7 @@ return {
         event = "VeryLazy",
         ft = "xonsh",
         config = function (_, opts)
-            vim.opt.commentstring = "# %s"
+            vim.bo.commentstring = "# %s"
         end
     },
 }

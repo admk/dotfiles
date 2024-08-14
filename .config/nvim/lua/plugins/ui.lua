@@ -127,6 +127,7 @@ return {
     },
     {
         "b0o/incline.nvim",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
         event = "BufReadPre",
         priority = 1200,
         config = function()
