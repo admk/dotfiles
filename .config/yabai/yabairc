@@ -26,12 +26,15 @@ yabai -m config mouse_drop_action swap
 
 # exclude apps from tiling
 ignored_apps=(
+    "Activity Monitor"
     "BetterZip"
     "Clash Verge"
     "Home"
+    "IINA"
     "Installer"
     "Logi Options"
     "Logitech Options"
+    "Netiquette"
     "Parallels"
     "Photo Booth"
     "Preview"
@@ -41,9 +44,8 @@ ignored_apps=(
     "System Information"
     "System Settings"
     "Telegram"
-    "iPhone Mirroring"
-    "IINA"
     "VLC"
+    "iPhone Mirroring"
 )
 for app in "${ignored_apps[@]}"; do
     yabai -m rule --add app="${app}" manage=off
