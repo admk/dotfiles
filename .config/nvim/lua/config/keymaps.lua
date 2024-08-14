@@ -56,5 +56,6 @@ keymap.set("n", "_", [[<cmd>horizontal resize -2<cr>]])
 -- Other {
 -- CD to git root
 keymap.set("n", "<leader>f.", ":CdRoot<Return>", opts)
+keymap.set("n", "<leader>f,", ":CdCurrentFile<Return>", opts)
 -- }
 -- vim: set fdm=marker fmr={,}:

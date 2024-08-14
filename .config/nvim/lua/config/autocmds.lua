@@ -7,11 +7,16 @@ local function get_git_root()
     return vim.fn.fnamemodify(dot_git_path, ":p:h:h")
 end
 
+-- change directory commands
 vim.api.nvim_create_user_command("CdRoot", function()
     local path = get_git_root()
     if path ~= nil then
         vim.api.nvim_set_current_dir(path)
     end
+end, {})
+vim.api.nvim_create_user_command("CdCurrentFile", function()
+    local path = vim.fn.expand('%:p:h')
+    vim.api.nvim_set_current_dir(path)
 end, {})
 
 -- remove trailing whitespace on save
