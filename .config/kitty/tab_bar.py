@@ -62,13 +62,12 @@ def create_cells(tab: TabBarData) -> list[str]:
     #     title = title.center(6)
     # else:
     #     title = title.center(5)
+    cells = [title]
     battery_cmd = os.path.expanduser("~/.kxh/.local/bin/battery")
-    battery = subprocess.run(
-        [battery_cmd], stdout=subprocess.PIPE).stdout.decode("utf-8")
-    return [
-        title,
-        battery,
-    ]
+    if os.path.exists(battery_cmd):
+        cells.append(subprocess.run(
+            [battery_cmd], stdout=subprocess.PIPE).stdout.decode("utf-8"))
+    return cells
 
 
 def _redraw_tab_bar(timer_id):

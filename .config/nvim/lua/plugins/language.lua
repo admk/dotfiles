@@ -7,14 +7,8 @@ return {
         },
         opts = {
             ensure_installed = {
-                "cpp",
                 "gitignore",
-                "go",
-                "http",
-                "latex",
                 "python",
-                "rust",
-                "typst",
                 "dap_repl",
             },
             query_linter = {
@@ -38,7 +32,6 @@ return {
                 "mypy",
                 "ruff",
                 "debugpy",
-                "typst-lsp",
             })
         end,
     },
@@ -81,22 +74,7 @@ return {
                         },
                     },
                 },
-                typst_lsp = {
-                    settings = {
-                        typst = {
-                            exportPdf = "onSave",
-                        },
-                    },
-                },
             },
         },
-    },
-    {
-        "abhishekmukherg/xonsh-vim",
-        event = "VeryLazy",
-        ft = "xonsh",
-        config = function (_, opts)
-            vim.bo.commentstring = "# %s"
-        end
     },
 }

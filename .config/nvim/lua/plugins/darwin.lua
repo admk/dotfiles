@@ -1,6 +1,6 @@
 local is_remote = os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY")
 if is_remote then
-    return {}
+	return {}
 end
 return {
     {
@@ -57,4 +57,50 @@ return {
             },
         },
     },
+	{
+		"nvim-treesitter/nvim-treesitter",
+		dependencies = {
+			"LiadOz/nvim-dap-repl-highlights",
+		},
+		opts = {
+			ensure_installed = {
+				"latex",
+				"typst",
+			},
+		},
+	},
+	{
+		"williamboman/mason.nvim",
+		opts = function(_, opts)
+			vim.list_extend(opts.ensure_installed, {
+				"typst-lsp",
+				-- "ltex",
+			})
+		end,
+	},
+	{
+		"neovim/nvim-lspconfig",
+		-- dependencies = {
+		-- 	"barreiroleo/ltex_extra.nvim",
+		-- },
+		opts = {
+			servers = {
+				typst_lsp = {
+					settings = {
+						typst = {
+							exportPdf = "onSave",
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		"abhishekmukherg/xonsh-vim",
+		event = "VeryLazy",
+		ft = "xonsh",
+		config = function(_, opts)
+			vim.bo.commentstring = "# %s"
+		end,
+	},
 }

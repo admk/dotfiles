@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Load global styles, colors and icons
-source "$CONFIG_DIR/main_icon.sh"
+if [ -f "$CONFIG_DIR/main_icon.sh" ]; then
+    source "$CONFIG_DIR/main_icon.sh"
+fi
 source "$CONFIG_DIR/globalstyles.sh"
 
 POPUP_OFF='sketchybar --set logo popup.drawing=off'

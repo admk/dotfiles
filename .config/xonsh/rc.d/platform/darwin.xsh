@@ -18,6 +18,21 @@ $CHROMIUM = p'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrom
 $BROWSER = 'open'
 
 
+def _install_homebrew():
+    if !(which brew 1>/dev/null 2>/dev/null):
+        return
+    echo 'Installing Homebrew...'
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    pkgs = [
+        'font-symbols-only-nerd-font',
+        'felixkratz/formulae/borders',
+        'felixkratz/formulae/sketchybar',
+        'koekeishiya/formulae/skhd',
+        'koekeishiya/formulae/yabai',
+    ]
+    brew install @(pkgs)
+
+
 def _install_secretive():
     import os
     if os.path.exists($SSH_AUTH_SOCK):
@@ -29,7 +44,8 @@ def _install_secretive():
 
 
 def _auto_theme(force=False):
-    system-color > /dev/null
+    if !(which system-color 1>/dev/null 2>/dev/null):
+        system-color > /dev/null
 
 
 @aliases.register('toggle-dark-mode')
@@ -83,6 +99,7 @@ aliases |= {
 }
 
 
+_install_homebrew()
 _install_secretive()
 _auto_theme()
 del (
