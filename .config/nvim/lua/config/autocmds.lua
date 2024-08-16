@@ -31,7 +31,7 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
 
 -- set indentation to 2 spaces for markdown files
 vim.api.nvim_create_autocmd('FileType', {
-    pattern = "markdown",
+    pattern = { "markdown", "typst" },
     callback = function()
         vim.bo.shiftwidth = 2
         vim.bo.tabstop = 2
@@ -45,10 +45,7 @@ vim.api.nvim_create_autocmd('FileType', {
     callback = function()
         local root = get_git_root()
         if root ~= nil then
-            vim.o.spellfile = root .. "/.nvim/en.utf-8.add"
-            if vim.fn.isdirectory(root .. "/.nvim") == 0 then
-                vim.fn.mkdir(root .. "/.nvim")
-            end
+            vim.o.spellfile = root .. "/.nvim.en.utf-8.add"
         end
         vim.o.spell = true
         vim.o.spelllang = "en_us"
