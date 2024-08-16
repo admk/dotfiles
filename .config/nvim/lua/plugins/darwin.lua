@@ -4,12 +4,12 @@ if is_remote then
 end
 return {
     {
-        'mikesmithgh/kitty-scrollback.nvim',
+        "mikesmithgh/kitty-scrollback.nvim",
         lazy = true,
-        cmd = { 'KittyScrollbackGenerateKittens', 'KittyScrollbackCheckHealth' },
-        event = { 'User KittyScrollbackLaunch' },
+        cmd = { "KittyScrollbackGenerateKittens", "KittyScrollbackCheckHealth" },
+        event = { "User KittyScrollbackLaunch" },
         config = function()
-            require('kitty-scrollback').setup()
+            require("kitty-scrollback").setup()
         end,
     },
     {
@@ -18,11 +18,43 @@ return {
         opts = {
             update_interval = 10000,
             set_dark_mode = function()
-                vim.api.nvim_set_option_value('background', 'dark', {})
+                vim.api.nvim_set_option_value("background", "dark", {})
             end,
             set_light_mode = function()
-                vim.api.nvim_set_option_value('background', 'light', {})
+                vim.api.nvim_set_option_value("background", "light", {})
             end,
+        },
+    },
+    {
+        "3rd/image.nvim",
+        dependencies = { "leafo/magick" },
+    },
+    {
+        "nvim-neorg/neorg",
+        dependencies = {
+            "hrsh7th/nvim-cmp",
+            "3rd/image.nvim",
+        },
+        lazy = false,
+        version = "*",
+        opts = {
+            load = {
+                ["core.defaults"] = {},
+                ["core.concealer"] = {},
+                ["core.dirman"] = {
+                    config = {
+                        workspaces = {
+                            notes = "~/Documents/notes",
+                        },
+                    },
+                },
+                ["core.completion"] = {
+                    config = { engine = "nvim-cmp" },
+                },
+                ["core.integrations.nvim-cmp"] = {},
+                ["core.integrations.image"] = {},
+                ["core.latex.renderer"] = {},
+            },
         },
     },
 }

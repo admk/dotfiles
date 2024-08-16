@@ -43,6 +43,7 @@ return {
                 { name = "copilot" },
                 { name = "nvim_lsp" },
                 { name = "luasnip" },
+                { name = "neorg" },
                 { name = "path" },
             })
             opts.mapping = vim.tbl_extend("force", opts.mapping, {
@@ -77,6 +78,14 @@ return {
                 ["<C-e>"] = cmp.mapping.confirm({
                     behavior = cmp.ConfirmBehavior.Replace,
                 }),
+                ["<CR>"] = cmp.mapping(function (_)
+                    if cmp.visible() then
+                        cmp.close()
+                    end
+                    local cr = vim.api.nvim_replace_termcodes(
+                        "<CR>", true, true, true)
+                    vim.api.nvim_feedkeys(cr, "n", true)
+                end),
             })
             return opts
         end,

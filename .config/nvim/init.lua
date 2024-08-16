@@ -6,9 +6,11 @@ end
 local config_path = debug.getinfo(1, "S").source:sub(2)
 local config_dir = vim.fn.fnamemodify(config_path:match("(.*/)"), ":h:p")
 local old_stdpath = vim.fn.stdpath
-vim.fn.stdpath = function(value)
+vim.fn.stdpath = function (value)
     if value == "data" then
         return config_dir .. "/../../.local/share/nvim"
+    elseif value == "state" then
+        return config_dir .. "/../../.local/state/nvim"
     end
     return old_stdpath(value)
 end
