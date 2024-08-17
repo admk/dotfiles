@@ -21,7 +21,7 @@ aliases |= {
     'dl': 'curl --location --fail --continue-at - --progress-bar',
     'gP': 'git push',
     'gPf': 'git push --force-with-lease',
-    'gp': 'git pull',
+    'gp': 'git pull --no-ff',
     'gc': 'git commit',
     'gca': 'git commit --amend --no-edit',
     'gs': 'git status',
