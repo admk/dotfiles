@@ -14,9 +14,6 @@ import tomlkit
 from cryptography.fernet import Fernet
 
 
-SSH = shutil.which('ssh')
-
-
 _quote_pos = re.compile('(?=[^-0-9a-zA-Z_./\n])')
 
 def quote(arg):
@@ -26,7 +23,6 @@ def quote(arg):
     >>> quote('foo bar')
     'foo\\ bar'
     """
-    # This is the logic emacs uses
     if arg:
         return _quote_pos.sub('\\\\', arg).replace('\n',"'\n'")
     return "''"
@@ -191,10 +187,12 @@ Options:
             ssh_args.p = port
         return kxh_args, ssh_args
 
-    def unparse_ssh_args(self, parsed_args, dest=True):
+    def unparse_ssh_args(self, parsed_args, ssh_command=None, dest=True):
         if not isinstance(parsed_args, dict):
             parsed_args = vars(parsed_args)
-        command_line = [SSH]
+        if ssh_command is None:
+            ssh_command = shutil.which('ssh')
+        command_line = [ssh_command]
         for option in '46AaCfGgKkMNnqsTtVvXxYy':
             if parsed_args.get(option):
                 command_line.append(f'-{option}')
@@ -230,6 +228,7 @@ class KXH:
     kxh_defaults = {
         'name': 'kxh',
         'repo': 'https://github.com/admk/dotfiles.git',
+        'ssh_command': shutil.which('ssh'),
     }
 
     def _load_rc(self, config_home, rc):
@@ -256,7 +255,8 @@ class KXH:
         ssh_args = {
             k: v for k, v in vars(ssh_args).items() if v is not False}
         update(config.setdefault('ssh', {}), ssh_args)
-        self.ssh_cmd = parser.unparse_ssh_args(config['ssh'], dest=False)
+        self.ssh_cmd = parser.unparse_ssh_args(
+            config['ssh'], ssh_command=config['kxh']['ssh_command'], dest=False)
         home = os.environ.get('KXH_HOME', None)
         if not home:
             name = config['kxh']['name']
@@ -313,13 +313,14 @@ class KXH:
         if dry:
             return
         try:
-            subprocess.run(command, shell=True, **kwargs)
+            p = subprocess.run(command, shell=True, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
                 print_message('error', f'{error_message}')
                 exit(1)
             else:
                 raise e
+        return p.returncode
 
     def _ssh_host_specific_rcs(self):
         key = self.config['kxh']['key']
@@ -356,8 +357,8 @@ class KXH:
             "rsync --archive --no-owner --no-group --compress --human-readable",
             "--update --delete --partial --progress --checksum --copy-links"
         ]
-        if is_remote:
-            rsync_cmd.append(f"--rsh {' '.join(self.ssh_cmd)!r}")
+        # if is_remote:
+        #     rsync_cmd.append(f"--rsh {' '.join(self.ssh_cmd)!r}")
         file_list_file = None
         if file_list is not None:
             if sync_file is not None:
@@ -472,13 +473,13 @@ class KXH:
         if cmd := self.config['ssh']['command']:
             cmd = " ".join(cmd)
             command += f' -c {cmd!r}'
-        # command = command.replace('\\', '\\\\').replace(' ', '\\ ')
-        # command = command.replace("'", "\\'").replace('"', '\\"')
         init_script += f"/bin/bash --norc -c {quote(command)!r}"
         ssh_cmd = self.ssh_cmd + ['-o', 'RequestTTY=yes', dest, init_script]
-        self._run_shell(
+        rv = self._run_shell(
             ' '.join(ssh_cmd), 'Failed to load ssh session.',
             stdout=sys.stdout, stderr=sys.stderr)
+        if not cmd and rv == 255:
+            self._run_shell('reset', 'Failed to reset terminal.')
 
     def main(self):
         verbose = self.config['kxh']['verbose']
