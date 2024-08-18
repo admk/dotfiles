@@ -35,8 +35,9 @@ cmd + alt - l : yabai -m window east --resize left:20:0 2> /dev/null || yabai -m
 # }
 # }
 # macos {
-# dark mode toggle {
+# disable accidental hide
+cmd - h : :
+# dark mode toggle
 alt - d : osascript -e "tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode"
-# }
 # }
 # vim: foldmethod=marker foldmarker={,}
