@@ -1,3 +1,6 @@
+import sys
+from shutil import which as _which
+
 $PATH = [
     '/opt/homebrew/opt/coreutils/libexec/gnubin',
 ] + $PATH + [
@@ -41,6 +44,22 @@ def _install_secretive():
     brew install maxgoedjen/tap/secretive
     echo 'Starting Secretive'
     brew services start secretive
+
+
+@aliases.register('fo')
+def _mdfind_fzf_oepn(args):
+    for cmd in ('mdfind', 'fzf', 'magika'):
+        if not _which(cmd):
+            print(f'{cmd} not found.', file=sys.stderr)
+            return -1
+    file = $(mdfind @(args) 2> /dev/null | fzf)
+    if not file:
+        return
+    group = $(magika -i --jsonl @(file) | jq -r ".dl.group").strip()
+    if group in ['text', 'code']:
+        $EDITOR @(file)
+    else:
+        open @(file) > /dev/null
 
 
 def _auto_theme(force=False):
