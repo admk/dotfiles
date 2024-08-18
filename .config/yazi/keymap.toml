@@ -1,5 +1,6 @@
 [manager]
 prepend_keymap = [
+    { on = [ "g", "i" ], run = "cd '~/Library/Mobile Documents/com~apple~CloudDocs'", desc = "Open iCloud documents" },
     { on = "<C-/>", run = 'shell "$SHELL" --block --confirm', desc = "Open shell here" },
     { on = [ "c", "m" ], run = "plugin chmod", desc = "Chmod on selected files" },
     { on = "f", run = "plugin jump-to-char", desc = "Jump to char" },
