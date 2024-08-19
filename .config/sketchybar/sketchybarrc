@@ -5,9 +5,6 @@ ITEM_DIR="$CONFIG_DIR/items"
 # Load global styles, colors and icons
 source "$CONFIG_DIR/globalstyles.sh"
 
-POPUP_CLICK_SCRIPT="sketchybar --set \$NAME popup.drawing=toggle"
-POPUP_OFF="sketchybar --set \$NAME popup.drawing=off"
-
 sketchybar --bar "${bar[@]}" --default "${item_defaults[@]}"
 
 # Left
@@ -21,12 +18,13 @@ source "$ITEM_DIR/datetime.sh"
 source "$ITEM_DIR/cpu.sh"
 source "$ITEM_DIR/battery.sh"
 source "$ITEM_DIR/volume.sh"
+source "$ITEM_DIR/weather.sh"
 source "$ITEM_DIR/music.sh"
 
 sketchybar \
     --add bracket left_side logo yabai '/space\..*/' \
     --set left_side "${bracket_defaults[@]}" \
-    --add bracket right_side volume_icon volume music cpu battery date clock control_center \
+    --add bracket right_side control_center date clock cpu battery volume_icon volume weather music \
     --set right_side "${bracket_defaults[@]}"
 
 sketchybar --hotload on

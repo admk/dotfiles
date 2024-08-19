@@ -2,10 +2,10 @@
 
 yabai=(
     icon=$YABAI_GRID
-    icon.y_offset=1
+    icon.y_offset=0
     label.drawing=off
     script="$PLUGIN_DIR/yabai.sh"
-    icon.font="$FONT:Bold:12.0"
+    # icon.font="$FONT:Bold:12.0"
 )
 
 sketchybar --add event update_yabai_icon

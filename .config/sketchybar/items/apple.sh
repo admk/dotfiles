@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # Load global styles, colors and icons
-if [ -f "$CONFIG_DIR/main_icon.sh" ]; then
-    source "$CONFIG_DIR/main_icon.sh"
-fi
+[ -f "$CONFIG_DIR/personal.sh" ] && source "$CONFIG_DIR/personal.sh"
 source "$CONFIG_DIR/globalstyles.sh"
 
 POPUP_OFF='sketchybar --set logo popup.drawing=off'
@@ -11,7 +9,7 @@ POPUP_OFF='sketchybar --set logo popup.drawing=off'
 logo=(
     "${menu_defaults[@]}"
     icon=${MAIN_ICON:-󰯉}
-    icon.font=${MAIN_ICON_FONT:-"$FONT:Regular:16"}}
+    icon.font.family=${MAIN_ICON_FONT:-$FONT}
     icon.background.corner_radius=$PADDINGS
     y_offset=${MAIN_ICON_Y_OFFSET:-1}
     label.drawing=off

@@ -68,7 +68,7 @@ getcolor() {
         black) local color=$black ;;
         trueblack) local color=$trueblack ;;
         white) local color=$white ;;
-        *) local color=${color_name:1} ;;
+        *) local color=${color_name:2} ;;
     esac
 
     echo $opacity${color:1}

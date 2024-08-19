@@ -99,7 +99,8 @@ mouse_clicked() {
     # elif [[ "$MODIFIER" == "cmd" ]]; then
     #     ~/.config/yabai/cycle_windows.sh
     else
-        yabai -m space --focus $SID
+        # yabai -m space --focus $SID
+        skhd -k "ctrl - $SID"
     fi
 }
 

@@ -5,6 +5,7 @@ source "$CONFIG_DIR/colors.sh"
 
 PADDINGS=12
 FONT="Iosevka"
+FONT_SIZE=14
 
 # Bar Appearance
 bar=(
@@ -30,10 +31,10 @@ item_defaults=(
     icon.padding_right=$(($PADDINGS / 2))
     icon.background.corner_radius=4
     icon.background.height=24
-    icon.font="$FONT:Regular:14"
+    icon.font="$FONT:Regular:$FONT_SIZE"
     icon.color=$ICON_COLOR
     icon.highlight_color=$HIGHLIGHT
-    label.font="$FONT:Regular:14"
+    label.font="$FONT:Regular:$FONT_SIZE"
     label.color=$LABEL_COLOR
     label.highlight_color=$HIGHLIGHT
     label.padding_left=$(($PADDINGS / 2))
@@ -84,7 +85,7 @@ menu_defaults=(
 )
 
 menu_item_defaults=(
-    label.font="$FONT:Regular:13"
+    label.font="$FONT:Regular:$FONT_SIZE"
     padding_left=$PADDINGS
     padding_right=$PADDINGS
     icon.padding_left=0
