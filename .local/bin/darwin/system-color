@@ -1,0 +1,98 @@
+#!/bin/sh
+
+daily_color() {
+    local COLORS=(
+        "#7dcfff" "#73daca" "#b4f9f8" "#9ece6a" "#e0af68" "#ff9e64" "#f7768e"
+    )
+    if [ -z $1 ]; then
+        local DAY_OF_WEEK=$(date +%u)
+        echo ${COLORS[$DAY_OF_WEEK]}
+    elif [ $1 == "random" ]; then
+        echo ${COLORS[$((RANDOM % ${#COLORS[@]}))]}
+    elif [ ${1:0:1} == "#" ]; then
+        echo $1
+    else
+        echo ${COLORS[$1]}
+    fi
+}
+
+color_mode() {
+    local MODE=$(defaults read -g AppleInterfaceStyle 2>/dev/null)
+    if [ -z $MODE ]; then
+        echo "Light"
+    else
+        echo "Dark"
+    fi
+}
+
+theme() {
+    local MODE=$(color_mode)
+    local THEME=${DARK_THEME:-tokyonight_night}
+    if [ $MODE == "Light" ]; then
+        THEME=${LIGHT_THEME:-tokyonight_day}
+    fi
+    echo $THEME
+}
+
+
+update_alacritty() {
+    if [ -z $ALACRITTY_SOCKET ]; then
+        return
+    fi
+    local theme=$(theme)
+    local alacritty_dir=${XDG_CONFIG_HOME}/alacritty
+    ln -sf \
+        ${alacritty_dir}/themes/${theme}.toml \
+        ${alacritty_dir}/_active_theme.toml
+    touch ${alacritty_dir}/alacritty.toml
+}
+
+
+_kitty_get_colors() {
+    kitty @ get-colors | grep "^$1" | tr -s ' ' | cut -d ' ' -f 2
+}
+
+
+update_kitty() {
+    if [ -z $KITTY_PID ]; then
+        return
+    fi
+    local COLOR=$(daily_color $1)
+    local KITTY_DIR=${XDG_CONFIG_HOME}/kitty
+    ln -sf \
+        $KITTY_DIR/themes/$(theme).conf \
+        $KITTY_DIR/_active_theme.conf
+    kitty @ set-colors -a -c $KITTY_DIR/_active_theme.conf
+    local FG=$(_kitty_get_colors foreground)
+    local BG=$(_kitty_get_colors background)
+    KITTY_COLORS=(
+        inactive_tab_foreground=$FG
+        active_tab_background=$COLOR
+        active_tab_foreground=$BG
+    )
+    kitty @ set-colors -a -c ${KITTY_COLORS[@]}
+}
+
+
+update_sketchybar() {
+    echo "export DAILY_COLOR=$(daily_color $1)" > \
+        $XDG_CONFIG_HOME/sketchybar/daily_color.sh
+}
+
+
+COLOR=$(daily_color $1)
+MODE=$(color_mode)
+TEMP_FILE=/tmp/kxh-daily-color
+if [ ! -z $COLOR ]; then
+    if [ -f $TEMP_FILE ] && [ $(cat $TEMP_FILE) == "$MODE:$COLOR" ]; then
+        echo "Color already set"
+        exit 0
+    fi
+    echo "$MODE:$COLOR" > $TEMP_FILE
+    update_alacritty $COLOR
+    update_kitty $COLOR
+    update_sketchybar $COLOR
+else
+    echo "No color set"
+    exit 1
+fi

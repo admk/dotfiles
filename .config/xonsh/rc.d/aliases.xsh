@@ -109,10 +109,10 @@ def _refresh():
 
 
 @aliases.register('y')
-def _yy(args):
+def _y(args):
     tmp = $(mktemp -t 'yazi-cwd.XXXXXX')
     yazi @(args) --cwd-file @(tmp)
-    cwd = $(cat -- @(tmp))
+    cwd = $(cat @(tmp))
     if os.path.isdir(cwd) and cwd != $PWD:
         cd @(cwd)
     rm -f @(tmp)

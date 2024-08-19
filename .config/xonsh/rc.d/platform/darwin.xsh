@@ -48,11 +48,25 @@ def _install_secretive():
 
 @aliases.register('fo')
 def _mdfind_fzf_oepn(args):
+    import os
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--cwd', action='store_true')
+    parser.add_argument('names', nargs='*')
+    args = parser.parse_args(args)
     for cmd in ('mdfind', 'fzf', 'magika'):
         if not _which(cmd):
             print(f'{cmd} not found.', file=sys.stderr)
             return -1
-    file = $(mdfind @(args) 2> /dev/null | fzf)
+    flags = ()
+    cwd = os.getcwd()
+    if args.cwd:
+        flags += ('-onlyin', cwd)
+    files = $(mdfind @(flags) @(args.names) 2> /dev/null).splitlines()
+    files = '\n'.join(os.path.relpath(f, cwd) for f in files)
+    file = $(
+        echo @(files) |
+        fzf --height 25 --layout=reverse --border --preview 'fzf-preview {}')
     if not file:
         return
     group = $(magika -i --jsonl @(file) | jq -r ".dl.group").strip()

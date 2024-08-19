@@ -7,6 +7,11 @@ run = 'kitty @ launch --type=tab --title="$EDITOR \"$@\"" ~/.local/bin/xh -c "nv
 block = false
 for = "macos"
 
+[[opener.edit]]
+run = '$EDITOR "$@"'
+block = true
+for = "linux"
+
 [[plugin.prepend_previewers]]
 mime = "application/{,g}zip"
 run = "lsar"
