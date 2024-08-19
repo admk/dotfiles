@@ -1,5 +1,7 @@
 #!/bin/sh
 
+TEMP_FILE=/tmp/kxh-daily-color
+
 daily_color() {
     local COLORS=(
         "#7dcfff" "#73daca" "#b4f9f8" "#9ece6a" "#e0af68" "#ff9e64" "#f7768e"
@@ -57,7 +59,7 @@ update_kitty() {
     if [ -z $KITTY_PID ]; then
         return
     fi
-    local COLOR=$(daily_color $1)
+    local COLOR=$1
     local KITTY_DIR=${XDG_CONFIG_HOME}/kitty
     ln -sf \
         $KITTY_DIR/themes/$(theme).conf \
@@ -75,23 +77,28 @@ update_kitty() {
 
 
 update_sketchybar() {
-    echo "export DAILY_COLOR=$(daily_color $1)" > \
-        $XDG_CONFIG_HOME/sketchybar/daily_color.sh
+    touch $XDG_CONFIG_HOME/sketchybar/sketchybarrc
+}
+
+
+update_yabai() {
+    yabai -m config insert_feedback_color "0xe0${1:2}"
 }
 
 
 COLOR=$(daily_color $1)
 MODE=$(color_mode)
-TEMP_FILE=/tmp/kxh-daily-color
 if [ ! -z $COLOR ]; then
     if [ -f $TEMP_FILE ] && [ $(cat $TEMP_FILE) == "$MODE:$COLOR" ]; then
         echo "Color already set"
         exit 0
     fi
     echo "$MODE:$COLOR" > $TEMP_FILE
+    echo "export DAILY_COLOR=$(daily_color $1)" > $TEMP_FILE.sh
     update_alacritty $COLOR
     update_kitty $COLOR
     update_sketchybar $COLOR
+    update_yabai $COLOR
 else
     echo "No color set"
     exit 1

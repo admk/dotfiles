@@ -76,8 +76,8 @@ getcolor() {
 
 # Pick color based on day of week
 daily_color() {
-    if [ -f $CONFIG_DIR/daily_color.sh ]; then
-        source $CONFIG_DIR/daily_color.sh
+    if [ -f /tmp/kxh-daily-color.sh ]; then
+        source /tmp/kxh-daily-color.sh
         echo "#ff${DAILY_COLOR:1}"
         return
     fi
