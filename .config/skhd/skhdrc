@@ -40,4 +40,11 @@ cmd - h : :
 # dark mode toggle
 alt - d : osascript -e "tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode"
 # }
+# cmd + j/k keybinds
+cmd - j [
+    "微信" : skhd -k "0x7D"
+]
+cmd - k [
+    "微信" : skhd -k "0x7E"
+]
 # vim: foldmethod=marker foldmarker={,}

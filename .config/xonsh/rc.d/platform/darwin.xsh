@@ -47,11 +47,16 @@ def _install_secretive():
 
 
 @aliases.register('fo')
-def _mdfind_fzf_oepn(args):
+def _mdfind_fzf_open(args):
     import os
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--cwd', action='store_true')
+    parser.add_argument(
+        '-c', '--cwd', action='store_true',
+        help='Search only in current directory')
+    parser.add_argument(
+        '-y', '--yazi', action='store_true',
+        help='Reveal in Yazi')
     parser.add_argument('names', nargs='*')
     args = parser.parse_args(args)
     for cmd in ('mdfind', 'fzf', 'magika'):
@@ -64,16 +69,26 @@ def _mdfind_fzf_oepn(args):
         flags += ('-onlyin', cwd)
     files = $(mdfind @(flags) @(args.names) 2> /dev/null).splitlines()
     files = '\n'.join(os.path.relpath(f, cwd) for f in files)
-    file = $(
-        echo @(files) |
-        fzf --height 25 --layout=reverse --border --preview 'fzf-preview {}')
-    if not file:
+    files = $(
+        echo @(files) | fzf \
+            --height 25 --layout=reverse --border --preview 'fzf-preview {}' \
+            --bind 'ctrl-o:execute(open -R {})' \
+            --bind 'ctrl-y:execute(system-copy {})' \
+            --multi)
+    if not files:
         return
-    group = $(magika -i --jsonl @(file) | jq -r ".dl.group").strip()
-    if group in ['text', 'code']:
-        $EDITOR @(file)
-    else:
-        open @(file) > /dev/null
+    for file in files.splitlines():
+        if not os.path.exists(file):
+            print(f'File not found: {file}', file=sys.stderr)
+            continue
+        if args.yazi:
+            yazi @(file)
+            continue
+        group = $(magika -i --jsonl @(file) | jq -r ".dl.group").strip()
+        if group in ['text', 'code']:
+            $EDITOR @(file)
+        else:
+            open @(file) > /dev/null
 
 
 def _auto_theme(force=False):

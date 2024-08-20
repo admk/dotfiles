@@ -16,6 +16,7 @@ aliases |= {
     'c': 'clear',
     'o': 'open',
     'e': '$EDITOR',
+    'd': 'dict',
     'b': 'brew',
     'bup': 'brew update && brew upgrade && brew cleanup',
     'dl': 'curl --location --fail --continue-at - --progress-bar',

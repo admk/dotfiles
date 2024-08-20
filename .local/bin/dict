@@ -1,0 +1,32 @@
+#!/bin/bash
+
+fuzzy_dict() {
+    # if stdout is not a terminal
+    if [ ! -t 1 ]; then
+        wn $1 -over
+        return
+    fi
+    cat /usr/share/dict/words | fzf \
+        --height 25 --layout=reverse --border \
+        --preview 'wn {} -over' --preview-window right:70%:wrap \
+        --bind "start:put($1)" | xargs -I_ wn _ -over
+}
+
+LCMD=$(basename $0)
+if [ -z "$1" ]; then
+    echo "Usage: $LCMD <word>" >&2
+    exit 1
+fi
+for cmd in wn fzf; do
+    if [ ! -x "$(command -v $cmd)" ]; then
+        echo "$cmd is not installed. Please install $cmd." >&2
+        exit 1
+    fi
+done
+if [ "$1" = "-" ]; then
+    while read word; do
+        fuzzy_dict $word
+    done
+    exit 0
+fi
+fuzzy_dict $1
