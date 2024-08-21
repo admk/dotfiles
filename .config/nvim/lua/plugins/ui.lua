@@ -3,12 +3,15 @@ return {
     { import = "lazyvim.plugins.extras.ui.edgy" },
     {
         "nvimdev/dashboard-nvim",
-        dependencies = { "nvim-tree/nvim-web-devicons" },
+        dependencies = {
+            "nvim-tree/nvim-web-devicons",
+            'ColaMint/pokemon.nvim',
+        },
         event = "VimEnter",
         opts = function(_, opts)
-            local logo = [[󱥄 󱥌 󱤉 󱥔 󱥩 󱤰 ]]
-            logo = string.rep("\n", 8) .. logo .. "\n\n"
-            opts.config.header = vim.split(logo, "\n")
+            local pokemon = require("pokemon")
+            pokemon.setup({ number = 'random' })
+            opts.config.header = pokemon.header()
         end,
     },
     {

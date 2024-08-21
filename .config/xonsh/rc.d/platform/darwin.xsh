@@ -71,7 +71,10 @@ def _mdfind_fzf_open(args):
     files = '\n'.join(os.path.relpath(f, cwd) for f in files)
     files = $(
         echo @(files) | fzf \
-            --height 25 --layout=reverse --border --preview 'fzf-preview {}' \
+            --height 25 --layout=reverse \
+            --border --border-label " File Search " \
+            --preview 'fzf-preview {}' \
+            --header 'ctrl-o: reveal in Finder \nctrl-y: copy file' \
             --bind 'ctrl-o:execute(open -R {})' \
             --bind 'ctrl-y:execute(system-copy {})' \
             --multi)

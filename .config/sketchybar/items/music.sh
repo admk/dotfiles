@@ -8,9 +8,9 @@ music=(
   background.color=$TRANSPARENT
   script="$PLUGIN_DIR/music.sh"
   popup.align=center
-  padding_left=0
-  label.padding_right=$PADDINGS
-  padding_right=$(($PADDINGS * 2))
+  # padding_left=0
+  # label.padding_right=$PADDINGS
+  # padding_right=$(($PADDINGS * 2))
   drawing=off
   label="Loading…"
   background.image=media.artwork
@@ -18,7 +18,8 @@ music=(
   background.image.corner_radius=$PADDINGS
   background.image.padding_left=5
   icon.padding_left=20
-  label.max_chars=38
+  icon.padding_right=$PADDINGS
+  label.max_chars=10
   updates=on
   --subscribe music media_change
 )

@@ -103,10 +103,10 @@ export ICON_CONTROLCENTER=􀜊
 export ICON_PDF=􁜿
 
 export ICON_TERM=􀪏 # fallback terminal app, terminal, warp, iterm2
-export ICON_PHOTOSHOP=
+export ICON_PHOTOSHOP=􀣳
 export ICON_AFTEREFFECTS=󱁑
-export ICON_PHOTOS=
-export ICON_THINGS=
-export ICON_ICON=􀊹 # SF Symbols
-export ICON_STEAM=󰓓 # Steam
-export ICON_HANDBRAKE=󱁆
+export ICON_PHOTOS=􀏆
+export ICON_THINGS=􀃳
+export ICON_ICON=􀊹
+export ICON_STEAM=􀛹
+export ICON_HANDBRAKE=􀢚
