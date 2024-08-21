@@ -1,0 +1,6 @@
+#!/bin/bash
+abs_paths=""
+for f in "$@"; do
+    abs_paths="$abs_paths $(realpath "$f")"
+done
+osascript $(which system-copy.scpt) $abs_paths
