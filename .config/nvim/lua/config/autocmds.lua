@@ -29,7 +29,7 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
     end,
 })
 
--- set indentation to 2 spaces for markdown files
+-- set indentation to 2 spaces for various files
 vim.api.nvim_create_autocmd('FileType', {
     pattern = { "markdown", "typst" },
     callback = function()
@@ -51,3 +51,17 @@ vim.api.nvim_create_autocmd('FileType', {
         vim.o.spelllang = "en_us"
     end,
 })
+
+-- comment strings for various files
+local commentstring_map = {
+    typst = "// %s",
+    xonsh = "# %s",
+}
+for filetype, commentstring in pairs(commentstring_map) do
+    vim.api.nvim_create_autocmd('FileType', {
+        pattern = { filetype },
+        callback = function()
+            vim.bo.commentstring = commentstring
+        end,
+    })
+end

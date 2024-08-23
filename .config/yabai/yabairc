@@ -63,5 +63,8 @@ yabai \
 yabai \
     -m rule --add label="Safari" app="^Safari$" \
     title="^(General|Tabs|Passwords|Websites|Extensions|AutoFill|Search|Security|Privacy|Advance)$" manage=off
+yabai \
+    -m rule --add label="Arc" app="^Arc$" \
+    title="^($USER|General|Profiles|Max|Links|Shortcuts|Icon|Advanced)$" manage=off
 
 echo "yabai configuration loaded.."

@@ -3,60 +3,60 @@ if is_remote then
 	return {}
 end
 return {
-    {
-        "mikesmithgh/kitty-scrollback.nvim",
-        lazy = true,
-        cmd = { "KittyScrollbackGenerateKittens", "KittyScrollbackCheckHealth" },
-        event = { "User KittyScrollbackLaunch" },
-        config = function()
-            require("kitty-scrollback").setup()
-        end,
-    },
-    {
-        "f-person/auto-dark-mode.nvim",
-        enabled = false,
-        opts = {
-            update_interval = 10000,
-            set_dark_mode = function()
-                vim.api.nvim_set_option_value("background", "dark", {})
-            end,
-            set_light_mode = function()
-                vim.api.nvim_set_option_value("background", "light", {})
-            end,
-        },
-    },
-    {
-        "3rd/image.nvim",
-        dependencies = { "leafo/magick" },
-    },
-    {
-        "nvim-neorg/neorg",
-        dependencies = {
-            "hrsh7th/nvim-cmp",
-            "3rd/image.nvim",
-        },
-        lazy = false,
-        version = "*",
-        opts = {
-            load = {
-                ["core.defaults"] = {},
-                ["core.concealer"] = {},
-                ["core.dirman"] = {
-                    config = {
-                        workspaces = {
-                            notes = "~/Documents/notes",
-                        },
-                    },
-                },
-                ["core.completion"] = {
-                    config = { engine = "nvim-cmp" },
-                },
-                ["core.integrations.nvim-cmp"] = {},
-                ["core.integrations.image"] = {},
-                ["core.latex.renderer"] = {},
-            },
-        },
-    },
+	{
+		"mikesmithgh/kitty-scrollback.nvim",
+		lazy = true,
+		cmd = { "KittyScrollbackGenerateKittens", "KittyScrollbackCheckHealth" },
+		event = { "User KittyScrollbackLaunch" },
+		config = function()
+			require("kitty-scrollback").setup()
+		end,
+	},
+	{
+		"f-person/auto-dark-mode.nvim",
+		enabled = false,
+		opts = {
+			update_interval = 10000,
+			set_dark_mode = function()
+				vim.api.nvim_set_option_value("background", "dark", {})
+			end,
+			set_light_mode = function()
+				vim.api.nvim_set_option_value("background", "light", {})
+			end,
+		},
+	},
+	{
+		"3rd/image.nvim",
+		dependencies = { "leafo/magick" },
+	},
+	{
+		"nvim-neorg/neorg",
+		dependencies = {
+			"hrsh7th/nvim-cmp",
+			"3rd/image.nvim",
+		},
+		lazy = false,
+		version = "*",
+		opts = {
+			load = {
+				["core.defaults"] = {},
+				["core.concealer"] = {},
+				["core.dirman"] = {
+					config = {
+						workspaces = {
+							notes = "~/Documents/notes",
+						},
+					},
+				},
+				["core.completion"] = {
+					config = { engine = "nvim-cmp" },
+				},
+				["core.integrations.nvim-cmp"] = {},
+				["core.integrations.image"] = {},
+				["core.latex.renderer"] = {},
+			},
+		},
+	},
 	{
 		"nvim-treesitter/nvim-treesitter",
 		dependencies = {
@@ -65,7 +65,7 @@ return {
 		opts = {
 			ensure_installed = {
 				"latex",
-				"typst",
+				-- "typst",
 			},
 		},
 	},
@@ -73,8 +73,9 @@ return {
 		"williamboman/mason.nvim",
 		opts = function(_, opts)
 			vim.list_extend(opts.ensure_installed, {
-				"typst-lsp",
+				-- "typst-lsp",
 				-- "ltex",
+                "tinymist",
 			})
 		end,
 	},
@@ -85,11 +86,9 @@ return {
 		-- },
 		opts = {
 			servers = {
-				typst_lsp = {
+				tinymist = {
 					settings = {
-						typst = {
-							exportPdf = "onSave",
-						},
+                        exportPdf = "onSave",
 					},
 				},
 			},
@@ -99,8 +98,5 @@ return {
 		"abhishekmukherg/xonsh-vim",
 		event = "VeryLazy",
 		ft = "xonsh",
-		config = function(_, opts)
-			vim.bo.commentstring = "# %s"
-		end,
 	},
 }
