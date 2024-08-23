@@ -7,7 +7,7 @@ return {
     { import = "lazyvim.plugins.extras.lang.tex" },
     {
         "lervag/vimtex",
-        lazy = false,
+        ft = "tex",
         config = function (_, opts)
             vim.g.vimtex_quickfix_mode = 0
             vim.g.vimtex_view_method = "sioyek"

@@ -192,6 +192,9 @@ case "$1" in
 "sioyek")
     RESULT=$ICON_PDF
     ;;
+"ChatGPT")
+    RESULT=$ICON_CHATGPT
+    ;;
 *)
 	RESULT=$ICON_APP
 	;;
