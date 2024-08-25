@@ -4,11 +4,12 @@ TEMP_FILE=/tmp/kxh-daily-color
 
 daily_color() {
     local COLORS=(
-        "#7dcfff" "#73daca" "#b4f9f8" "#9ece6a" "#e0af68" "#ff9e64" "#f7768e"
+        "#7dcfff" "#73daca" "#b4f9f8" "#9ece6a" "#e0af68"
+        "#ff9e64" "#f7768e"
     )
     if [ -z $1 ]; then
         local DAY_OF_WEEK=$(date +%u)
-        echo ${COLORS[$DAY_OF_WEEK]}
+        echo ${COLORS[$DAY_OF_WEEK - 1]}
     elif [ $1 == "random" ]; then
         echo ${COLORS[$((RANDOM % ${#COLORS[@]}))]}
     elif [ ${1:0:1} == "#" ]; then

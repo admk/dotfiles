@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+rg --color=always --line-number --no-heading --smart-case "${*:-}" |
+    fzf --ansi \
+        --color "hl:-1:underline,hl+:-1:underline:reverse" \
+        --delimiter : \
+        --height 40 \
+        --preview 'bat --color=always {1} --highlight-line {2}' \
+        --preview-window 'bottom,80%,+{2}+3/3,~3' \
+        --bind 'enter:become($EDITOR {1} +@(int({2})))'

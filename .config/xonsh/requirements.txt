@@ -17,6 +17,7 @@ xontrib-clp
 xontrib-cmd-durations
 xontrib-ergopack
 xontrib-fish-completer
+xontrib-fzf-widgets
 xontrib-history-encrypt
 xontrib-homebrew ; sys_platform == 'darwin'
 xontrib-onepath

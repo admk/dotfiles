@@ -40,6 +40,19 @@ $N_PREFIX = $XDG_DATA_HOME
 $PYDEVD_DISABLE_FILE_VALIDATION = 1
 $PYDEVD_WARN_SLOW_RESOLVE_TIMEOUT = 10
 
+$fzf_hisotry_binding = "c-r"
+$fzf_ssh_binding = "c-s"
+$fzf_file_binding = "c-t"
+$fzf_dir_binding = "c-g"
+$FZF_DEFAULT_OPTS=' '.join("""
+--bind ctrl-f:half-page-down
+--bind ctrl-b:half-page-up
+--bind ctrl-d:preview-half-page-down
+--bind ctrl-u:preview-half-page-up
+--height 40% --layout reverse --border
+--color=bg+:#D9D9D9,bg:#E1E1E1,border:#C8C8C8,spinner:#719899,hl:#719872,fg:#616161,header:#719872,info:#727100,pointer:#E12672,marker:#E17899,fg+:#616161,preview-bg:#D9D9D9,prompt:#0099BD,hl+:#719899
+""".split())
+
 try:
     $XONTRIB_ONEPATH_ACTIONS |= {
         'text/': $VISUAL,

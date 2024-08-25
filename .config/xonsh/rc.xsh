@@ -10,6 +10,7 @@ def _xontrib_load():
         'autoxsh',
         'coreutils',
         'fish_completer',
+        'fzf-widgets',
         'jedi',
         'onepath',
         # 'output_search',
