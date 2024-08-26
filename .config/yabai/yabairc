@@ -33,6 +33,7 @@ yabai -m config mouse_drop_action swap
 # exclude apps from tiling
 ignored_apps=(
     "Activity Monitor"
+    "Archive Utility"
     "BetterZip"
     "Clash Verge"
     "Finder"

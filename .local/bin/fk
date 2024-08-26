@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
+# kill processes with fzf
 (date; ps -ef) |
   fzf --bind='ctrl-r:reload(date; ps -ef)' \
+      --height=50% --min-height=10 \
       --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
       --preview='echo {}' --preview-window=down,3,wrap \
+      --multi \
       | awk '{print $2}' | xargs kill -9
