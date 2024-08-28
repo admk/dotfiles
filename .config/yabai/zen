@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+yabai -m window --toggle zoom-fullscreen
+
+IS_FULLSCREEN=$(yabai -m query --windows --window | jq '."has-fullscreen-zoom"')
+if [ "$IS_FULLSCREEN" = "true" ]; then
+    SCREEN_WIDTH=$(yabai -m query --displays --display | jq ".frame.w | round")
+    PADDING=$((($SCREEN_WIDTH - 800)/3))
+    yabai -m config top_padding 48
+    yabai -m config bottom_padding 48
+    yabai -m config left_padding $PADDING
+    yabai -m config right_padding $PADDING
+else
+    yabai -m config top_padding 12
+    yabai -m config bottom_padding 12
+    yabai -m config left_padding 12
+    yabai -m config right_padding 12
+fi

@@ -37,6 +37,7 @@ alt - k : \
 # zoom {
 shift + alt - f : yabai -m window --toggle zoom-fullscreen
 alt - f : yabai -m window --toggle zoom-parent
+alt - z : ~/.config/yabai/zen
 # }
 # move (shift + alt + h/j/k/l) {
 shift + alt - h : yabai -m window --warp west # || yabai -m window --space prev
