@@ -66,9 +66,12 @@ case "$1" in
 "Voice Memos")
 	RESULT=$ICON_MICROPHONE
 	;;
-"Messages" | "Slack" | "Microsoft Teams" | "Telegram" | "WhatsApp" | "微信")
+"Messages" | "Telegram" | "WhatsApp" | "微信")
 	RESULT=$ICON_CHAT
 	;;
+"Slack" | "Microsoft Teams")
+    RESULT=$ICON_SLACK
+    ;;
 "Discord")
 	RESULT=$ICON_DISCORD
 	;;

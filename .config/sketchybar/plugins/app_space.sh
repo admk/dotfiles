@@ -6,7 +6,6 @@ source "$CONFIG_DIR/globalstyles.sh"
 # source "$CONFIG_DIR/icon_map.sh"
 
 SID=$1
-DEBUG=0
 
 create_icons() {
     sketchybar --set space.$1 label="$(create_label "$1")"
@@ -106,17 +105,6 @@ mouse_clicked() {
 
 set_space_label() {
     sketchybar --set $NAME icon="$@"
-}
-
-debug() {
-    if ((DEBUG == 1)); then
-        echo ---$(date +"%T")---
-        echo sender: $SENDER
-        echo sid: $SID
-        echo ---
-        echo $@
-        echo ---
-    fi
 }
 
 case "$SENDER" in

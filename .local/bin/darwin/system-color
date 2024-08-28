@@ -67,11 +67,16 @@ update_kitty() {
         $KITTY_DIR/_active_theme.conf
     kitty @ set-colors -a -c $KITTY_DIR/_active_theme.conf
     local FG=$(_kitty_get_colors foreground)
-    local BG=$(_kitty_get_colors background)
+    local AFG
+    if [ $2 == "Dark" ]; then
+        AFG=$(_kitty_get_colors background)
+    else
+        AFG=$(_kitty_get_colors foreground)
+    fi
     KITTY_COLORS=(
-        inactive_tab_foreground=$FG
+        active_tab_foreground=$AFG
         active_tab_background=$COLOR
-        active_tab_foreground=$BG
+        inactive_tab_foreground=$FG
     )
     kitty @ set-colors -a -c ${KITTY_COLORS[@]}
 }
@@ -96,10 +101,10 @@ if [ ! -z $COLOR ]; then
     fi
     echo "$MODE:$COLOR" > $TEMP_FILE
     echo "export DAILY_COLOR=$(daily_color $1)" > $TEMP_FILE.sh
-    update_alacritty $COLOR
-    update_kitty $COLOR
-    update_sketchybar $COLOR
-    update_yabai $COLOR
+    update_alacritty $COLOR $MODE
+    update_kitty $COLOR $MODE
+    update_sketchybar $COLOR $MODE
+    update_yabai $COLOR $MODE
 else
     echo "No color set"
     exit 1
