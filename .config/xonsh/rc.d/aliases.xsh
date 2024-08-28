@@ -141,8 +141,8 @@ def _tmux_reattach(args):
 
 @aliases.register('pd')
 @aliases.register('pydb')
-@_unthreadable
-def _pydb(args, stdin=None):
+@aliases.return_command
+def _pydb(args):
     port = ${...}.get('PYDB_PORT')
     if not port:
         import socket
@@ -169,17 +169,14 @@ def _pydb(args, stdin=None):
     if 'NVIM' in ${...}:
         client = 'nvim'
         # auto-attach to debugpy in nvim
-        cmd = f"<c-/>;DapPyAttach({port})<CR>"
+        cmd = f"<c-/>;DapPyAttach {port}<CR>"
         execx(f'nvr --remote-send "{cmd}"')
     else:
         client = 'client'
     print(f'Waiting for {client} to attach to {port}...')
-    with ${...}.swap(WANDB_MODE='disabled'):
-        if stdin is not None:
-            echo @(stdin) | \
-                python -m debugpy --listen @(port) --wait-for-client @(args)
-        else:
-            python -m debugpy --listen @(port) --wait-for-client @(args)
+    return (
+        'python', '-m', 'debugpy',
+        '--listen', str(port), '--wait-for-client', *args)
 
 # ${...}.setdefault('PYDB_PORT', 5678)
 

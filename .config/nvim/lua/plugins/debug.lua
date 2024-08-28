@@ -47,19 +47,20 @@ return {
                 host = '127.0.0.1',
                 port = 5678,
             }
-            -- table.insert(dap.configurations.python, 1, py_attach_config)
             local run_py_attach_config = function(port)
+                local current_config = vim.deepcopy(py_attach_config)
                 if port ~= nil then
-                    py_attach_config.port = port
-                    py_attach_config.name = string.format(
+                    port = tonumber(port)
+                    current_config.port = port
+                    current_config.name = string.format(
                         'Attach remote (localhost:%d)', port)
                 end
-                dap.run(py_attach_config)
+                dap.run(current_config)
             end
             vim.api.nvim_create_user_command(
                 'DapPyAttach',
                 function(cmd_opts)
-                    run_py_attach_config(cmd_opts.args[1])
+                    run_py_attach_config(cmd_opts.args)
                 end,
                 { nargs = 1 })
             vim.keymap.set(
