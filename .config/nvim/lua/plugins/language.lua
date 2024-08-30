@@ -1,5 +1,5 @@
 return {
-    { import = "lazyvim.plugins.extras.lang.python" },
+    -- { import = "lazyvim.plugins.extras.lang.python" },
     {
         "nvim-treesitter/nvim-treesitter",
         dependencies = {
@@ -17,10 +17,10 @@ return {
                 lint_events = { "BufWrite", "CursorHold" },
             },
         },
-        config = function (_, opts)
+        config = function(_, opts)
             require("nvim-dap-repl-highlights").setup()
             require("nvim-treesitter.configs").setup(opts)
-        end
+        end,
     },
     {
         "williamboman/mason.nvim",
@@ -30,7 +30,6 @@ return {
                 "stylua",
                 "shellcheck",
                 "shfmt",
-                "mypy",
                 "ruff",
                 "debugpy",
             })
@@ -40,6 +39,12 @@ return {
         "neovim/nvim-lspconfig",
         init = function()
             local keys = require("lazyvim.plugins.lsp.keymaps").get()
+            for i, key in ipairs(keys) do
+                if key[1] == "<c-k>" then
+                    table.remove(keys, i)
+                    break
+                end
+            end
             keys[#keys + 1] = {
                 "gd",
                 function()
@@ -57,9 +62,15 @@ return {
             use_virtual_text = false,
             servers = {
                 pyright = {
+                    single_file_support = true,
                     settings = {
                         python = {
                             pythonPath = vim.fn.exepath("python"),
+                            analysis = {
+                                autoSearchPaths = true,
+                                useLibraryCodeForTypes = true,
+                                diagnosticMode = "openFilesOnly",
+                            },
                         },
                     },
                 },

@@ -37,6 +37,8 @@ return {
                 mappings = {
                     n = {},
                     i = {
+                        ["<c-j>"] = actions.move_selection_next,
+                        ["<c-k>"] = actions.move_selection_previous,
                         ["<c-t>"] = actions.select_tab,
                     }
                 },

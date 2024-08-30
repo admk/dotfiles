@@ -69,7 +69,7 @@ yabai \
     manage=off
 yabai \
     -m rule --add label="Arc" app="^Arc$" \
-    title="^($USER|General|Profiles|Max|Links|Shortcuts|Icon|Advanced)$" \
+    title="^($USER|General|Profiles|Max|Links|Shortcuts|Icon|Advanced|Developer Tools)$" \
     manage=off
 yabai \
     -m rule --add label="WeChat Floats" app="^微信$" \

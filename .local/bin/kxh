@@ -478,8 +478,8 @@ class KXH:
         rv = self._run_shell(
             ' '.join(ssh_cmd), 'Failed to load ssh session.',
             stdout=sys.stdout, stderr=sys.stderr)
-        if not cmd and rv == 255:
-            self._run_shell('reset', 'Failed to reset terminal.')
+        # if not cmd and rv == 255:
+        #     self._run_shell('reset', 'Failed to reset terminal.')
 
     def main(self):
         verbose = self.config['kxh']['verbose']

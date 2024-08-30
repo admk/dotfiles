@@ -135,6 +135,7 @@ return {
         "rachartier/tiny-inline-diagnostic.nvim",
         dependencies = { "neovim/nvim-lspconfig" },
         event = "VeryLazy",
+        -- enabled = false,
         config = function()
             vim.diagnostic.config({
                 virtual_text = false,

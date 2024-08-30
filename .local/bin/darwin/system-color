@@ -96,7 +96,7 @@ COLOR=$(daily_color $1)
 MODE=$(color_mode)
 if [ ! -z $COLOR ]; then
     if [ -f $TEMP_FILE ] && [ $(cat $TEMP_FILE) == "$MODE:$COLOR" ]; then
-        echo "Color already set"
+        # echo "Color already set"
         exit 0
     fi
     echo "$MODE:$COLOR" > $TEMP_FILE
@@ -106,6 +106,6 @@ if [ ! -z $COLOR ]; then
     update_sketchybar $COLOR $MODE
     update_yabai $COLOR $MODE
 else
-    echo "No color set"
+    echo "Error: Invalid color"
     exit 1
 fi
