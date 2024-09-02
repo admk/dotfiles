@@ -30,6 +30,8 @@ keymap.set("v", ">", ">gv")
 -- Increment/decrement
 keymap.set("n", "+", "<C-a>")
 keymap.set("n", "-", "<C-x>")
+-- Fix last misspelled word
+keymap.set("i", "<C-z>", "<Esc>[s1z=`]a", opts)
 -- Center screen with offset, not working?
 -- keymap.set("n", "zz", function()
 --     local keys = "zt" .. math.floor(vim.fn.winheight(0) / 4) .. "<c-y>"

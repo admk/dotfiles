@@ -3,7 +3,7 @@ ratio = [2, 4, 3]
 linemode = "mtime"
 
 [[opener.edit]]
-run = 'kitty @ launch --type=tab --title="$EDITOR \"$@\"" ~/.local/bin/xh -c "nvim \"$@\""'
+run = 'kitty @ launch --type=tab --title="$EDITOR \"$@\"" ~/.local/bin/xh -c "$EDITOR \"$@\""'
 block = false
 for = "macos"
 
