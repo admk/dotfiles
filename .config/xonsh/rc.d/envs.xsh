@@ -67,6 +67,13 @@ def _nvim_shell_integration():
         return
     if not _which('nvim'):
         return
+    # FIXME does not work.
+    # 1. xonsh does not launch nvr,
+    #    complains command not found
+    # 2. even with manual launch,
+    #    nvim does not show the file in the current window
+    # 3. even with manual launch,
+    #    nvim closes all buffers on :q
     $EDITOR = f'{$KXH_CONDA_PREFIX}/bin/nvr --remote-wait'
 
 
@@ -82,7 +89,7 @@ def _vscode_shell_integration():
     $EDITOR = old_editor
 
 
-_nvim_shell_integration()
+# _nvim_shell_integration()
 _vscode_shell_integration()
 del (
     _nvim_shell_integration,
