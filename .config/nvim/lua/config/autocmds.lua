@@ -1,3 +1,4 @@
+-- change directory commands
 local function get_git_root()
     local dot_git_path = vim.fn.finddir(".git", ".;")
     if dot_git_path == "" then
@@ -6,8 +7,6 @@ local function get_git_root()
     -- get absolute path
     return vim.fn.fnamemodify(dot_git_path, ":p:h:h")
 end
-
--- change directory commands
 vim.api.nvim_create_user_command("CdRoot", function()
     local path = get_git_root()
     if path ~= nil then

@@ -169,7 +169,7 @@ def _pydb(args):
     if 'NVIM' in ${...}:
         client = 'nvim'
         # auto-attach to debugpy in nvim
-        cmd = f"<c-/>;DapPyAttach {port}<CR>"
+        cmd = f"<c-\\\\>;DapPyAttach {port}<CR>"
         execx(f'nvr --remote-send "{cmd}"')
     else:
         client = 'client'

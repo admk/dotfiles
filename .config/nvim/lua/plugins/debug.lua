@@ -14,7 +14,7 @@ return {
                     python = "python",
                 }),
             }
-            require('neotest').setup(opts)
+            require("neotest").setup(opts)
         end,
     },
     {
@@ -29,22 +29,44 @@ return {
         },
         event = "VeryLazy",
         config = function(_, opts)
-            local dap = require('dap')
-            local dapui = require('dapui')
+            local dap = require("dap")
+            local dapui = require("dapui")
 
-            require("dap.ext.vscode").load_launchjs('launch.json')
-            dapui.setup()
+            require("dap.ext.vscode").load_launchjs("launch.json")
+            dapui.setup({
+                layouts = {
+                    {
+                        elements = {
+                            { id = "scopes", size = 0.35 },
+                            { id = "watches", size = 0.35 },
+                            { id = "breakpoints", size = 0.3 },
+                        },
+                        size = 40,
+                        position = "left",
+                    },
+                    {
+                        elements = { "repl" },
+                        size = 0.5,
+                        position = "bottom",
+                    },
+                    {
+                        elements = { "console" },
+                        size = 0.5,
+                        position = "top",
+                    },
+                },
+            })
             require("nvim-dap-virtual-text").setup({
                 enabled = false,
             })
-            require('dap-python').setup(vim.fn.exepath("python"), {
+            require("dap-python").setup(vim.fn.exepath("python"), {
                 include_configs = false,
             })
             local py_attach_config = {
-                type = 'python',
-                request = 'attach',
-                name = 'Attach remote (localhost:5678)',
-                host = '127.0.0.1',
+                type = "python",
+                request = "attach",
+                name = "Attach remote (localhost:5678)",
+                host = "127.0.0.1",
                 port = 5678,
             }
             local run_py_attach_config = function(port)
@@ -52,37 +74,58 @@ return {
                 if port ~= nil then
                     port = tonumber(port)
                     current_config.port = port
-                    current_config.name = string.format(
-                        'Attach remote (localhost:%d)', port)
+                    current_config.name =
+                        string.format("Attach remote (localhost:%d)", port)
                 end
                 dap.run(current_config)
             end
-            vim.api.nvim_create_user_command(
-                'DapPyAttach',
-                function(cmd_opts)
-                    run_py_attach_config(cmd_opts.args)
-                end,
-                { nargs = 1 })
+            vim.api.nvim_create_user_command("DapPyAttach", function(cmd_opts)
+                run_py_attach_config(cmd_opts.args)
+            end, { nargs = 1 })
             vim.keymap.set(
-                'n', '<leader>dd', run_py_attach_config,
-                { noremap = true, silent = true, desc = py_attach_config.name })
+                "n",
+                "<leader>dd",
+                run_py_attach_config,
+                { noremap = true, silent = true, desc = py_attach_config.name }
+            )
 
-            dap.listeners.after.event_initialized.dapui_config = dapui.open
-            dap.listeners.before.event_terminated.dapui_config = dapui.close
-            dap.listeners.before.event_exited.dapui_config = dapui.close
+            local debug_tab = nil
+            local function open_in_tab()
+                if debug_tab and vim.api.nvim_tabpage_is_valid(debug_tab) then
+                    vim.api.nvim_set_current_tabpage(debug_tab)
+                    return
+                end
+                vim.cmd("tabedit %")
+                local debug_win = vim.fn.win_getid()
+                debug_tab = vim.api.nvim_win_get_tabpage(debug_win)
+                dapui.open()
+                vim.api.nvim_win_close(debug_win, true)
+            end
+            local function close_tab()
+                dapui.close()
+                if debug_tab and vim.api.nvim_tabpage_is_valid(debug_tab) then
+                    local tabnr = vim.api.nvim_tabpage_get_number(debug_tab)
+                    vim.cmd("tabclose " .. tabnr)
+                end
+                debug_tab = nil
+            end
+            dap.listeners.after.event_initialized["dapui_config"] = open_in_tab
+            dap.listeners.before.event_terminated["dapui_config"] = close_tab
+            dap.listeners.before.event_exited["dapui_config"] = close_tab
 
             -- repl
-            local cmp = require('cmp')
+            local cmp = require("cmp")
             cmp.setup({
                 enabled = function()
                     local buftype = vim.api.nvim_buf_get_option(0, "buftype")
                     return buftype ~= "prompt"
                         or require("cmp_dap").is_dap_buffer()
-                end
+                end,
             })
             cmp.setup.filetype(
                 { "dap-repl", "dapui_watches", "dapui_hover" },
-                { sources = { { name = "dap" }, }, })
-        end
+                { sources = { { name = "dap" } } }
+            )
+        end,
     },
 }
