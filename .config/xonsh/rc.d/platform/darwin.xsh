@@ -96,7 +96,7 @@ def _mdfind_fzf_open(args):
 
 def _auto_theme(force=False):
     if !(which system-color 1>/dev/null 2>/dev/null):
-        system-color > /dev/null
+        $KXH_COLOR_MODE = $(system-color)
 
 
 @aliases.register('toggle-dark-mode')

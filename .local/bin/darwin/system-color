@@ -97,9 +97,10 @@ MODE=$(color_mode)
 if [ ! -z $COLOR ]; then
     if [ -f $TEMP_FILE ] && [ $(cat $TEMP_FILE) == "$MODE:$COLOR" ]; then
         # echo "Color already set"
+        echo "$MODE:$COLOR"
         exit 0
     fi
-    echo "$MODE:$COLOR" > $TEMP_FILE
+    echo "$MODE:$COLOR" | tee $TEMP_FILE
     echo "export DAILY_COLOR=$(daily_color $1)" > $TEMP_FILE.sh
     update_alacritty $COLOR $MODE
     update_kitty $COLOR $MODE
