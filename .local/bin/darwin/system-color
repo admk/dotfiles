@@ -92,6 +92,16 @@ update_yabai() {
 }
 
 
+update_sioyek() {
+    # TODO: no tokyonight theme
+    # TODO: cli activation
+    local sioyek_dir=${XDG_CONFIG_HOME}/sioyek
+    ln -sf \
+        ${sioyek_dir}/themes/$(theme).toml \
+        ${sioyek_dir}/_active_theme.toml
+}
+
+
 COLOR=$(daily_color $1)
 MODE=$(color_mode)
 if [ ! -z $COLOR ]; then
