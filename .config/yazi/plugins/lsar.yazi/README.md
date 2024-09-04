@@ -10,7 +10,7 @@ but we strongly discourage using it unless you encounter some issues with `7zip`
 ## Installation
 
 ```sh
-ya pack -a yazi-rs/plugins#lsar
+ya pack -a yazi-rs/plugins:lsar
 ```
 
 ## Usage
@@ -32,7 +32,7 @@ Make sure you have `unar` installed, and have `lsar` in your `$PATH`. You can in
 ```sh
 # Arch Linux
 sudo pacman -S unarchiver
-# MacOS
+# macOS
 brew install unar
 # Windows
 scoop install unar

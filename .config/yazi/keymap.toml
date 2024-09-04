@@ -1,5 +1,7 @@
 [manager]
 prepend_keymap = [
+    { on = "<C-c>", run = "escape", desc = "Exit visual mode, clear selected, or cancel search" },
+    { on = [ "q" ], run = "close", desc = "Close window" },
     { on = [ "g", "i" ], run = "cd '~/Library/Mobile Documents/com~apple~CloudDocs'", desc = "Open iCloud documents" },
     { on = "<C-/>", run = 'shell "$SHELL" --block --confirm', desc = "Open shell here" },
     { on = [ "c", "m" ], run = "plugin chmod", desc = "Chmod on selected files" },
@@ -7,5 +9,7 @@ prepend_keymap = [
     { on = "T", run = "plugin --sync max-preview", desc = "Maximize or restore preview" },
     { on = "<C-t>", run = "plugin --sync hide-preview", desc = "Hide or show preview" },
     { on = "F", run = "plugin smart-filter", desc = "Smart filter" },
-    { on = "<C-d>", run = "plugin diff", desc = "Diff the selected with the hovered file" }
+    { on = "<C-d>", run = "plugin diff", desc = "Diff the selected with the hovered file" },
+    { on = [ "l" ], run = "plugin bypass", desc = "Smart enter" },
+    { on = [ "h" ], run = "plugin bypass --args=reverse", desc = "Smart exit" }
 ]
