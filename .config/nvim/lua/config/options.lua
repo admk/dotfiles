@@ -37,7 +37,6 @@ vim.opt.shell = vim.fn.expand("$SHELL")
 -- Editing: {
 -- Editor: {
 vim.g.mapleader = ","
-vim.opt.clipboard = "unnamed"
 vim.g.autoformat = false
 -- }
 -- Search: {
@@ -84,5 +83,26 @@ vim.opt.conceallevel = 2
 -- Undercurl
 vim.cmd([[let &t_Cs = "\e[4:3m"]])
 vim.cmd([[let &t_Ce = "\e[4:0m"]])
+-- kitty
+if vim.env.TERM == "xterm-kitty" and vim.env.SSH_TTY then
+    vim.o.clipboard = "unnamedplus"
+    local function paste()
+        return {
+            vim.fn.split(vim.fn.getreg(""), "\n"),
+            vim.fn.getregtype(""),
+        }
+    end
+    vim.g.clipboard = {
+        name = "OSC 52 (copy only)",
+        copy = {
+            ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+            ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+        },
+        paste = {
+            ["+"] = paste,
+            ["*"] = paste,
+        },
+    }
+end
 -- }
 -- vim: set fdm=marker fmr={,}:

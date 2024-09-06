@@ -46,7 +46,12 @@ def _custom_keybindings(bindings, **kwargs):
 
 def _fallback_clipboard(prompter, **kwargs):
     from shutil import which
-    commands = ('xclip', 'xsel', 'pbcopy', 'clip')
+    commands = (
+        # 'xclip',
+        # 'xsel',
+        'pbcopy',
+        'clip'
+    )
     if any(which(c) for c in commands):
         return
     from prompt_toolkit.clipboard.in_memory import InMemoryClipboard
