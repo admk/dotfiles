@@ -99,6 +99,12 @@ def _auto_theme(force=False):
         $KXH_COLOR_MODE = $(system-color)
 
 
+@events.on_pre_prompt
+@events.on_precommand
+def _on_precommand(**kwargs):
+    _auto_theme()
+
+
 @aliases.register('toggle-dark-mode')
 def _toggle_dark_mode():
     script = """
@@ -152,7 +158,6 @@ aliases |= {
 
 _install_homebrew()
 _install_secretive()
-_auto_theme()
 del (
     _install_secretive,
 )

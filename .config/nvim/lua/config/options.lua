@@ -12,6 +12,8 @@ vim.opt.path:append({ "**" })
 -- Display: {
 vim.opt.hlsearch = true
 vim.opt.title = true
+vim.opt.titlestring =
+    "󱃖 │%{expand('%:t')}│%{substitute(getcwd(), $HOME, '~', '')}"
 vim.opt.relativenumber = true
 vim.opt.scrolloff = 3
 vim.opt.showmatch = true

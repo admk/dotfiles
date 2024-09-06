@@ -22,16 +22,16 @@ daily_color() {
 color_mode() {
     local MODE=$(defaults read -g AppleInterfaceStyle 2>/dev/null)
     if [ -z $MODE ]; then
-        echo "Light"
+        echo "light"
     else
-        echo "Dark"
+        echo "dark"
     fi
 }
 
 theme() {
     local MODE=$(color_mode)
     local THEME=${DARK_THEME:-tokyonight_night}
-    if [ $MODE == "Light" ]; then
+    if [ $MODE == "light" ]; then
         THEME=${LIGHT_THEME:-tokyonight_day}
     fi
     echo $THEME
@@ -68,7 +68,7 @@ update_kitty() {
     kitty @ set-colors -a -c $KITTY_DIR/_active_theme.conf
     local FG=$(_kitty_get_colors foreground)
     local AFG
-    if [ $2 == "Dark" ]; then
+    if [ $2 == "dark" ]; then
         AFG=$(_kitty_get_colors background)
     else
         AFG=$(_kitty_get_colors foreground)

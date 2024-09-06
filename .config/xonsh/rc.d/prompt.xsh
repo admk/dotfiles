@@ -1,6 +1,33 @@
 from shutil import which as _which
 
 
+$COMMAND_ICON_MAP = {
+    'aerc': ' ',  # FIXME not working, aerc sets its own title
+    'brew': ' ',
+    'fzf': ' ',
+    'k': ' ',
+    'tmux': ' ',
+    'system-color': ' ',
+    'starship': ' ',
+}
+
+
+def _title_main():
+    from xonsh.prompt.base import PromptFormatter
+    _pf = PromptFormatter()
+    _TITLE_SEP = '│'
+
+    def title_func():
+        host = ${...}.get('KXH_HOST', '')
+        host = '' if host == 'localhost' else f' {host}{_TITLE_SEP}'
+        curjob = _pf('{current_job}')
+        curjob = $COMMAND_ICON_MAP.get(curjob.split('/')[-1], curjob)
+        prompt = _pf(f'{host}{curjob}{_TITLE_SEP}{{short_cwd}}')
+        return prompt
+
+    $TITLE = title_func
+
+
 @events.on_transform_command
 def _transform_bangbang(cmd, **kwargs):
     import re
@@ -44,8 +71,9 @@ def _starship_main():
         _preprompt_linebreak = False
 
 
+_title_main()
 _starship_main()
-del _starship_main
+del _title_main, _starship_main
 
 
 if _which('atuin'):
