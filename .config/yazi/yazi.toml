@@ -1,16 +1,18 @@
 [manager]
 ratio = [2, 4, 3]
 linemode = "mtime"
+title_format = "󰇥 │{cwd}"
 
-[[opener.edit]]
-run = 'kitty @ launch --type=tab --title="$EDITOR \"$@\"" ~/.local/bin/xh -c "$EDITOR \"$@\""'
-block = false
-for = "macos"
+# [[opener.edit]]
+# run = 'kitty @ launch --type=tab ~/.local/bin/xh -c "$EDITOR \"$@\""'
+# block = false
+# for = "macos"
+# desc = "Edit in new tab"
 
 [[opener.edit]]
 run = '$EDITOR "$@"'
 block = true
-for = "linux"
+# for = "linux"
 
 [[plugin.prepend_previewers]]
 mime = "application/{,g}zip"
@@ -27,3 +29,7 @@ run = "mediainfo"
 [[plugin.prepend_previewers]]
 mime = "application/x-subrip"
 run = "mediainfo"
+
+[[plugin.append_previewers]]
+name = "*"
+run = "preview"
