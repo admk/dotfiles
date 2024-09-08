@@ -4,9 +4,9 @@ local opts = { noremap = true, silent = true }
 -- }
 -- Editing {
 -- Essential
-keymap.set("n", ";", ":", opts)
+keymap.set("n", ";", ":", { noremap = true })
 keymap.set("n", ":", ";", opts)
-keymap.set("v", ";", ":", opts)
+keymap.set("v", ";", ":", { noremap = true })
 keymap.set("v", ":", ";", opts)
 keymap.set("n", "j", "gj", opts)
 keymap.set("n", "k", "gk", opts)
@@ -43,15 +43,14 @@ keymap.set("c", "<C-A>", "<Home>", opts)
 keymap.set("c", "<C-E>", "<End>", opts)
 -- Sudo
 -- keymap.set("c", "w!!", "w !sudo tee % >/dev/null", opts)
--- Current directory
--- keymap.set("c", "cd.", "lcd %:p:h", opts)
 -- }
 -- Window {
--- New tab
+-- Tab navigation
 keymap.set("n", "<tab>", ":tabnext<Return>", opts)
 keymap.set("n", "<s-tab>", ":tabprev<Return>", opts)
--- New terminal
-keymap.set("n", "<leader>ts", ":terminal<Return>", opts)
+keymap.set("n", "<C-j>", ":tabnext<Return>", opts)
+keymap.set("n", "<C-k>", ":tabprev<Return>", opts)
+-- Terminal
 keymap.set("t", "<C-\\>", "<C-\\><C-n>", opts)
 -- Resize window
 keymap.set("n", "=", [[<cmd>vertical resize +5<cr>]])

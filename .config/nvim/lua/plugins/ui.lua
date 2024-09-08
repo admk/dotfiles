@@ -5,12 +5,12 @@ return {
         "nvimdev/dashboard-nvim",
         dependencies = {
             "nvim-tree/nvim-web-devicons",
-            'ColaMint/pokemon.nvim',
+            "ColaMint/pokemon.nvim",
         },
         event = "VimEnter",
         opts = function(_, opts)
             local pokemon = require("pokemon")
-            pokemon.setup({ number = 'random' })
+            pokemon.setup({ number = "random" })
             opts.config.header = pokemon.header()
         end,
     },
@@ -36,8 +36,8 @@ return {
                 { short_mode, separator = { left = "" }, right_padding = 2 },
             }
             table.remove(opts.sections.lualine_c, 2)
-            local diff = table.remove(
-                opts.sections.lualine_x, #opts.sections.lualine_x)
+            local diff =
+                table.remove(opts.sections.lualine_x, #opts.sections.lualine_x)
             opts.sections.lualine_y = { diff }
             -- local command, mode, dap, updates =
             --     table.unpack(opts.sections.lualine_x, 1, 4)
@@ -53,25 +53,47 @@ return {
     },
     {
         "folke/noice.nvim",
-        commit = "d9328ef903168b6f52385a751eb384ae7e906c6f",
+        -- commit = "d9328ef903168b6f52385a751eb384ae7e906c6f",
         opts = {
+            views = {
+                mini = { border = { winblend = 20 } },
+                cmdline_popup = { win_options = { winblend = 20 } },
+            },
             lsp = {
                 override = {
                     ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
                     ["vim.lsp.util.stylize_markdown"] = true,
                     ["cmp.entry.get_documentation"] = true,
                 },
+                hover = { silent = true },
             },
             presets = {
                 bottom_search = true,
-                command_palette = true,
+                command_palette = false,
                 long_message_to_split = true,
                 lsp_doc_border = true,
+            },
+            routes = {
+                {
+                    filter = {
+                        event = "msg_show",
+                        any = {
+                            { find = "%d+L, %d+B" },
+                            { find = "; after #%d+" },
+                            { find = "; before #%d+" },
+                            { find = "lines" },
+                            { find = "--" },
+                            { find = "Already at newest change" },
+                        },
+                    },
+                    view = "mini",
+                },
             },
         },
     },
     {
         "rcarriga/nvim-notify",
+        dependencies = { "folke/noice.nvim" },
         keys = {
             {
                 "<C-c>",
@@ -104,8 +126,11 @@ return {
                 filter_rules = {
                     bo = {
                         filetype = {
-                            "neo-tree", "neo-tree-popup",
-                            "notify", "noice", "incline",
+                            "neo-tree",
+                            "neo-tree-popup",
+                            "notify",
+                            "noice",
+                            "incline",
                         },
                         buftype = { "terminal", "quickfix" },
                     },
