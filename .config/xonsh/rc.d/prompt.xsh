@@ -5,8 +5,16 @@ $COMMAND_ICON_MAP = {
     'aerc': ' ',  # FIXME not working, aerc sets its own title
     'brew': ' ',
     'fzf': ' ',
-    'k': ' ',
+    'k': '󰣀 ',
+    'kxh': '󰣀 ',
+    'ssh': '󰣀 ',
+    'less': ' ',
     'tmux': ' ',
+    'gl': ' ',
+    'gp': ' ',
+    'gP': ' ',
+    'lg': ' ',
+    'lazygit': ' ',
     'system-color': ' ',
     'starship': ' ',
 }

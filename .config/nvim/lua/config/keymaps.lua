@@ -48,8 +48,8 @@ keymap.set("c", "<C-E>", "<End>", opts)
 -- Tab navigation
 keymap.set("n", "<tab>", ":tabnext<Return>", opts)
 keymap.set("n", "<s-tab>", ":tabprev<Return>", opts)
-keymap.set("n", "<C-j>", ":tabnext<Return>", opts)
-keymap.set("n", "<C-k>", ":tabprev<Return>", opts)
+-- keymap.set("n", "<C-j>", ":tabnext<Return>", opts)
+-- keymap.set("n", "<C-k>", ":tabprev<Return>", opts)
 -- Terminal
 keymap.set("t", "<C-\\>", "<C-\\><C-n>", opts)
 -- Resize window

@@ -48,7 +48,7 @@ def register_env_alias(names, cmd=None, setmode='off'):
         names = [names] if isinstance(names, str) else names
         for name in names:
             wrapped = _env_exec(env, cmd, setmode)
-            # FIXME functools.wraps(env)(wrapped)
+            # FIXME: functools.wraps(env)(wrapped)
             # doesn't work with xonsh aliases
             wrapped.src = inspect.getsource(env)
             aliases.register(name)(wrapped)
@@ -71,7 +71,7 @@ def bash_like_alias(args):
         from xonsh.lib.lazyimps import pyghooks, pygments
     except ImportError:
         from xonsh.lazyimps import pyghooks, pygments
-    from xonsh.aliases import ExecAlias
+    from xonsh.aliases import ExecAlias, FuncAlias
     lexer = formatter = None
     def _syntax_highlight(v):
         nonlocal lexer, formatter
@@ -83,11 +83,16 @@ def bash_like_alias(args):
         if isinstance(v, list):
             src = _syntax_highlight(' '.join(v))
             return f'"{src}"'
-        elif hasattr(v, 'src'):
-            src = _syntax_highlight(v.src)
-            return f'"{src}"'
+        # elif hasattr(v, 'src'):
+        elif isinstance(v, FuncAlias):
+            if hasattr(v.func, 'src'):
+                src = v.func.src
+            else:
+                src = _dedent(inspect.getsource(v.func))
+            src = _syntax_highlight(src)
+            return f'"{src}"' if "\n" not in src else f'"""\n{src}\n"""'
         elif inspect.isfunction(v):
-            src = _syntax_highlight(_dedent(inspect.getsource(v)))
+            src = _syntax_highlight(_dedent(inspect.getsource(v.func.src)))
             return f'"""\n{src}\n"""'
         return _syntax_highlight(str(v))
     if not args:

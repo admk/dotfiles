@@ -30,7 +30,7 @@ disabled = true
 
 [custom.kxh_host]
 command = "echo $KXH_HOST"
-symbol = ' '
+symbol = '󰣀 '
 shell = 'bash'
 when = '[ ! -z $KXH_HOST ] && [ $KXH_HOST != "localhost" ]'
 format = 'on [$symbol($output )]($style)'

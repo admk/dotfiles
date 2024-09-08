@@ -21,12 +21,9 @@ $DOTGLOB = True
 $VISUAL = 'nvim' if _which('nvim') else 'vim'
 $EDITOR = $VISUAL
 $CLICOLOR = 1
-$LESS = '-F -g -i -M -R -S -w -X -z-4'
+$LESS = '-F -g -i -M -R -S -w -X -z-4 -j4'
 $LC_CTYPE = 'en_US.UTF-8'
 $LC_ALL = 'en_US.UTF-8'
-
-if 'TMUX' in ${...}:
-    $TERM="xterm-256color"
 
 # $GPG_TTY = $(tty)
 if 'KXH_OLD_HOME' in ${...}:
@@ -40,26 +37,39 @@ $N_PREFIX = $XDG_DATA_HOME
 $PYDEVD_DISABLE_FILE_VALIDATION = 1
 $PYDEVD_WARN_SLOW_RESOLVE_TIMEOUT = 10
 
-$fzf_hisotry_binding = "c-r"
-$fzf_ssh_binding = "c-s"
-$fzf_file_binding = "c-t"
-$fzf_dir_binding = "c-g"
-$FZF_DEFAULT_OPTS=' '.join("""
---bind ctrl-f:half-page-down
---bind ctrl-b:half-page-up
---bind ctrl-d:preview-half-page-down
---bind ctrl-u:preview-half-page-up
---height 40% --layout reverse --border
---color=bg+:#D9D9D9,bg:#E1E1E1,border:#C8C8C8,spinner:#719899,hl:#719872,fg:#616161,header:#719872,info:#727100,pointer:#E12672,marker:#E17899,fg+:#616161,preview-bg:#D9D9D9,prompt:#0099BD,hl+:#719899
-""".split())
-
 try:
     $XONTRIB_ONEPATH_ACTIONS |= {
         'text/': $VISUAL,
         '*.log': 'tail',
+        'image/': 'kitty +kitten icat',
     }
 except KeyError:
     pass
+
+
+def _kitty_integration():
+    if ${...}.get('KITTY_WINDOW_ID') is None:
+        return
+    global aliases
+    aliases |= {
+        'icat': 'kitten icat',
+        'notify': 'kitten notify',
+    }
+
+
+def _fzf_integration():
+    $fzf_hisotry_binding = "c-r"
+    $fzf_ssh_binding = "c-s"
+    $fzf_file_binding = "c-t"
+    $fzf_dir_binding = "c-g"
+    $FZF_DEFAULT_OPTS=' '.join("""
+    --bind ctrl-f:half-page-down
+    --bind ctrl-b:half-page-up
+    --bind ctrl-d:preview-half-page-down
+    --bind ctrl-u:preview-half-page-up
+    --height 40% --layout reverse --border
+    --color=bg+:#D9D9D9,bg:#E1E1E1,border:#C8C8C8,spinner:#719899,hl:#719872,fg:#616161,header:#719872,info:#727100,pointer:#E12672,marker:#E17899,fg+:#616161,preview-bg:#D9D9D9,prompt:#0099BD,hl+:#719899
+    """.split())
 
 
 def _nvim_shell_integration():
@@ -67,7 +77,7 @@ def _nvim_shell_integration():
         return
     if not _which('nvim'):
         return
-    # FIXME does not work.
+    # FIXME: does not work.
     # 1. xonsh does not launch nvr,
     #    complains command not found
     # 2. even with manual launch,
@@ -89,10 +99,28 @@ def _vscode_shell_integration():
     $EDITOR = old_editor
 
 
+def _tmux_main():
+    if not os.environ.get("TMUX"):
+        return
+
+    $TERM="xterm-256color"
+
+    # @events.on_pre_prompt
+    @events.on_precommand
+    def _tmux_refresh(cmd, *args, **kwargs):
+        source-bash $(bash -c "tmux showenv -s")
+
+
+_kitty_integration()
+_fzf_integration()
 # _nvim_shell_integration()
 _vscode_shell_integration()
+_tmux_main()
 del (
+    _kitty_integration,
+    _fzf_integration,
     _nvim_shell_integration,
     _vscode_shell_integration,
+    _tmux_main,
     _which,
 )

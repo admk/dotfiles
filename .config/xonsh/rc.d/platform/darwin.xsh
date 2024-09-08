@@ -153,6 +153,7 @@ def _proxy_browser(args):
 
 aliases |= {
     'chrome': "'$CHROMIUM'",
+    'a': 'aerc',
 }
 
 

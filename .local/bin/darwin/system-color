@@ -38,16 +38,23 @@ theme() {
 }
 
 
+update_aerc() {
+    local theme=$(theme)
+    local dir=${XDG_CONFIG_HOME}/aerc
+    ln -sf \
+        ${dir}/stylesets/${theme} \
+        ${dir}/stylesets/_active_theme
+}
+
+
 update_alacritty() {
     if [ -z $ALACRITTY_SOCKET ]; then
         return
     fi
     local theme=$(theme)
-    local alacritty_dir=${XDG_CONFIG_HOME}/alacritty
-    ln -sf \
-        ${alacritty_dir}/themes/${theme}.toml \
-        ${alacritty_dir}/_active_theme.toml
-    touch ${alacritty_dir}/alacritty.toml
+    local dir=${XDG_CONFIG_HOME}/alacritty
+    ln -sf $dir/themes/$theme.toml $dir/_active_theme.toml
+    touch $dir/alacritty.toml
 }
 
 
@@ -61,11 +68,9 @@ update_kitty() {
         return
     fi
     local COLOR=$1
-    local KITTY_DIR=${XDG_CONFIG_HOME}/kitty
-    ln -sf \
-        $KITTY_DIR/themes/$(theme).conf \
-        $KITTY_DIR/_active_theme.conf
-    kitty @ set-colors -a -c $KITTY_DIR/_active_theme.conf
+    local dir=${XDG_CONFIG_HOME}/kitty
+    ln -sf $dir/themes/$(theme).conf $dir/_active_theme.conf
+    kitty @ set-colors -a -c $dir/_active_theme.conf
     local FG=$(_kitty_get_colors foreground)
     local AFG
     if [ $2 == "dark" ]; then
@@ -95,10 +100,8 @@ update_yabai() {
 update_sioyek() {
     # TODO: no tokyonight theme
     # TODO: cli activation
-    local sioyek_dir=${XDG_CONFIG_HOME}/sioyek
-    ln -sf \
-        ${sioyek_dir}/themes/$(theme).toml \
-        ${sioyek_dir}/_active_theme.toml
+    local dir=$XDG_CONFIG_HOME/sioyek
+    ln -sf $dir/themes/$(theme).toml $dir/_active_theme.toml
 }
 
 
@@ -112,9 +115,10 @@ if [ ! -z $COLOR ]; then
     fi
     echo "$MODE:$COLOR" | tee $TEMP_FILE
     echo "export DAILY_COLOR=$(daily_color $1)" > $TEMP_FILE.sh
-    update_alacritty $COLOR $MODE
+    update_aerc
+    update_alacritty
     update_kitty $COLOR $MODE
-    update_sketchybar $COLOR $MODE
+    update_sketchybar
     update_yabai $COLOR $MODE
 else
     echo "Error: Invalid color"
