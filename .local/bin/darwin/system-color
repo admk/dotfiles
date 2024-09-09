@@ -87,6 +87,14 @@ update_kitty() {
 }
 
 
+update_sioyek() {
+    # TODO: no tokyonight theme
+    # TODO: cli activation
+    local dir=$XDG_CONFIG_HOME/sioyek
+    ln -sf $dir/themes/$(theme).toml $dir/_active_theme.toml
+}
+
+
 update_sketchybar() {
     touch $XDG_CONFIG_HOME/sketchybar/sketchybarrc
 }
@@ -94,14 +102,6 @@ update_sketchybar() {
 
 update_yabai() {
     yabai -m config insert_feedback_color "0xe0${1:2}"
-}
-
-
-update_sioyek() {
-    # TODO: no tokyonight theme
-    # TODO: cli activation
-    local dir=$XDG_CONFIG_HOME/sioyek
-    ln -sf $dir/themes/$(theme).toml $dir/_active_theme.toml
 }
 
 
@@ -118,6 +118,7 @@ if [ ! -z $COLOR ]; then
     update_aerc
     update_alacritty
     update_kitty $COLOR $MODE
+    update_sioyek
     update_sketchybar
     update_yabai $COLOR $MODE
 else

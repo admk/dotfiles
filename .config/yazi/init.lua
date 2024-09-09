@@ -48,7 +48,7 @@ require("yatline"):setup({
 					type = "string",
 					custom = false,
 					name = "date",
-					params = { "%A, %d %B %Y" },
+					params = { "%a, %d %b %Y" },
 				},
 			},
 			section_b = {
@@ -56,7 +56,7 @@ require("yatline"):setup({
 					type = "string",
 					custom = false,
 					name = "date",
-					params = { "%X" },
+					params = { "%H:%M" },
 				},
 			},
 			section_c = {},

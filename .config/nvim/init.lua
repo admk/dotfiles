@@ -14,6 +14,7 @@ vim.fn.stdpath = function (value)
     end
     return old_stdpath(value)
 end
+vim.env.PATH = vim.env.PATH .. ":" .. config_dir .. "/../../.local/share/bin"
 
 -- remove init.vim if it exists
 local init_vim_path = vim.fn.expand(vim.fn.stdpath("config") .. "/init.vim")

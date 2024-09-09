@@ -88,5 +88,11 @@ if _which('atuin'):
     execx($(atuin init xonsh --disable-up-arrow))
 
 
-# if ${...}.get('TERM_PROGRAM') == 'iTerm.app':
-#     xontrib load term_integration
+load_term_integration = [
+    ${...}.get('TERM_PROGRAM') == 'iTerm.app',
+    ${...}.get('TERM') == 'xterm-kitty',
+]
+
+
+if any(load_term_integration):
+    xontrib load term_integration

@@ -46,17 +46,16 @@ def _install_secretive():
     brew services start secretive
 
 
-@aliases.register('fo')
+@aliases.register('ff')
 def _mdfind_fzf_open(args):
     import os
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        '-o', '--open', action='store_true', help='Open file')
+    parser.add_argument(
         '-c', '--cwd', action='store_true',
         help='Search only in current directory')
-    parser.add_argument(
-        '-y', '--yazi', action='store_true',
-        help='Reveal in Yazi')
     parser.add_argument('names', nargs='*')
     args = parser.parse_args(args)
     for cmd in ('mdfind', 'fzf', 'magika'):
@@ -73,19 +72,19 @@ def _mdfind_fzf_open(args):
         echo @(files) | fzf \
             --height 25 --layout=reverse \
             --border --border-label " File Search " \
-            --preview 'fzf-preview {}' \
-            --header 'ctrl-o: reveal in Finder \nctrl-y: copy file' \
-            --bind 'ctrl-o:execute(open -R {})' \
+            --preview '_fzf_preview {}' \
+            --header 'ctrl-o: system open \nctrl-r: reveal in Finder \nctrl-y: copy file' \
+            --bind 'ctrl-o:execute(open {})' \
+            --bind 'ctrl-r:execute(open -R {})' \
             --bind 'ctrl-y:execute(system-copy {})' \
             --multi)
     if not files:
         return
+    if not args.open:
+        return files
     for file in files.splitlines():
         if not os.path.exists(file):
             print(f'File not found: {file}', file=sys.stderr)
-            continue
-        if args.yazi:
-            yazi @(file)
             continue
         group = $(magika -i --jsonl @(file) | jq -r ".dl.group").strip()
         if group in ['text', 'code']:
