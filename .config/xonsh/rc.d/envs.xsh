@@ -18,6 +18,7 @@ $COMPLETIONS_MENU_ROWS = 8
 $AUTO_CD = True
 $DOTGLOB = True
 
+$PAGER = 'nvimpager' if _which('nvim') else 'less'
 $VISUAL = 'nvim' if _which('nvim') else 'vim'
 $EDITOR = $VISUAL
 $CLICOLOR = 1
