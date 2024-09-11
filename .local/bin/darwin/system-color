@@ -1,11 +1,21 @@
 #!/bin/sh
 
+# DEFAULT_DARK_THEME=tokyonight_night
+# DEFAULT_LIGHT_THEME=tokyonight_day
+DEFAULT_DARK_THEME=catppuccin_mocha
+DEFAULT_LIGHT_THEME=catppuccin_latte
+DEFAULT_MODE="auto"
+
 TEMP_FILE=/tmp/kxh-daily-color
+FORCE=0
+
 
 daily_color() {
     local COLORS=(
-        "#7dcfff" "#73daca" "#b4f9f8" "#9ece6a" "#e0af68"
-        "#ff9e64" "#f7768e"
+        # tokyo-night
+        "#7dcfff" "#73daca" "#b4f9f8" "#9ece6a" "#e0af68" "#ff9e64" "#f7768e"
+        # catppuccin
+        # "#dc8a78" "#ea76cb" "#d20f39" "#fe640b" "#40a02b" "#1e66f5" "#7287fd"
     )
     if [ -z $1 ]; then
         local DAY_OF_WEEK=$(date +%u)
@@ -20,6 +30,10 @@ daily_color() {
 }
 
 color_mode() {
+    if [ $DEFAULT_MODE != "auto" ]; then
+        echo $DEFAULT_MODE
+        return
+    fi
     local MODE=$(defaults read -g AppleInterfaceStyle 2>/dev/null)
     if [ -z $MODE ]; then
         echo "light"
@@ -30,20 +44,29 @@ color_mode() {
 
 theme() {
     local MODE=$(color_mode)
-    local THEME=${DARK_THEME:-tokyonight_night}
+    local THEME=${DARK_THEME:-$DEFAULT_DARK_THEME}
     if [ $MODE == "light" ]; then
-        THEME=${LIGHT_THEME:-tokyonight_day}
+        THEME=${LIGHT_THEME:-$DEFAULT_LIGHT_THEME}
     fi
     echo $THEME
 }
 
 
+update_macos() {
+    local MODE=$(color_mode)
+    if [ $MODE == "light" ]; then
+        MODE="false"
+    else
+        MODE="true"
+    fi
+    osascript -e "tell application \"System Events\" to tell appearance preferences to set dark mode to $MODE"
+}
+
+
 update_aerc() {
-    local theme=$(theme)
-    local dir=${XDG_CONFIG_HOME}/aerc
-    ln -sf \
-        ${dir}/stylesets/${theme} \
-        ${dir}/stylesets/_active_theme
+    local dir=${XDG_CONFIG_HOME}/aerc/stylesets
+    ln -sf $dir/$(theme) $dir/_active_theme
+    aerc ":reload -s _active_theme" > /dev/null
 }
 
 
@@ -51,9 +74,8 @@ update_alacritty() {
     if [ -z $ALACRITTY_SOCKET ]; then
         return
     fi
-    local theme=$(theme)
-    local dir=${XDG_CONFIG_HOME}/alacritty
-    ln -sf $dir/themes/$theme.toml $dir/_active_theme.toml
+    local dir=${XDG_CONFIG_HOME}/alacritty/themes
+    ln -sf $dir/$(theme).toml $dir/_active_theme.toml
     touch $dir/alacritty.toml
 }
 
@@ -68,8 +90,8 @@ update_kitty() {
         return
     fi
     local COLOR=$1
-    local dir=${XDG_CONFIG_HOME}/kitty
-    ln -sf $dir/themes/$(theme).conf $dir/_active_theme.conf
+    local dir=${XDG_CONFIG_HOME}/kitty/themes/
+    ln -sf $dir/$(theme).conf $dir/_active_theme.conf
     kitty @ set-colors -a -c $dir/_active_theme.conf
     local FG=$(_kitty_get_colors foreground)
     local AFG
@@ -88,10 +110,9 @@ update_kitty() {
 
 
 update_sioyek() {
-    # TODO: no tokyonight theme
     # TODO: cli activation
-    local dir=$XDG_CONFIG_HOME/sioyek
-    ln -sf $dir/themes/$(theme).toml $dir/_active_theme.toml
+    local dir=$XDG_CONFIG_HOME/sioyek/themes
+    ln -sf $dir/$(theme).config $dir/_active_theme.config
 }
 
 
@@ -104,23 +125,57 @@ update_yabai() {
     yabai -m config insert_feedback_color "0xe0${1:2}"
 }
 
+update_yazi() {
+    # local dir=$XDG_CONFIG_HOME/yazi/flavors
+    # ln -sf $dir/$(theme).yazi $dir/_active_theme.yazi
+    local dir=$XDG_CONFIG_HOME/yazi
+    echo "[flavor]\nuse = \"$(theme)\"" > $dir/theme.toml
+}
 
+
+while getopts "h?fdl" opt; do
+    case $opt in
+        h|\?)
+            echo "Usage: system-color [-h] [-f] [-d|-l] (number)"
+            echo "  -h: Show this help message"
+            echo "  -f: Force update"
+            echo "  -d: Set dark mode"
+            echo "  -l: Set light mode"
+            echo "  number: Set color by index"
+            exit 0
+            ;;
+        d)
+            DEFAULT_MODE="dark"
+            ;;
+        l)
+            DEFAULT_MODE="light"
+            ;;
+        f)
+            FORCE=1
+            ;;
+    esac
+done
+shift $((OPTIND-1))
 COLOR=$(daily_color $1)
 MODE=$(color_mode)
+THEME=$(theme)
 if [ ! -z $COLOR ]; then
-    if [ -f $TEMP_FILE ] && [ $(cat $TEMP_FILE) == "$MODE:$COLOR" ]; then
-        # echo "Color already set"
-        echo "$MODE:$COLOR"
-        exit 0
+    if [ -f $TEMP_FILE ] && [ $(cat $TEMP_FILE) == "$MODE:$COLOR:$THEME" ]; then
+        if [ $FORCE == 0 ]; then
+            echo "$MODE:$COLOR:$THEME"
+            exit 0
+        fi
     fi
-    echo "$MODE:$COLOR" | tee $TEMP_FILE
-    echo "export DAILY_COLOR=$(daily_color $1)" > $TEMP_FILE.sh
+    echo "$MODE:$COLOR:$THEME" | tee $TEMP_FILE
+    echo "export DAILY_COLOR=$COLOR" > $TEMP_FILE.sh
+    update_macos
     update_aerc
     update_alacritty
     update_kitty $COLOR $MODE
     update_sioyek
     update_sketchybar
-    update_yabai $COLOR $MODE
+    update_yabai $COLOR
+    update_yazi
 else
     echo "Error: Invalid color"
     exit 1

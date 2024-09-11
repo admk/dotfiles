@@ -41,7 +41,6 @@ aliases |= {
     'l': 'ls',
     'la': 'ls -a',
     'll': 'ls -la',
-    'lg': 'lazygit',
     'ash':
         "autossh -M 0 -o 'ServerAliveInterval 30' -o 'ServerAliveCountMax 3' "
         "-o ExitOnForwardFailure=yes -nNT",
@@ -75,6 +74,17 @@ def _git(args):
     if not args:
         return ['git', 'status']
     return ['git', *args]
+
+
+@aliases.register('lg')
+@aliases.return_command
+def _lazygit(args):
+    root = "$KXH_HOME/.config/lazygit"
+    configs = f'{root}/config.yml'
+    theme = $(echo $KXH_COLOR_MODE | cut -d ':' -f 3)
+    if theme:
+        configs += f',{root}/themes/{theme}.yml'
+    return ['lazygit', '--use-config-file', configs, *args]
 
 
 @aliases.register('pwgen')
