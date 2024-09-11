@@ -9,9 +9,18 @@ return {
             "ColaMint/pokemon.nvim",
         },
         opts = function(_, opts)
+            opts.disable_move = true
             local pokemon = require("pokemon")
             pokemon.setup({ number = "random" })
             opts.config.header = pokemon.header()
+            -- table.remove(opts.config.center, 5)
+            local action = [[
+                lua require('telescope.builtin').find_files({
+                    hidden = true,
+                    no_ignore = true,
+                    cwd = vim.fn.expand('~/.config')
+                }) ]]
+            opts.config.center[5].action = action:gsub("\n", " ")
         end,
     },
     {

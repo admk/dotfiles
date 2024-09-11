@@ -136,6 +136,22 @@ return {
             { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
             "nvim-telescope/telescope-file-browser.nvim",
         },
+        opts = {
+            defaults = {
+                vimgrep_arguments = {
+                    "rg",
+                    "--color=never",
+                    "--no-heading",
+                    "--line-number",
+                    "--column",
+                    "--smart-case",
+                    "--hidden",
+                    "--no-ignore",
+                    "--glob",
+                    "!{**/.git/*,**/node_modules/*,**/pkg/mod/*,**/yarn.lock}",
+                },
+            },
+        },
         keys = {
             {
                 "<leader>fs",

@@ -13,7 +13,9 @@ def _env_exec(env, cmd=None, setmode='off'):
         if args:
             with ${...}.swap(**_env):
                 args = [repr(a) if ' ' in a else a for a in args]
-                # FIXME doesn't work with pipes
+                # FIXME:
+                # 1. doesn't work with pipes
+                # 2. doesn't return error codes
                 from xonsh.procs.pipelines import STDOUT_CAPTURE_KINDS
                 if spec.captured in STDOUT_CAPTURE_KINDS:
                     return $(@(args))

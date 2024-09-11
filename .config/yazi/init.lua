@@ -1,5 +1,4 @@
 require("full-border"):setup()
--- require("starship"):setup()
 require("yatline"):setup({
 	section_separator = { open = "", close = "" },
 	part_separator = { open = "", close = "" },

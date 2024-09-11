@@ -4,7 +4,8 @@ return {
     {
         "lervag/vimtex",
         enabled = is_local,
-        ft = "tex",
+        lazy = true,
+        ft = { "tex", "bib" },
         config = function (_, opts)
             vim.g.vimtex_quickfix_mode = 0
             vim.g.vimtex_view_method = "sioyek"

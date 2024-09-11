@@ -91,9 +91,5 @@ return {
 			},
 		},
 	},
-	{
-		"abhishekmukherg/xonsh-vim",
-		event = "VeryLazy",
-		ft = "xonsh",
-	},
+	{ "abhishekmukherg/xonsh-vim", lazy = true, ft = "xonsh" },
 }
