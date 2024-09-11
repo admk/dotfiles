@@ -6,17 +6,17 @@ return {
 	{
 		"mikesmithgh/kitty-scrollback.nvim",
 		lazy = true,
-		cmd = { "KittyScrollbackGenerateKittens", "KittyScrollbackCheckHealth" },
+		cmd = {
+		    "KittyScrollbackGenerateKittens",
+		    "KittyScrollbackCheckHealth"
+		},
 		event = { "User KittyScrollbackLaunch" },
-		config = function()
-			require("kitty-scrollback").setup()
-		end,
 	},
 	{
 		"f-person/auto-dark-mode.nvim",
-		enabled = false,
+		-- enabled = false,
 		opts = {
-			update_interval = 10000,
+			-- update_interval = 10000,
 			set_dark_mode = function()
 				vim.api.nvim_set_option_value("background", "dark", {})
 			end,
@@ -31,11 +31,11 @@ return {
 	},
 	{
 		"nvim-neorg/neorg",
+		event = "VeryLazy",
 		dependencies = {
 			"hrsh7th/nvim-cmp",
 			"3rd/image.nvim",
 		},
-		lazy = false,
 		version = "*",
 		opts = {
 			load = {
@@ -81,9 +81,6 @@ return {
 	},
 	{
 		"neovim/nvim-lspconfig",
-		-- dependencies = {
-		-- 	"barreiroleo/ltex_extra.nvim",
-		-- },
 		opts = {
 			servers = {
 				tinymist = {

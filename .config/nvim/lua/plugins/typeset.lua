@@ -1,12 +1,9 @@
-local is_remote = os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY")
-if is_remote then
-    return {}
-end
-
+local is_local = not (os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY"))
 return {
     { import = "lazyvim.plugins.extras.lang.tex" },
     {
         "lervag/vimtex",
+        enabled = is_local,
         ft = "tex",
         config = function (_, opts)
             vim.g.vimtex_quickfix_mode = 0
@@ -32,6 +29,7 @@ return {
     },
     {
         'chomosuke/typst-preview.nvim',
+        enabled = is_local,
         ft = "typst",
         version = '0.3.*',
         build = function()
@@ -40,7 +38,8 @@ return {
     },
     {
         "OXY2DEV/markview.nvim",
-        lazy = false,
+        lazy = true,
+        ft = { "markdown", "Avante" },
         dependencies = {
             "nvim-treesitter/nvim-treesitter",
             "nvim-tree/nvim-web-devicons"
@@ -56,6 +55,7 @@ return {
     },
     {
         "rafi/telescope-thesaurus.nvim",
+        enabled = is_local,
         dependencies = { "nvim-telescope/telescope.nvim" },
         keys = {
             {

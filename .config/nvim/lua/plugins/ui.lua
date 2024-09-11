@@ -3,11 +3,11 @@ return {
     { import = "lazyvim.plugins.extras.ui.edgy" },
     {
         "nvimdev/dashboard-nvim",
+        event = "VimEnter",
         dependencies = {
             "nvim-tree/nvim-web-devicons",
             "ColaMint/pokemon.nvim",
         },
-        event = "VimEnter",
         opts = function(_, opts)
             local pokemon = require("pokemon")
             pokemon.setup({ number = "random" })
@@ -53,7 +53,9 @@ return {
     },
     {
         "folke/noice.nvim",
-        -- commit = "d9328ef903168b6f52385a751eb384ae7e906c6f",
+        -- FIXME: this commit is needed to avoid hanging on nvim exit
+        -- see: https://github.com/folke/noice.nvim/issues/921
+        commit = "d9328ef903168b6f52385a751eb384ae7e906c6f",
         opts = {
             views = {
                 mini = { border = { winblend = 20 } },

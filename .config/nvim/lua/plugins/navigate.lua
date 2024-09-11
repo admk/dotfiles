@@ -24,7 +24,8 @@ return {
             },
         },
         config = function(_, opts)
-            require("mini.files").setup({
+            local mf = require("mini.files")
+            mf.setup({
                 options = {
                     permanent_delete = true,
                     use_as_default_explorer = true,
@@ -49,34 +50,23 @@ return {
                 end,
             })
 
-            -- open in new tab
-            local tabnew_open = function(close_on_file)
-                local cur_window = require("mini.files").get_target_window()
+            -- open in new tab or splits
+            local open_new = function(direction, close_on_file)
+                local cur_window = mf.get_explorer_state().target_window
                 if cur_window ~= nil then
                     local new_window
                     vim.api.nvim_win_call(cur_window, function()
-                        vim.cmd("tabnew")
+                        if direction == "tabnew" then
+                            vim.cmd("tabnew")
+                        else
+                            vim.cmd("belowright " .. direction .. " split")
+                        end
                         new_window = vim.api.nvim_get_current_win()
                     end)
-                    require("mini.files").set_target_window(new_window)
-                    require("mini.files").go_in({ close_on_file = close_on_file })
+                    mf.set_target_window(new_window)
+                    mf.go_in({ close_on_file = close_on_file })
                 end
             end
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "MiniFilesBufferCreate",
-                callback = function(args)
-                    local buf_id = args.data.buf_id
-                    local maps = { t = false, T = true }
-                    for key, close_on_file in pairs(maps) do
-                        local plus = close_on_file and " plus" or ""
-                        vim.keymap.set(
-                            "n", key, function() tabnew_open(close_on_file) end,
-                            { buffer = buf_id, desc = "Open in new tab" .. plus }
-                        )
-                    end
-                end,
-            })
-
             -- set cwd with g~
             local files_set_cwd = function(path)
                 -- Works only if cursor is on the valid file system entry
@@ -84,13 +74,37 @@ return {
                 local cur_directory = vim.fs.dirname(cur_entry_path)
                 vim.fn.chdir(cur_directory)
             end
-
-            vim.api.nvim_create_autocmd('User', {
-                pattern = 'MiniFilesBufferCreate',
+            vim.api.nvim_create_autocmd("User", {
+                pattern = "MiniFilesBufferCreate",
                 callback = function(args)
-                vim.keymap.set(
-                    'n', 'g~', files_set_cwd,
-                    { buffer = args.data.buf_id, desc = "Set cwd" })
+                    local buf_id = args.data.buf_id
+                    local key_maps = {
+                        t = "tabnew",
+                        ["<C-w>s"] = "horizontal",
+                        ["<C-w>v"] = "vertical"
+                    }
+                    for _, close in ipairs({ true, false }) do
+                        for key, dir in pairs(key_maps) do
+                            local plus = close and " plus" or ""
+                            local desc = dir == "tabnew" and "tab" or dir
+                            desc = "Open in " .. desc .. plus
+                            key = close and key:upper() or key
+                            vim.keymap.set(
+                                "n", key,
+                                function() open_new(dir, close) end,
+                                { buffer = buf_id, desc = desc })
+                        end
+                    end
+                    vim.keymap.set(
+                        'n', 'g~', files_set_cwd,
+                        { buffer = args.data.buf_id, desc = "Set cwd" })
+                end,
+            })
+
+            vim.api.nvim_create_autocmd("User", {
+                pattern = "MiniFilesActionRename",
+                callback = function(event)
+                    LazyVim.lsp.on_rename(event.data.from, event.data.to)
                 end,
             })
         end,

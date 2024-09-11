@@ -25,9 +25,8 @@ return {
             "williamboman/mason.nvim",
             "jay-babu/mason-nvim-dap.nvim",
             "mfussenegger/nvim-dap-python",
-            "theHamsta/nvim-dap-virtual-text",
+            -- "theHamsta/nvim-dap-virtual-text",
         },
-        event = "VeryLazy",
         config = function(_, opts)
             local dap = require("dap")
             local dapui = require("dapui")
@@ -37,28 +36,27 @@ return {
                 layouts = {
                     {
                         elements = {
-                            { id = "scopes", size = 0.35 },
-                            { id = "watches", size = 0.35 },
-                            { id = "breakpoints", size = 0.3 },
+                            { id = "scopes", size = 0.3 },
+                            { id = "watches", size = 0.2 },
+                            { id = "stacks", size = 0.3 },
+                            { id = "breakpoints", size = 0.2 },
                         },
                         size = 40,
                         position = "left",
-                    },
-                    {
-                        elements = { "repl" },
-                        size = 0.5,
-                        position = "bottom",
                     },
                     {
                         elements = { "console" },
                         size = 0.5,
                         position = "top",
                     },
+                    {
+                        elements = { "repl" },
+                        size = 0.5,
+                        position = "top",
+                    },
                 },
             })
-            require("nvim-dap-virtual-text").setup({
-                enabled = false,
-            })
+            -- require("nvim-dap-virtual-text").setup({ enabled = false, })
             require("dap-python").setup(vim.fn.exepath("python"), {
                 include_configs = false,
             })
