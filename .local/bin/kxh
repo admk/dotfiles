@@ -2,7 +2,6 @@
 import os
 import re
 import sys
-import copy
 import glob
 import shlex
 import shutil
@@ -229,6 +228,7 @@ class KXH:
         'name': 'kxh',
         'repo': 'https://github.com/admk/dotfiles.git',
         'ssh_command': shutil.which('ssh'),
+        'rsh_command': shutil.which('ssh'),
     }
 
     def _load_rc(self, config_home, rc):
@@ -238,7 +238,9 @@ class KXH:
                 config = tomlkit.load(f).unwrap()
         else:
             config = {}
-        config.setdefault('kxh', copy.deepcopy(self.kxh_defaults))
+        config.setdefault('kxh', {})
+        for k, v in self.kxh_defaults.items():
+            config['kxh'].setdefault(k, v)
         if 'key' not in config['kxh']:
             config['kxh']['key'] = Fernet.generate_key().decode('utf-8')
         config.setdefault('ssh', {})
@@ -357,8 +359,9 @@ class KXH:
             "rsync --archive --no-owner --no-group --compress --human-readable",
             "--update --delete --partial --progress --checksum --copy-links"
         ]
-        # if is_remote:
-        #     rsync_cmd.append(f"--rsh {' '.join(self.ssh_cmd)!r}")
+        if is_remote:
+            ssh = self.config['kxh']['rsh_command']
+            rsync_cmd.append(f"--rsh {' '.join([ssh] + self.ssh_cmd[1:])!r}")
         file_list_file = None
         if file_list is not None:
             if sync_file is not None:

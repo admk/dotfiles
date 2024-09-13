@@ -33,6 +33,7 @@ yabai -m config mouse_drop_action swap
 # exclude apps from tiling
 ignored_apps=(
     "Activity Monitor"
+    "Adobe Photoshop 2024"
     "Archive Utility"
     "BetterZip"
     "Clash Verge"
@@ -46,6 +47,7 @@ ignored_apps=(
     "LuLu"
     "Netiquette"
     "Parallels"
+    "Photos"
     "Photo Booth"
     "Preview"
     "QuickTime Player"

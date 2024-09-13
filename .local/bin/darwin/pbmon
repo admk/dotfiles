@@ -8,7 +8,13 @@ import AppKit
 extension Data {
     var html2AttributedString: NSAttributedString? {
         do {
-            return try NSAttributedString(data: self, options: [.documentType: NSAttributedString.DocumentType.html, .characterEncoding: String.Encoding.utf8.rawValue], documentAttributes: nil)
+            return try NSAttributedString(
+                data: self,
+                options: [
+                    .documentType: NSAttributedString.DocumentType.html,
+                    .characterEncoding: String.Encoding.utf8.rawValue
+                ],
+                documentAttributes: nil)
         } catch {
             print("error:", error)
             return  nil
@@ -57,7 +63,10 @@ class PasteboardMonitor:NSObject {
 let arguments = CommandLine.arguments
 var interval: Double = 0.5
 
-if (arguments.count > 1 && (arguments[1]=="--help" || arguments[1]=="-h" || arguments[1]=="-?")) {
+if (
+    arguments.count > 1 &&
+    (arguments[1]=="--help" || arguments[1]=="-h" || arguments[1]=="-?")
+) {
     let cmd = arguments[0]
     print("\(cmd) 1.0.1\n\nUsage:\n -h - Show help\n -i - Set update interval in seconds (default -i \(interval))")
 } else {

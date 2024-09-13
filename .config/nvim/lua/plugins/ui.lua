@@ -1,6 +1,19 @@
 return {
-    { import = "lazyvim.plugins.extras.editor.mini-files" },
     { import = "lazyvim.plugins.extras.ui.edgy" },
+    { import = "lazyvim.plugins.extras.ui.mini-indentscope" },
+    {
+        'mikesmithgh/borderline.nvim',
+        enabled = true,
+        lazy = true,
+        event = 'VeryLazy',
+        config = function()
+            local bl_borders = require('borderline.borders')
+            require('borderline').setup({
+                border = bl_borders.rounded,
+            })
+        end,
+    },
+    -- { "lukas-reineke/indent-blankline.nvim", enabled = false },
     {
         "nvimdev/dashboard-nvim",
         event = "VimEnter",
@@ -21,6 +34,14 @@ return {
                     cwd = vim.fn.expand('~/.config')
                 }) ]]
             opts.config.center[5].action = action:gsub("\n", " ")
+            local minifiles = {
+                action = "lua require('mini.files').open()",
+                desc = " Explore Here",
+                icon = " ",
+                key = "m" ,
+                key_format = "  %s",
+            }
+            table.insert(opts.config.center, 2, minifiles)
         end,
     },
     {
@@ -66,10 +87,10 @@ return {
         -- see: https://github.com/folke/noice.nvim/issues/921
         commit = "d9328ef903168b6f52385a751eb384ae7e906c6f",
         opts = {
-            views = {
-                mini = { border = { winblend = 20 } },
-                cmdline_popup = { win_options = { winblend = 20 } },
-            },
+            -- views = {
+            --     mini = { border = { winblend = 20 } },
+            --     cmdline_popup = { win_options = { winblend = 20 } },
+            -- },
             lsp = {
                 override = {
                     ["vim.lsp.util.convert_input_to_markdown_lines"] = true,

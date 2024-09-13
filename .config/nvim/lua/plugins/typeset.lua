@@ -45,6 +45,14 @@ return {
             "nvim-treesitter/nvim-treesitter",
             "nvim-tree/nvim-web-devicons"
         },
+        keys = {
+            {
+                "<localleader>mt",
+                mode = { "n", "v" },
+                "<cmd>Markview toggle<cr>",
+                desc = "Toggle Markview",
+            },
+        },
         opts = {
             checkboxes = {
                 enabled = true,

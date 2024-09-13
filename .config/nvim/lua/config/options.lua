@@ -10,10 +10,12 @@ vim.opt.backupskip = { "/tmp/*", "/private/tmp/*" }
 vim.opt.path:append({ "**" })
 -- }
 -- Display: {
-vim.opt.hlsearch = true
 vim.opt.title = true
-vim.opt.titlestring =
-    "󱃖 │%{expand('%:t')}│%{substitute(getcwd(), $HOME, '~', '')}"
+if vim.env.KITTY_WINDOW_ID and not vim.g.neovide then
+    vim.opt.titlestring =
+        "󱃖 │%{expand('%:t')}│%{substitute(getcwd(), $HOME, '~', '')}"
+end
+vim.opt.winblend = 15
 vim.opt.relativenumber = true
 vim.opt.scrolloff = 3
 vim.opt.showmatch = true
@@ -43,6 +45,7 @@ vim.g.autoformat = false
 vim.opt.incsearch = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
+vim.opt.hlsearch = true
 -- }
 -- Text flow: {
 vim.opt.wrap = true

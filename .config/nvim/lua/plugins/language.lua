@@ -2,14 +2,11 @@ return {
     -- { import = "lazyvim.plugins.extras.lang.python" },
     {
         "nvim-treesitter/nvim-treesitter",
-        dependencies = {
-            "LiadOz/nvim-dap-repl-highlights",
-        },
+        event = "VeryLazy",
         opts = {
             ensure_installed = {
                 "gitignore",
                 "python",
-                "dap_repl",
             },
             query_linter = {
                 enable = true,
@@ -18,7 +15,6 @@ return {
             },
         },
         config = function(_, opts)
-            require("nvim-dap-repl-highlights").setup()
             require("nvim-treesitter.configs").setup(opts)
         end,
     },

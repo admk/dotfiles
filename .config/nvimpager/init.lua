@@ -19,7 +19,21 @@ vim.g.maplocalleader = "\\"
 require("lazy").setup({
 	spec = {
         { "catppuccin/nvim", lazy = false, priority = 1000, },
-        { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = {} },
+        -- { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = {} },
+        {
+            "nvim-lualine/lualine.nvim",
+            event = "VeryLazy",
+            opts = {
+                options = {
+                    theme = "auto",
+                    component_separators = { left = "", right = "" },
+                    section_separators = { left = "", right = "" },
+                },
+            },
+            config = function(_, opts)
+                require("lualine").setup(opts)
+            end,
+        },
 	},
 	checker = { enabled = true },
 })
@@ -32,6 +46,8 @@ vim.opt.showmode = false
 vim.opt.hlsearch = true
 vim.opt.title = true
 vim.opt.titlestring = " │%{expand('%:t')}"
+vim.opt.laststatus = 3
+vim.opt.cmdheight = 0
 -- vim.opt.foldmethod = "indent"
 -- vim.opt.foldlevel = 1
 -- vim.opt.foldnestmax = 3

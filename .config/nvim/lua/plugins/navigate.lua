@@ -1,12 +1,12 @@
 return {
+    { "nvim-neo-tree/neo-tree.nvim", enabled = false, },
     {
-        "nvim-neo-tree/neo-tree.nvim",
-        enabled = false,
-    },
-    {
-        "echasnovski/mini.nvim",
+        "echasnovski/mini.files",
         version = false,
         lazy = false,
+        -- dependencies = {
+        --     { "s1n7ax/nvim-window-picker", version = "*" },
+        -- },
         keys = {
             {
                 "<leader>m",
@@ -24,6 +24,27 @@ return {
             },
         },
         config = function(_, opts)
+            -- FIXME: does not work, cannot find window to pick
+            -- local wp = require("window-picker")
+            -- wp.setup({
+            --     hint = "floating-big-letter",
+            --     include_current = false,
+            --     filter_rules = {
+            --         bo = {
+            --             filetype = {
+            --                 "neo-tree",
+            --                 "neo-tree-popup",
+            --                 "notify",
+            --                 "noice",
+            --                 "incline",
+            --                 "minifiles",
+            --             },
+            --             buftype = { "terminal", "quickfix" },
+            --         },
+            --     },
+            --     show_prompt = false,
+            -- })
+
             local mf = require("mini.files")
             mf.setup({
                 options = {
@@ -38,18 +59,6 @@ return {
                 },
             })
 
-            -- window style
-            vim.api.nvim_create_autocmd('User', {
-                pattern = 'MiniFilesWindowOpen',
-                callback = function(args)
-                    local win_id = args.data.win_id
-                    vim.wo[win_id].winblend = 10
-                    local config = vim.api.nvim_win_get_config(win_id)
-                    config.border = 'rounded'
-                    vim.api.nvim_win_set_config(win_id, config)
-                end,
-            })
-
             -- open in new tab or splits
             local open_new = function(direction, close_on_file)
                 local cur_window = mf.get_explorer_state().target_window
@@ -58,10 +67,13 @@ return {
                     vim.api.nvim_win_call(cur_window, function()
                         if direction == "tabnew" then
                             vim.cmd("tabnew")
+                            new_window = vim.api.nvim_get_current_win()
+                        elseif direction == "picker" then
+                            new_window = wp.pick_window()
                         else
                             vim.cmd("belowright " .. direction .. " split")
+                            new_window = vim.api.nvim_get_current_win()
                         end
-                        new_window = vim.api.nvim_get_current_win()
                     end)
                     mf.set_target_window(new_window)
                     mf.go_in({ close_on_file = close_on_file })
@@ -79,14 +91,22 @@ return {
                 callback = function(args)
                     local buf_id = args.data.buf_id
                     local key_maps = {
+                        -- p = "picker",
                         t = "tabnew",
-                        ["<C-w>s"] = "horizontal",
-                        ["<C-w>v"] = "vertical"
+                        ["<C-W>s"] = "horizontal",
+                        ["<C-W>v"] = "vertical"
                     }
                     for _, close in ipairs({ true, false }) do
                         for key, dir in pairs(key_maps) do
                             local plus = close and " plus" or ""
-                            local desc = dir == "tabnew" and "tab" or dir
+                            local desc
+                            if dir == "tabnew" then
+                                desc = "tab"
+                            elseif dir == "picker" then
+                                desc = "window picker"
+                            else
+                                desc = dir .. " split"
+                            end
                             desc = "Open in " .. desc .. plus
                             key = close and key:upper() or key
                             vim.keymap.set(
@@ -97,7 +117,7 @@ return {
                     end
                     vim.keymap.set(
                         'n', 'g~', files_set_cwd,
-                        { buffer = args.data.buf_id, desc = "Set cwd" })
+                        { buffer = buf_id, desc = "Set cwd" })
                 end,
             })
 
@@ -111,7 +131,7 @@ return {
     },
     {
         "mikavilpas/yazi.nvim",
-        event = "VeryLazy",
+        -- event = "VeryLazy",
         keys = {
             {
                 "<leader>y",
@@ -180,7 +200,6 @@ return {
                 layout_strategy = "horizontal",
                 layout_config = { prompt_position = "top" },
                 sorting_strategy = "ascending",
-                winblend = 0,
                 mappings = {
                     n = {},
                     i = {
