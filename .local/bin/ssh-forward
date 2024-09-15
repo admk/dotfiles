@@ -1,0 +1,83 @@
+#!/bin/bash
+function ssh_forward() {
+    usage() {
+        echo "Usage: ssh-forward [options] <host> <remote_port_or_socket> [local_port_or_socket]"
+        echo "Options:"
+        echo "  -c, --cancel: Close existing connection."
+        echo "  -b, --browse: Open browser to local port after forwarding."
+        exit 1
+    }
+
+    # Parse options
+    local cancel=0
+    local browse=0
+    while [[ "$1" == -* ]]; do
+        case "$1" in
+            -c|--cancel) cancel=1; shift ;;
+            -b|--browse) browse=1; shift ;;
+            *) usage ;;
+        esac
+    done
+
+    # Ensure required arguments are provided
+    if [[ $# -lt 2 ]]; then
+        usage
+    fi
+
+    local host="$1"
+    local remote_target="$2"
+    local local_target="${3:-$remote_target}"
+    local route
+    local lsof_output
+    if [[ $local_target =~ ^[0-9]+$ ]] && [[ $remote_target =~ ^[0-9]+$ ]]; then
+        # Check if the local port is in use
+        route="${local_target}:localhost:${remote_target}"
+        lsof_output=$(lsof -i tcp:"$local_target")
+    else
+        route="${local_target}:${remote_target}"
+        lsof_output=$(lsof $local_target)
+    fi
+
+    # Cancel forwarding if requested
+    if [[ $cancel -eq 1 ]]; then
+        if [[ -n "$lsof_output" ]]; then
+            ssh -O cancel -L "$route" "$host" 2>&1 > /dev/null
+            if [[ $? -ne 0 ]]; then
+                echo "Failed to cancel existing connection."
+                exit 1
+            fi
+        else
+            echo "Local port $local_target is not in use."
+            exit 1
+        fi
+        echo "Cancelled port $route forwarding to remote host."
+        exit 0
+    fi
+
+    # If port is already in use, print a message and exit
+    if [[ -n "$lsof_output" ]]; then
+        echo "Local port $local_target is in use."
+        exit 1
+    fi
+
+    # Forward the port
+    echo "Attempting to forward $route..."
+    ssh -fNT -O forward -L "$route" -o ExitOnForwardFailure=yes "$host" 2>&1 > /dev/null
+    if [[ $? -ne 0 ]]; then
+        echo "Failed to forward $route."
+        exit 1
+    fi
+
+    echo "Forwarded $route."
+
+    # Open browser if requested
+    if [[ $browse -eq 1 ]]; then
+        if [[ $local_target =~ ^[0-9]+$ ]]; then
+            open "http://localhost:$local_target"
+        else
+            echo "Cannot open browser to socket $local_target."
+        fi
+    fi
+}
+
+ssh_forward "$@"
