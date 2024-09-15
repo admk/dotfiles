@@ -473,12 +473,15 @@ class KXH:
         ] + env
         init_script = f"env {' '.join(prefix)} "
         command = f'.{name}/.local/bin/_kxh_init'
-        if cmd := self.config['ssh']['command']:
-            cmd = " ".join(cmd)
-            command += f' -c {cmd!r}'
+        if non_interactive_command := self.config['ssh']['command']:
+            non_interactive_command = " ".join(non_interactive_command)
+            command += f' -c {non_interactive_command!r}'
         init_script += f"/bin/bash --norc -c {quote(command)!r}"
         ssh_cmd = self.ssh_cmd + ['-o', 'RequestTTY=yes', dest, init_script]
-        rv = self._run_shell(
+        if non_interactive_command:
+            rsh_cmd = self.config['kxh']['rsh_command']
+            ssh_cmd = [rsh_cmd] + ssh_cmd[1:]
+        self._run_shell(
             ' '.join(ssh_cmd), 'Failed to load ssh session.',
             stdout=sys.stdout, stderr=sys.stderr)
         # if not cmd and rv == 255:

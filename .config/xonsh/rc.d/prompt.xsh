@@ -1,6 +1,5 @@
 from shutil import which as _which
 
-
 $COMMAND_ICON_MAP = {
     'aerc': ' ',  # FIXME not working, aerc sets its own title
     'brew': ' ',
@@ -74,7 +73,8 @@ def _starship_main():
             _preprompt_linebreak = True
 
     @events.on_post_spec_run_clear
-    def print_while_ls(spec=None, **kwargs):
+    @events.on_post_spec_run_cd
+    def on_post_run_no_linebreak(spec=None, **kwargs):
         global _preprompt_linebreak
         _preprompt_linebreak = False
 

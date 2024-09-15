@@ -35,7 +35,6 @@ require("lazy").setup({
             end,
         },
 	},
-	checker = { enabled = true },
 })
 
 -- View
@@ -60,6 +59,8 @@ vim.opt.scrolloff = 5
 vim.opt.incsearch = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
+-- Copy
+vim.opt.clipboard = "unnamedplus"
 -- Keymaps {
 local keymap = vim.keymap
 local opts = { noremap = true, silent = true }
@@ -68,13 +69,18 @@ keymap.set("n", ";", ":", { noremap = true })
 keymap.set("n", ":", ";", opts)
 keymap.set("v", ";", ":", { noremap = true })
 keymap.set("v", ":", ";", opts)
+local buf_opts = { noremap = true, silent = true, buffer = true }
+local buf_set = {}
 vim.api.nvim_create_autocmd("CursorMoved", {
 	pattern = "*",
 	callback = function()
-		local new_opts = vim.deepcopy(opts)
-		new_opts.buffer = true
-		keymap.set("n", "j", "gj", new_opts)
-		keymap.set("n", "k", "gk", new_opts)
+	    local buf = vim.api.nvim_get_current_buf()
+        if buf_set[buf] then
+            return
+        end
+        buf_set[buf] = true
+        keymap.set("n", "j", "gj", buf_opts)
+        keymap.set("n", "k", "gk", buf_opts)
 	end,
 })
 -- Search

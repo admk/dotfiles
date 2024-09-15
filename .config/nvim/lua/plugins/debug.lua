@@ -21,7 +21,7 @@ return {
     },
     {
         "mfussenegger/nvim-dap",
-        event = "VeryLazy",
+        lazy = true,
         dependencies = {
             "rcarriga/nvim-dap-ui",
             "rcarriga/cmp-dap",
@@ -42,34 +42,8 @@ return {
         },
         config = function(_, opts)
             local dap = require("dap")
-            local dapui = require("dapui")
-
             require("dap.ext.vscode").load_launchjs("launch.json")
-            dapui.setup()
-            -- dapui.setup({
-            --     layouts = {
-            --         {
-            --             elements = {
-            --                 { id = "scopes", size = 0.3 },
-            --                 { id = "watches", size = 0.2 },
-            --                 { id = "stacks", size = 0.3 },
-            --                 { id = "breakpoints", size = 0.2 },
-            --             },
-            --             size = 40,
-            --             position = "left",
-            --         },
-            --         {
-            --             elements = { "console" },
-            --             size = 0.5,
-            --             position = "top",
-            --         },
-            --         {
-            --             elements = { "repl" },
-            --             size = 0.5,
-            --             position = "top",
-            --         },
-            --     },
-            -- })
+
             -- FIXME: for some reason,
             -- virtual text need to be disabled explicitly
             require("nvim-dap-virtual-text").setup({ enabled = false, })
@@ -103,38 +77,61 @@ return {
                 { noremap = true, silent = true, desc = py_attach_config.name }
             )
 
-            -- local debug_tab = nil
-            -- local function open_in_tab()
-            --     if debug_tab and vim.api.nvim_tabpage_is_valid(debug_tab) then
-            --         vim.api.nvim_set_current_tabpage(debug_tab)
-            --         return
-            --     end
-            --     vim.cmd("tabedit %")
-            --     local debug_win = vim.fn.win_getid()
-            --     debug_tab = vim.api.nvim_win_get_tabpage(debug_win)
-            --     dapui.open()
-            --     vim.api.nvim_win_close(debug_win, true)
-            -- end
-            -- local function close_tab()
-            --     dapui.close()
-            --     if debug_tab and vim.api.nvim_tabpage_is_valid(debug_tab) then
-            --         local tabnr = vim.api.nvim_tabpage_get_number(debug_tab)
-            --         vim.cmd("tabclose " .. tabnr)
-            --     end
-            --     debug_tab = nil
-            -- end
-            -- dap.listeners.after.event_initialized["dapui_config"] = open_in_tab
-            -- dap.listeners.before.event_terminated["dapui_config"] = close_tab
-            -- dap.listeners.before.event_exited["dapui_config"] = close_tab
+            local dapui = require("dapui")
+            -- FIXME dapui.setup() raises error
+            -- dapui.setup()
             dap.listeners.after.event_initialized["dapui_config"] = dapui.open
             dap.listeners.before.event_terminated["dapui_config"] = dapui.close
             dap.listeners.before.event_exited["dapui_config"] = dapui.close
+            local dapui_ft = {
+                "dapui_watches", "dapui_stacks", "dapui_breakpoints",
+                "dapui_scopes", "dapui_console", "dap-hover", "dap-repl",
+            }
+            vim.api.nvim_create_augroup("dapui_reset", { clear = true })
+            local dapui_visible = function()
+                for _, bufid in ipairs(vim.fn.tabpagebuflist()) do
+                    local ft = vim.bo[bufid].ft
+                    if vim.tbl_contains(dapui_ft, ft) then
+                        return true
+                    end
+                end
+                return false
+            end
+            local dapui_reset = function(bufnr)
+                local cur_buf_is_dapui =
+                    vim.tbl_contains(dapui_ft, vim.bo.filetype)
+                if not dapui_visible() or cur_buf_is_dapui then
+                    return
+                end
+                vim.schedule(function()
+                    if bufnr ~= nil and vim.fn.bufwinid(bufnr) ~= -1 then
+                        return
+                    end
+                    -- reset twice to ensure layout is correct
+                    dapui.open({ reset = true })
+                    dapui.open({ reset = true })
+                end)
+            end
+            vim.api.nvim_create_autocmd({
+                "BufWinEnter", "TermOpen", "VimResized",
+            }, {
+                group = "dapui_reset",
+                pattern = "*",
+                callback = function() dapui_reset(nil) end,
+            })
+            vim.api.nvim_create_autocmd({
+                "BufUnload", "BufHidden", "WinClosed",
+            }, {
+                group = "dapui_reset",
+                pattern = "*",
+                callback = function() dapui_reset(vim.fn.bufnr()) end,
+            })
 
             -- repl
             local cmp = require("cmp")
             cmp.setup({
                 enabled = function()
-                    local buftype = vim.api.nvim_buf_get_option(0, "buftype")
+                    local buftype = vim.bo.buftype
                     return buftype ~= "prompt"
                         or require("cmp_dap").is_dap_buffer()
                 end,

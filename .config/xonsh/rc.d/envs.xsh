@@ -8,7 +8,7 @@ $HISTCONTROL = 'ignoredups'
 # $MOUSE_SUPPORT = True
 $XONSH_SHOW_TRACEBACK = ${...}.get('KXH_DEBUG', False)
 $XONSH_TRACEBACK_LOGFILE = f'{$XDG_CACHE_HOME}/xonsh/traceback.log'
-$MULTILINE_PROMPT = ' '
+$MULTILINE_PROMPT = '│'
 $SUGGEST_COMMANDS = False
 $XONSH_AUTOPAIR = True
 # $XONSH_COPY_ON_DELETE = False
@@ -42,7 +42,7 @@ try:
     $XONTRIB_ONEPATH_ACTIONS |= {
         'text/': $VISUAL,
         '*.log': 'tail',
-        'image/': 'kitty +kitten icat',
+        'image/': 'kitten icat',
     }
 except KeyError:
     pass
@@ -56,6 +56,8 @@ def _kitty_integration():
         'icat': 'kitten icat',
         'notify': 'kitten notify',
     }
+    xontrib load term_integration
+    $MULTILINE_PROMPT = '│'
 
 
 def _fzf_integration():

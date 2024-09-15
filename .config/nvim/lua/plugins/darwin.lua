@@ -65,9 +65,6 @@ return {
     },
     {
         "nvim-treesitter/nvim-treesitter",
-        dependencies = {
-            "LiadOz/nvim-dap-repl-highlights",
-        },
         opts = {
             ensure_installed = {
                 "latex",
@@ -100,7 +97,7 @@ return {
     { "abhishekmukherg/xonsh-vim", lazy = true, ft = "xonsh" },
     {
         "keaising/im-select.nvim",
-        ft = { "neorg", "markdown", "typst" },
+        ft = { "neorg", "markdown", "typst", "mail" },
         config = function()
             require("im_select").setup({})
             -- a filetype-specific hack

@@ -16,6 +16,7 @@ if vim.env.KITTY_WINDOW_ID and not vim.g.neovide then
         "󱃖 │%{expand('%:t')}│%{substitute(getcwd(), $HOME, '~', '')}"
 end
 vim.opt.winblend = 15
+vim.opt.pumblend = 15
 vim.opt.relativenumber = true
 vim.opt.scrolloff = 3
 vim.opt.showmatch = true

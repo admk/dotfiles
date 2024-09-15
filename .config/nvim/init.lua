@@ -30,17 +30,9 @@ if vim.fn.filereadable(init_vim_path) == 1 then
     os.remove(init_vim_path)
 end
 
--- neovide
-if vim.g.neovide then
-    vim.opt.guifont = "Iosevka Term:h19"
-    vim.g.neovide_transparency = 0.8
-    vim.g.transparency = 0.0
-    vim.g.neovide_theme = 'auto'
-    vim.g.neovide_window_blurred = true
-    vim.g.neovide_cursor_antialiasing = true
-    vim.g.neovide_cursor_animate_in_insert_mode = true
-    vim.g.neovide_cursor_vfx_mode = "pixiedust"
-end
-
 -- load lazy
 require("config.lazy")
+if vim.g.neovide then
+    require("config.neovide")
+end
+

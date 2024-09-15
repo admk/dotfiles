@@ -1,5 +1,32 @@
 return {
-    { "nvim-neo-tree/neo-tree.nvim", enabled = false, },
+    {
+        "nvim-neo-tree/neo-tree.nvim",
+        enabled = false,
+        version = "*",
+        dependencies = {
+            { "s1n7ax/nvim-window-picker", version = "*" },
+        },
+        config = function(_, opts)
+            require("window-picker").setup({
+                hint = "floating-big-letter",
+                include_current = false,
+                filter_rules = {
+                    bo = {
+                        filetype = {
+                            "neo-tree",
+                            "neo-tree-popup",
+                            "notify",
+                            "noice",
+                            "incline",
+                        },
+                        buftype = { "terminal", "quickfix" },
+                    },
+                },
+                show_prompt = false,
+            })
+            require("neo-tree").setup(opts)
+        end,
+    },
     {
         "echasnovski/mini.files",
         version = false,

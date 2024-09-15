@@ -67,3 +67,20 @@ for filetype, commentstring in pairs(commentstring_map) do
         end,
     })
 end
+
+-- disable column indicators for certain filetypes
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { "mail", "kitty-scrollback" },
+    callback = function()
+        vim.wo.signcolumn = "no"
+    end,
+})
+vim.api.nvim_create_autocmd('TermOpen', {
+    pattern = { "*" },
+    callback = function()
+        vim.wo.signcolumn = "no"
+        vim.wo.number = false
+        vim.wo.relativenumber = false
+        vim.cmd("startinsert")
+    end,
+})
