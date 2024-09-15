@@ -69,6 +69,7 @@ fi
 # conda
 CONDA_SRC=https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda
 # CONDA_SRC=https://mirrors.aliyun.com/anaconda/miniconda
+# CONDA_SRC=https://repo.anaconda.com/miniconda
 if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
     CONDA_INSTALLER=$KXH_HOME/miniconda3.sh
     if [[ $(uname) == 'Darwin' ]]; then
