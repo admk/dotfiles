@@ -1,7 +1,7 @@
 -- options
 vim.opt.linespace = 0
 vim.opt.guifont = "Iosevka Term:h19"
-vim.g.neovide_transparency = 0.7
+vim.g.neovide_transparency = 0.9
 vim.g.transparency = 0.0
 vim.g.neovide_theme = 'auto'
 vim.g.neovide_window_blurred = true

@@ -43,6 +43,19 @@ return {
         config = function(_, opts)
             local dap = require("dap")
             require("dap.ext.vscode").load_launchjs("launch.json")
+            local sign = vim.fn.sign_define
+            sign("DapBreakpoint", {
+                text = "●", texthl = "DapBreakpoint",
+                linehl = "", numhl = ""
+            })
+            sign("DapBreakpointCondition", {
+                text = "", texthl = "DapBreakpointCondition",
+                linehl = "", numhl = ""
+            })
+            sign("DapLogPoint", {
+                text = "◆", texthl = "DapLogPoint",
+                linehl = "", numhl = ""
+            })
 
             -- FIXME: for some reason,
             -- virtual text need to be disabled explicitly

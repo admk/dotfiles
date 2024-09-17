@@ -52,6 +52,7 @@ keymap.set("n", "<s-tab>", ":tabprev<Return>", opts)
 -- keymap.set("n", "<C-k>", ":tabprev<Return>", opts)
 -- Terminal
 keymap.set("t", "<C-\\>", "<C-\\><C-n>", opts)
+-- keymap.set("n", "<C-t>", ":tabnew<Return>:term<Return>", opts)
 -- Resize window
 keymap.set("n", "=", [[<cmd>vertical resize +5<cr>]])
 keymap.set("n", "-", [[<cmd>vertical resize -5<cr>]])

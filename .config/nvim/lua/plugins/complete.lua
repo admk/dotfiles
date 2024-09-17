@@ -95,7 +95,9 @@ return {
     {
         "yetone/avante.nvim",
         lazy = true,
-        keys = { "<leader>aa", "<leader>ae" },
+        keys = {
+            { "<leader>a", mode = { "n", "v" }, desc = "+Avante" },
+        },
         version = false,
         opts = {
             provider = "copilot",
@@ -111,12 +113,14 @@ return {
         },
         -- config = function(_, opts)
         --     require("avante").setup(opts)
-        --     vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+        --     vim.api.nvim_create_autocmd("BufEnter", {
         --         pattern = { "*" },
         --         callback = function()
-        --             if vim.bo.filetype == "AvanteInput" then
-        --                 vim.cmd('startinsert!')
-        --             end
+        --             vim.schedule(function()
+        --                 if vim.bo.filetype == "AvanteInput" then
+        --                     vim.cmd('startinsert!')
+        --                 end
+        --             end)
         --         end,
         --     })
         -- end,

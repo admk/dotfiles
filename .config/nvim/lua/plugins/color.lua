@@ -3,6 +3,11 @@ return {
         "catppuccin/nvim",
         priority = 1000,
         lazy = false,
+        config = function()
+            require("catppuccin").setup({
+                term_colors = true,
+            })
+        end,
     },
     -- {
     --     "folke/tokyonight.nvim",

@@ -1,0 +1,22 @@
+#!/bin/bash
+retry() {
+    if [[ $# -lt 3 ]]; then
+        echo "Usage: _retry <retries> <wait> <command...>"
+        return 1
+    fi
+    local retries="$1"
+    local wait="$2"
+    local command="${@:3}"
+
+    $command
+    local exit_code=$?
+    if [[ $exit_code -ne 0 && $retries -gt 0 ]]; then
+        sleep $wait
+        echo "==> Retrying $retries more times..."
+        echo "==> Command: $command"
+        retry $(($retries - 1)) $wait "$command"
+    else
+        return $exit_code
+    fi
+}
+retry $@

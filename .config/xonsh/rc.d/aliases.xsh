@@ -34,7 +34,6 @@ aliases |= {
     'grep': 'grep --color=auto',
     'http-here': 'python -m http.server',
     'k': 'kxh',
-    'nvr': '$KXH_CONDA_PREFIX/bin/nvr',
     'py': 'python',
     'ipy': 'ipython',
     'pio': 'python3 -m pip install --index-url https://pypi.org/simple/',

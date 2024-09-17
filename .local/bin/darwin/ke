@@ -1,0 +1,72 @@
+#!/bin/bash
+usage() {
+    echo "Usage: ke [-g|-k] <ssh_destination>" > /dev/stderr
+    exit 1
+}
+frontend="nvim"
+destination=""
+parse_args() {
+    while getopts "gk" opt; do
+        case $opt in
+            g)
+                frontend="neovide"
+                ;;
+            k)
+                frontend="kitty"
+                ;;
+            \?)
+                usage
+                ;;
+        esac
+    done
+    shift $((OPTIND-1))
+    destination=$1
+    if [ -z $destination ]; then
+        usage
+    fi
+}
+parse_args $@
+
+rand=$(hexdump -n 5 -v -e '/1 "%02X"' /dev/urandom)
+socket="/tmp/nvim_$rand.sock"
+if [ -f $socket ]; then
+    rm $socket
+fi
+
+tmux=$(which tmux)
+_tmux() {
+     $tmux -f /dev/null -L ke "$@"\; set -g status off
+}
+killserver="$tmux -L ke kill-session -t ke_${rand}_server; rm $socket"
+
+_tmux new-session -d -s ke_${rand}_server \
+    "kxh +f +o ssh_command=ssh -v -L $socket:$socket $destination -- \
+        \"nvim --headless --listen $socket\""
+
+info=(
+    "\"destination\": \"$destination\""
+    "\"frontend\": \"$frontend\""
+    "\"rand\": \"$rand\""
+    "\"socket\": \"$socket\""
+    "\"server.tmux\": \"ke_${rand}_server\""
+)
+_echo_info() {
+    echo "{"
+    for i in "${info[@]}"; do
+        echo "    $i,"
+    done
+    echo "}"
+}
+
+if [ $frontend = "neovide" ]; then
+    _tmux new-session -d -s ke_${rand}_client "_retry 30 1 \"neovide --server $socket\"; $killserver"
+    info+=("\"client.tmux\": \"ke_${rand}_client\"")
+    _echo_info
+elif [ $frontend = "nvim" ]; then
+    _echo_info
+    _retry 30 1 "nvim --server $socket --remote-expr \"\"" 2&>1 >/dev/null \
+        && exec bash -c "nvim --server $socket --remote-ui; $killserver"
+else
+    echo "Unknown frontend: $frontend" > /dev/stderr
+    exit 1
+fi
