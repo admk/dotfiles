@@ -86,7 +86,7 @@ class KxhArgumentParser(argparse.ArgumentParser):
     kxh [-h | --help]
         [+d | ++dry] [+v | ++verbose] [+D | ++debug]
         [+F | ++force-reinstall] [+S | ++sync-only] [+f | ++fast]
-        [(+N | ++name) NAME] [(+r | ++rc) RC]
+        [(+o | ++option) OPTION] [(+r | ++rc) RC] [(+N | ++name) NAME]
         [(+h | ++hermetic) | (+s | ++semi-hermetic) | (+n | ++non-hermetic)]
         [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
         [-c cipher_spec] [-D [bind_address:]port] [-E log_file]
@@ -103,6 +103,7 @@ Options:
     +F, ++force-reinstall: force reinstall on remote host.
     +S, ++sync-only: sync files only.
     +f, ++fast: skip file sync.
+    (+o | ++option) OPTION: set KXH option.
     (+r | ++rc) RC: use custom RC file.
     (+N | ++name) NAME: use custom name instead of "kxh".
     +h, ++hermetic: use hermetic mode (default).
@@ -123,6 +124,7 @@ Options:
             ('h', 'hermetic'): store_true,
             ('s', 'semi-hermetic'): store_true,
             ('n', 'non-hermetic'): store_true,
+            ('o', 'option'): {'type': str, 'action': 'append', 'default': None},
             ('N', 'name'): {'type': str, 'default': None},
             ('r', 'rc'): {'type': str, 'default': None},
         }
@@ -257,13 +259,16 @@ class KXH:
         ssh_args = {
             k: v for k, v in vars(ssh_args).items() if v is not False}
         update(config.setdefault('ssh', {}), ssh_args)
-        self.ssh_cmd = parser.unparse_ssh_args(
-            config['ssh'], ssh_command=config['kxh']['ssh_command'], dest=False)
         home = os.environ.get('KXH_HOME', None)
         if not home:
             name = config['kxh']['name']
             home = os.path.join(os.environ['HOME'], f'.{name}')
         config['kxh'].setdefault('home', home)
+        for option in kxh_args.option or []:
+            k, v = option.split('=')
+            config['kxh'][k] = v
+        self.ssh_cmd = parser.unparse_ssh_args(
+            config['ssh'], ssh_command=config['kxh']['ssh_command'], dest=False)
         if config['kxh']['verbose']:
             src = tomlkit.dumps(config)
             hl_src = highlight(src, 'toml')
@@ -473,12 +478,12 @@ class KXH:
         ] + env
         init_script = f"env {' '.join(prefix)} "
         command = f'.{name}/.local/bin/_kxh_init'
-        if non_interactive_command := self.config['ssh']['command']:
-            non_interactive_command = " ".join(non_interactive_command)
-            command += f' -c {non_interactive_command!r}'
+        if cmd := self.config['ssh']['command']:
+            cmd = " ".join(cmd)
+            command += f' -c {cmd!r}'
         init_script += f"/bin/bash --norc -c {quote(command)!r}"
         ssh_cmd = self.ssh_cmd + ['-o', 'RequestTTY=yes', dest, init_script]
-        if non_interactive_command:
+        if not sys.stdout.isatty():
             rsh_cmd = self.config['kxh']['rsh_command']
             ssh_cmd = [rsh_cmd] + ssh_cmd[1:]
         self._run_shell(
