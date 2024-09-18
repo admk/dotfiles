@@ -18,26 +18,37 @@ vim.g.mapleader = ","
 vim.g.maplocalleader = "\\"
 require("lazy").setup({
 	spec = {
-        { "catppuccin/nvim", lazy = false, priority = 1000, },
-        -- { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = {} },
-        {
-            "nvim-lualine/lualine.nvim",
-            event = "VeryLazy",
-            opts = {
-                options = {
-                    theme = "auto",
-                    component_separators = { left = "", right = "" },
-                    section_separators = { left = "", right = "" },
-                },
-            },
-            config = function(_, opts)
-                require("lualine").setup(opts)
-            end,
-        },
+		{ "catppuccin/nvim", lazy = false, priority = 1000 },
+		-- { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = {} },
+		{
+			"nvim-lualine/lualine.nvim",
+			event = "VeryLazy",
+			opts = {
+				options = {
+					theme = "auto",
+					component_separators = { left = "│", right = "│" },
+					section_separators = { left = "", right = "" },
+				},
+				sections = {
+					lualine_a = {},
+					lualine_b = {},
+					lualine_c = { "mode", "filename" },
+					lualine_x = { "filetype", "searchcount", "progress", "location" },
+					lualine_y = {},
+					lualine_z = {},
+				},
+			},
+			config = function(_, opts)
+				require("lualine").setup(opts)
+			end,
+		},
 	},
 })
 
 -- View
+if vim.env.KXH_COLOR_MODE then
+	vim.opt.background = vim.split(vim.env.KXH_COLOR_MODE, ":")[1]
+end
 vim.cmd("colorscheme catppuccin")
 vim.opt.showmatch = true
 vim.opt.showcmd = false
@@ -74,13 +85,13 @@ local buf_set = {}
 vim.api.nvim_create_autocmd("CursorMoved", {
 	pattern = "*",
 	callback = function()
-	    local buf = vim.api.nvim_get_current_buf()
-        if buf_set[buf] then
-            return
-        end
-        buf_set[buf] = true
-        keymap.set("n", "j", "gj", buf_opts)
-        keymap.set("n", "k", "gk", buf_opts)
+		local buf = vim.api.nvim_get_current_buf()
+		if buf_set[buf] then
+			return
+		end
+		buf_set[buf] = true
+		keymap.set("n", "j", "gj", buf_opts)
+		keymap.set("n", "k", "gk", buf_opts)
 	end,
 })
 -- Search

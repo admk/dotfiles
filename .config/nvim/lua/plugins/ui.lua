@@ -63,20 +63,29 @@ return {
                 return mode:upper()
             end
             opts.sections.lualine_a = {
-                { short_mode, separator = { left = "" }, right_padding = 2 },
+                {
+                    short_mode,
+                    separator = { left = "", right = "" },
+                    padding = 0
+                },
             }
             table.remove(opts.sections.lualine_c, 2)
             local diff =
                 table.remove(opts.sections.lualine_x, #opts.sections.lualine_x)
-            opts.sections.lualine_y = { diff }
+            opts.sections.lualine_y = {
+                diff,
+            }
             -- local command, mode, dap, updates =
             --     table.unpack(opts.sections.lualine_x, 1, 4)
             -- opts.sections.lualine_x = { command, mode }
             -- opts.sections.lualine_y = { dap, updates }
             opts.sections.lualine_z = {
-                function()
-                    return ""
-                end,
+                {
+                    "datetime",
+                    style = "%d %b│%H:%M",
+                    separator = { left = "", right = "" },
+                    padding = 0
+                },
             }
             require("lualine").setup(opts)
         end,

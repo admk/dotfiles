@@ -93,9 +93,12 @@ return {
             local dapui = require("dapui")
             -- FIXME dapui.setup() raises error
             -- dapui.setup()
-            dap.listeners.after.event_initialized["dapui_config"] = dapui.open
-            dap.listeners.before.event_terminated["dapui_config"] = dapui.close
-            dap.listeners.before.event_exited["dapui_config"] = dapui.close
+            local listeners = dap.listeners
+            listeners.after.event_initialized.dapui_config = function()
+                dapui.open({ reset = true })
+            end
+            listeners.before.event_terminated.dapui_config = dapui.close
+            listeners.before.event_exited.dapui_config = dapui.close
             local dapui_ft = {
                 "dapui_watches", "dapui_stacks", "dapui_breakpoints",
                 "dapui_scopes", "dapui_console", "dap-hover", "dap-repl",
