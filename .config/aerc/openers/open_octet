@@ -1,0 +1,23 @@
+#!/bin/bash
+for cmd in magika jq duti; do
+    if ! command -v $cmd &> /dev/null; then
+        echo "$cmd could not be found" >&2
+        exit 1
+    fi
+done
+metadata=$(magika --jsonl -i "$1")
+ext=$(echo $metadata | jq -r ".output.ct_label")
+if [ $ext = "directory" ]; then
+    open $1
+    exit 0
+fi
+if [ $ext = "other" ]; then
+    exho "Unrecognized format for $1 with metadata $metadata" >&2
+    exit 1
+fi
+app=$(duti -x $ext | grep -E ".app$" | head -n 1)
+if [ -z $app ]; then
+    echo "No .app found for $1 with metadata $metadata" >&2
+    exit 1
+fi
+open -a $app $1
