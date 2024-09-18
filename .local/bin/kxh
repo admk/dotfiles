@@ -421,7 +421,7 @@ class KXH:
             print_message('debug', f"Custom files: {vcf}")
         file_list += files
         missing_files = [
-            f for f in files if not os.path.exists(os.path.join(home, f))]
+            f for f in file_list if not os.path.exists(os.path.join(home, f))]
         if missing_files:
             print_message('warning', f'Missing files: {missing_files!r}')
         return file_list
