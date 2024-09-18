@@ -1,0 +1,18 @@
+#!/bin/bash
+PREFIX="__prewarmer_$(echo "$@" | md5sum | head -c 8)"
+
+get_reserve_sess_id() {
+    screen -ls | \
+        grep -E "${PREFIX}_reserve.*Detached" | \
+        awk -F '[.]|\t' '/[0-9]+\./{print $2}' | \
+        tail -n 1
+}
+
+reserve_sess_id=$(get_reserve_sess_id)
+if [[ -z "$reserve_sess_id" ]]; then
+    screen -S "${PREFIX}_reserve" -d -m "$@"
+    reserve_sess_id=$(get_reserve_sess_id)
+fi
+screen -S "${PREFIX}_reserve" -d -m "$@"
+screen -S "$reserve_sess_id" -X sessionname "${PREFIX}_active"
+screen -d -r "$reserve_sess_id"
