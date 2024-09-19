@@ -32,6 +32,7 @@ else
     exit 1
 fi
 export KXH_INIT=$KXH_HOME/.local/bin/_kxh_init
+export KXH_PREWARM=$KXH_HOME/.local/bin/_kxh_prewarm
 export KXH_CONDA_PREFIX=$KXH_HOME/.miniconda3
 export KXH_PYTHON=$KXH_CONDA_PREFIX/bin/python
 export KXH_SHELL=$KXH_CONDA_PREFIX/bin/xonsh
@@ -163,7 +164,10 @@ fi
 if [ ! -f $KXH_SHELL ]; then
     echo -e "${RED}Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
     exec $KXH_FALLBACK_SHELL "$@"
+elif [ -z $KXH_PREWARMED ] && [ $KXH_SHOULD_PREWARM == '1' ] && [ -z "$@" ]; then
+    SHELL=$KXH_SHELL KXH_PREWARMED=1 exec $KXH_PREWARM
 else
+    tmux -L __kxh_prewarm kill-server 1>/dev/null 2>/dev/null
     SHELL=$KXH_SHELL exec $KXH_SHELL "$@"
     # SHELL=$KXH_OLD_HOME/.local/bin/xh exec $KXH_SHELL "$@"
 fi

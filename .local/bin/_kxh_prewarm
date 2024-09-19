@@ -1,18 +1,77 @@
 #!/bin/bash
-PREFIX="__prewarmer_$(echo "$@" | md5sum | head -c 8)"
+_screen_prewarm() {
+    if ! command -v screen &> /dev/null; then
+        if [[ -z "$@" ]]; then
+            exec $SHELL
+        else
+            exec "$@"
+        fi
+    fi
+    PREFIX="__prewarmer_$(echo "$@" | md5sum | head -c 8)"
 
-get_reserve_sess_id() {
-    screen -ls | \
-        grep -E "${PREFIX}_reserve.*Detached" | \
-        awk -F '[.]|\t' '/[0-9]+\./{print $2}' | \
-        tail -n 1
+    get_reserve_sess_id() {
+        screen -ls | \
+            grep -E "${PREFIX}_reserve.*Detached" | \
+            awk -F '[.]|\t' '/[0-9]+\./{print $2}' | \
+            tail -n 1
+    }
+
+    reserve_sess_id=$(get_reserve_sess_id)
+    if [[ -z "$reserve_sess_id" ]]; then
+        screen -S "${PREFIX}_reserve" -d -m "$@"
+        reserve_sess_id=$(get_reserve_sess_id)
+    fi
+    screen -S "${PREFIX}_reserve" -d -m "$@"
+    screen -S "$reserve_sess_id" -X sessionname "${PREFIX}_active"
+    screen -d -r "$reserve_sess_id"
 }
 
-reserve_sess_id=$(get_reserve_sess_id)
-if [[ -z "$reserve_sess_id" ]]; then
-    screen -S "${PREFIX}_reserve" -d -m "$@"
-    reserve_sess_id=$(get_reserve_sess_id)
+_tmux_prewarm() {
+    if ! command -v tmux &> /dev/null; then
+        if [[ -z "$@" ]]; then
+            exec $SHELL
+        else
+            exec "$@"
+        fi
+    fi
+    PREFIX="__prewarmer_$(echo "$@" | md5sum | head -c 8)"
+    _tmux() {
+        tmux -L __kxh_prewarm -f /dev/null "$@"
+    }
+    _rand() {
+        shuf -i 0-100000 -n 1
+    }
+    get_reserve_sessions() {
+        _tmux ls -f '#{==:#{session_attached},0}' 2>/dev/null | \
+            grep -E "${PREFIX}_reserve" | cut -d ':' -f 1
+    }
+    local reserve_sessions=$(get_reserve_sessions)
+    local reserve_sess_id=$(echo $reserve_sessions | cut -d ' ' -f 1)
+    if [[ -z "$reserve_sess_id" ]]; then
+        local rand=$(_rand)
+        reserve_sess_id="${PREFIX}_reserve_${rand}"
+        _tmux new-session -s "$reserve_sess_id" -d "$@" \
+            \; set -g update-environment "TERM SSH_AUTH_SOCK SSH_CONNECTION KXH_COLOR_MODE KITTY_WINDOW_ID KITTY_PUBLIC_KEY" \
+            \; set -g default-terminal '$TERM' \
+            \; set -g @kxh_prewarm 1 \
+            \; set-option -g mouse on \
+            \; set -g status off \
+            \; set -g set-titles on \
+            \; set -g set-titles-string "#T" \
+            \; set -g allow-passthrough on
+    fi
+    local rand=$(_rand)
+    local active_sess_id=$(echo $reserve_sess_id | sed "s/_reserve/_active/")
+    local num_reserved_sessions=$(echo $reserve_sessions | wc -w)
+    if [[ $num_reserved_sessions -le 1 ]]; then
+        _tmux new-session -s "${PREFIX}_reserve_${rand}" -d "$@"
+    fi
+    _tmux rename-session -t "$reserve_sess_id" "$active_sess_id"
+    _tmux attach-session -t "$active_sess_id"
+}
+
+if [[ $KXH_PREWARM_MODE == "screen" ]]; then
+    _screen_prewarm "$@"
+else
+    _tmux_prewarm "$@"
 fi
-screen -S "${PREFIX}_reserve" -d -m "$@"
-screen -S "$reserve_sess_id" -X sessionname "${PREFIX}_active"
-screen -d -r "$reserve_sess_id"

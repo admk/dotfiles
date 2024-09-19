@@ -84,7 +84,7 @@ def print_message(flag, message, *args, use_color=True, **kwargs):
 class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
-        [+d | ++dry] [+v | ++verbose] [+D | ++debug]
+        [+d | ++dry] [+v | ++verbose] [+D | ++debug] [+c | ++cold-start]
         [+F | ++force-reinstall] [+S | ++sync-only] [+f | ++fast]
         [(+o | ++option) OPTION] [(+r | ++rc) RC] [(+N | ++name) NAME]
         [(+h | ++hermetic) | (+s | ++semi-hermetic) | (+n | ++non-hermetic)]
@@ -100,6 +100,7 @@ Options:
     +v, ++verbose: verbose mode.
     +d, ++dry: dry run.
     +D, ++debug: debug mode.
+    +c, ++cold-start: cold start shell.
     +F, ++force-reinstall: force reinstall on remote host.
     +S, ++sync-only: sync files only.
     +f, ++fast: skip file sync.
@@ -118,6 +119,7 @@ Options:
             ('d', 'dry'): store_true,
             ('v', 'verbose'): store_true,
             ('D', 'debug'): store_true,
+            ('c', 'cold-start'): store_true,
             ('F', 'force-reinstall'): store_true,
             ('S', 'sync-only'): store_true,
             ('f', 'fast'): store_true,
@@ -294,7 +296,7 @@ class KXH:
         else:
             err = subprocess.DEVNULL
         if dry:
-            return
+            return ''
         try:
             output = subprocess.check_output(
                 command, stderr=err, env=env, **kwargs)
@@ -476,6 +478,7 @@ class KXH:
         dest = self.config['ssh']['destination']
         port = self.config['ssh'].get('p')
         host = f'{dest}:{port}' if port else dest
+        prewarm = not (self.config['kxh']['cold_start'] or updated_files)
         prefix = [
             f'KXH_HOST={host}',
             f'KXH_NAME={name}',
@@ -483,13 +486,15 @@ class KXH:
             f'KXH_VERBOSE={int(verbose)}',
             f'KXH_DEBUG={int(debug)}',
             f'KXH_FAST={int(fast)}',
+            f'KXH_SHOULD_PREWARM={int(prewarm)}',
         ] + env
         init_script = f"env {' '.join(prefix)} "
-        command = f'.{name}/.local/bin/_kxh_init'
         if cmd := self.config['ssh']['command']:
             cmd = " ".join(cmd)
-            command += f' -c {cmd!r}'
-        init_script += f"/bin/bash --norc -c {quote(command)!r}"
+            command = quote(f'.{name}/.local/bin/_kxh_init -c {cmd!r}')
+        else:
+            command = f'.{name}/.local/bin/_kxh_init'
+        init_script += f"/bin/bash --norc -c {command!r}"
         ssh_cmd = self.ssh_cmd + ['-o', 'RequestTTY=yes', dest, init_script]
         if not sys.stdout.isatty():
             rsh_cmd = self.config['kxh']['rsh_command']
