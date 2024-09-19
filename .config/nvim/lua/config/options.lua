@@ -88,8 +88,8 @@ vim.opt.conceallevel = 2
 vim.cmd([[let &t_Cs = "\e[4:3m"]])
 vim.cmd([[let &t_Ce = "\e[4:0m"]])
 -- kitty
+vim.o.clipboard = "unnamedplus"
 if vim.env.TERM == "xterm-kitty" and vim.env.SSH_TTY then
-    vim.o.clipboard = "unnamedplus"
     local function paste()
         return {
             vim.fn.split(vim.fn.getreg(""), "\n"),

@@ -195,7 +195,8 @@ return {
                     "--hidden",
                     "--no-ignore",
                     "--glob",
-                    "!{**/.git/*,**/node_modules/*,**/pkg/mod/*,**/yarn.lock}",
+                    "!{**/.git/*,**/node_modules/*,"
+                        .. "**/pkg/mod/*,**/yarn.lock,**/wandb/*}",
                 },
             },
         },
