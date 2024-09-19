@@ -287,6 +287,7 @@ class KXH:
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
         debug = debug if debug is not None else self.config['kxh']['debug']
         dry = self.config['kxh']['dry']
+        env = {**os.environ, 'SHELL': '/bin/bash', **kwargs.pop('env', {})}
         if debug or dry:
             print_message('debug', f"run: {' '.join(command)}")
             err = sys.stderr
@@ -295,7 +296,8 @@ class KXH:
         if dry:
             return
         try:
-            output = subprocess.check_output(command, stderr=err, **kwargs)
+            output = subprocess.check_output(
+                command, stderr=err, env=env, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
                 print_message('error', f'{error_message}')
@@ -313,6 +315,7 @@ class KXH:
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
         debug = debug if debug is not None else self.config['kxh']['debug']
         dry = self.config['kxh']['dry']
+        env = {**os.environ, 'SHELL': '/bin/bash', **kwargs.pop('env', {})}
         if verbose or dry:
             print_message('verbose', f'run_shell: {command}')
         if not debug:
@@ -320,7 +323,7 @@ class KXH:
         if dry:
             return
         try:
-            p = subprocess.run(command, shell=True, **kwargs)
+            p = subprocess.run(command, shell=True, env=env, **kwargs)
         except subprocess.CalledProcessError as e:
             if error_message is not None:
                 print_message('error', f'{error_message}')
@@ -348,7 +351,8 @@ class KXH:
                 rcs.append(f'# --- {rc} ---')
                 rcs.append(r.read())
         rcs = '\n'.join(rcs)
-        enc = Fernet(key).encrypt(rcs.encode('utf-8'))
+        # deterministic encryption
+        enc = Fernet(key)._encrypt_from_parts(rcs.encode('utf-8'), 0, b'x' * 16)
         collate_rc = os.path.join(self.cache_home, 'hosts_collated.xsh.enc')
         with open(collate_rc, 'w', encoding='utf-8') as f:
             f.write(enc.decode('utf-8'))
@@ -360,9 +364,8 @@ class KXH:
     def _rsync(self, source, destination, file_list=None, sync_file=None):
         is_remote = ':' in destination
         rsync_cmd = [
-            f"SHELL={shutil.which('bash')}",
-            "rsync --archive --no-owner --no-group --compress --human-readable",
-            "--update --delete --partial --progress --checksum --copy-links"
+            "rsync --archive --no-owner --no-group --compress --itemize-changes",
+            "--update --delete --partial --progress --checksum --copy-links",
         ]
         if is_remote:
             ssh = self.config['kxh']['rsh_command']
@@ -383,11 +386,14 @@ class KXH:
         source = shlex.quote(source)
         destination = shlex.quote(destination)
         rsync_cmd.append(f"{source} {destination}")
-        self._run_shell(
-            ' '.join(rsync_cmd),
+        output = self._run(
+            shlex.split(' '.join(rsync_cmd)),
             f'Failed to rsync files from {source!r} to {destination!r}.')
         if file_list_file is not None:
             file_list_file.close()
+        updated_files = [
+            f.split(' ')[1] for f in output.splitlines() if f.startswith('<')]
+        return updated_files
 
     def _shared_files(self):
         name = self.config['kxh']['name']
@@ -401,6 +407,7 @@ class KXH:
             os.path.relpath(f, shared_dir) for f in shared_files]
         shared_files = list(sorted(set(shared_files)))
         cached_shared_dir = os.path.join(self.cache_home, 'share')
+        # move shared files to cache
         self._rsync(shared_dir, cached_shared_dir, shared_files)
         return [os.path.join(self.cache_home, 'share', f) for f in shared_files]
 
@@ -455,9 +462,10 @@ class KXH:
             print_message('verbose', 'Bootstrapping...')
             return
         sync_file = os.path.join(self.cache_home, 'sync')
-        self._rsync(home, f'{dest}:.{name}', file_list, sync_file)
+        return self._rsync(
+            home, f'{dest}:.{name}', file_list, sync_file)
 
-    def _ssh(self):
+    def _ssh(self, updated_files):
         name = self.config['kxh']['name']
         mode = self.config['kxh']['mode']
         verbose = self.config['kxh']['verbose']
@@ -497,14 +505,16 @@ class KXH:
         if not self.config['kxh']['fast']:
             if verbose:
                 print_message('verbose', 'Syncing files...')
-            self._sync_files()
+            updated_files = self._sync_files()
+        else:
+            updated_files = []
         if self.config['kxh']['sync_only']:
             if verbose:
                 print_message('verbose', 'Sync done.')
             return
         if verbose:
             print_message('verbose', 'Connecting to remote host...')
-        self._ssh()
+        self._ssh(updated_files)
 
 
 if __name__ == '__main__':
