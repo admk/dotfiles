@@ -233,6 +233,7 @@ class KXH:
         'repo': 'https://github.com/admk/dotfiles.git',
         'ssh_command': shutil.which('ssh'),
         'rsh_command': shutil.which('ssh'),
+        'prewarmer': 'none',
     }
 
     def _load_rc(self, config_home, rc):
@@ -473,12 +474,17 @@ class KXH:
         verbose = self.config['kxh']['verbose']
         debug = self.config['kxh']['debug']
         fast = self.config['kxh']['fast']
+        prewarmer = self.config['kxh']['prewarmer']
         env = self.config['kxh'].get('env', {})
         env = [f'{k}={v}' for k, v in env.items()]
         dest = self.config['ssh']['destination']
         port = self.config['ssh'].get('p')
         host = f'{dest}:{port}' if port else dest
-        prewarm = not (self.config['kxh']['cold_start'] or updated_files)
+        if self.config['kxh']['cold_start']:
+            prewarmer = 'none'
+        if updated_files:
+            prewarmer = 'invalidate'
+        # TODO: also set prewarmer to "invalidate" when env vars change?
         prefix = [
             f'KXH_HOST={host}',
             f'KXH_NAME={name}',
@@ -486,7 +492,7 @@ class KXH:
             f'KXH_VERBOSE={int(verbose)}',
             f'KXH_DEBUG={int(debug)}',
             f'KXH_FAST={int(fast)}',
-            f'KXH_SHOULD_PREWARM={int(prewarm)}',
+            f'KXH_PREWARMER={prewarmer}',
         ] + env
         init_script = f"env {' '.join(prefix)} "
         if cmd := self.config['ssh']['command']:
@@ -510,7 +516,13 @@ class KXH:
         if not self.config['kxh']['fast']:
             if verbose:
                 print_message('verbose', 'Syncing files...')
-            updated_files = self._sync_files()
+            updated_files = self._sync_files() or ''
+            if verbose:
+                if updated_files:
+                    print_message(
+                        'verbose', f'Synced {len(updated_files)} file(s).')
+                else:
+                    print_message('verbose', 'All files are up-to-date.')
         else:
             updated_files = []
         if self.config['kxh']['sync_only']:
@@ -518,7 +530,8 @@ class KXH:
                 print_message('verbose', 'Sync done.')
             return
         if verbose:
-            print_message('verbose', 'Connecting to remote host...')
+            dest = self.config['ssh']['destination']
+            print_message('verbose', f'Connecting to remote host {dest!r}...')
         self._ssh(updated_files)
 
 
