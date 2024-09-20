@@ -1,3 +1,4 @@
+import os
 import sys
 from shutil import which as _which
 
@@ -22,7 +23,7 @@ $BROWSER = 'open'
 
 
 def _install_homebrew():
-    if !(which brew 1>/dev/null 2>/dev/null):
+    if os.path.exists('/opt/homebrew'):
         return
     echo 'Installing Homebrew...'
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -94,7 +95,7 @@ def _mdfind_fzf_open(args):
 
 
 def _auto_theme(force=False):
-    if !(which system-color 1>/dev/null 2>/dev/null):
+    if _which("system-color"):
         $KXH_COLOR_MODE = $(system-color)
 
 

@@ -1,4 +1,8 @@
 #!/bin/bash
+# Prewarm shell sessions using screen or tmux,
+# so that new shell sessions can be spawned quickly.
+# This script has been adapted from:
+# https://github.com/anki-code/xonsh-prewarmed
 _screen_prewarm() {
     if ! command -v screen &> /dev/null; then
         if [[ -z "$@" ]]; then
@@ -34,18 +38,22 @@ _tmux_prewarm() {
             exec "$@"
         fi
     fi
-    PREFIX="__prewarmer_$(echo "$@" | md5sum | head -c 8)"
+    PREFIX="prewarm_$(echo "$@" | md5sum | head -c 8)"
     _tmux() {
         tmux -L __kxh_prewarm -f /dev/null "$@"
     }
     _rand() {
         shuf -i 0-100000 -n 1
     }
-    get_reserve_sessions() {
+    get_sessions() {
         _tmux ls -f '#{==:#{session_attached},0}' 2>/dev/null | \
-            grep -E "${PREFIX}_reserve" | cut -d ':' -f 1
+            grep "${PREFIX}_$1" | cut -d ':' -f 1
     }
-    local reserve_sessions=$(get_reserve_sessions)
+    local orphan_sessions=$(get_sessions "active")
+    for sess in $orphan_sessions; do
+        _tmux kill-session -t "$sess"
+    done
+    local reserve_sessions=$(get_sessions "reserve")
     local reserve_sess_id=$(echo $reserve_sessions | cut -d ' ' -f 1)
     if [[ -z "$reserve_sess_id" ]]; then
         local rand=$(_rand)
@@ -67,7 +75,9 @@ _tmux_prewarm() {
         _tmux new-session -s "${PREFIX}_reserve_${rand}" -d "$@"
     fi
     _tmux rename-session -t "$reserve_sess_id" "$active_sess_id"
-    _tmux attach-session -t "$active_sess_id"
+    _tmux attach-session -t "$active_sess_id" \
+        \; set-hook -t "$active_sess_id" client-detached \
+            "kill-session -t $active_sess_id"
 }
 
 if [[ $KXH_PREWARM_MODE == "screen" ]]; then
