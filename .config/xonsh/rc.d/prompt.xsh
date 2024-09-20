@@ -16,6 +16,7 @@ $COMMAND_ICON_MAP = {
     'lazygit': ' ',
     'system-color': ' ',
     'starship': ' ',
+    'xh': ' ',
 }
 
 

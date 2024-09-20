@@ -5,7 +5,7 @@ end
 -- anchor stdpath("data") wrt "config"
 local config_path = debug.getinfo(1, "S").source:sub(2)
 local config_dir = vim.fn.fnamemodify(config_path:match("(.*/)"), ":h:p")
-local old_stdpath = vim.fn.stdpath
+local _stdpath = vim.fn.stdpath
 vim.fn.stdpath = function(value)
     local paths = {
         data = "share",
@@ -16,7 +16,7 @@ vim.fn.stdpath = function(value)
         path = config_dir .. "/../../.local/" .. path .. "/nvim"
         path = vim.fn.fnamemodify(path, ":p")
     end
-    return path or old_stdpath(value)
+    return path or _stdpath(value)
 end
 vim.env.PATH = table.concat({
     vim.env.PATH,

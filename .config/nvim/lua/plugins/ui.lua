@@ -96,10 +96,6 @@ return {
         -- see: https://github.com/folke/noice.nvim/issues/921
         commit = "d9328ef903168b6f52385a751eb384ae7e906c6f",
         opts = {
-            -- views = {
-            --     mini = { border = { winblend = 20 } },
-            --     cmdline_popup = { win_options = { winblend = 20 } },
-            -- },
             lsp = {
                 override = {
                     ["vim.lsp.util.convert_input_to_markdown_lines"] = true,

@@ -56,8 +56,9 @@ def _kitty_integration():
         'icat': 'kitten icat',
         'notify': 'kitten notify',
     }
-    xontrib load term_integration
-    $MULTILINE_PROMPT = '│'
+    @events.on_post_rc
+    def _fix_multiline_prompt():
+        $MULTILINE_PROMPT = '│'
 
 
 def _fzf_integration():
@@ -80,13 +81,9 @@ def _nvim_shell_integration():
         return
     if not _which('nvim'):
         return
-    # FIXME: does not work.
-    # 1. xonsh does not launch nvr,
-    #    complains command not found
-    # 2. even with manual launch,
-    #    nvim does not show the file in the current window
-    # 3. even with manual launch,
-    #    nvim closes all buffers on :q
+    # FIXME: does not work well.
+    # 1. [ ] nvim does not show the file in the current window
+    # 2. [ ] can't use --remote-wait, complains command not found
     $EDITOR = f'{$KXH_CONDA_PREFIX}/bin/nvr --remote-wait'
 
 
@@ -116,7 +113,7 @@ def _tmux_main():
 
 _kitty_integration()
 _fzf_integration()
-# _nvim_shell_integration()
+_nvim_shell_integration()
 _vscode_shell_integration()
 _tmux_main()
 del (
