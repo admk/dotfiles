@@ -79,6 +79,12 @@ if (
     let cli = PasteboardMonitor()
     cli.checkChanges(interval: interval)
 
+    signal(SIGINT, SIG_IGN)
+    let sigintSource = DispatchSource.makeSignalSource(
+        signal: SIGINT, queue: DispatchQueue.main)
+    sigintSource.setEventHandler { exit(0) }
+    sigintSource.resume()
+
     let theRL = RunLoop.current
     while theRL.run(mode: RunLoop.Mode.default, before: .distantFuture) {}
 }
