@@ -43,26 +43,20 @@ speed_test() {
 
     case "$operation" in
         "u" | "up" | "upload")
-            echo "Testing Upload speed: "
+            echo "Testing upload speed (client => server): "
             $dd_rand 2>&1 | \
                 pv -pterab -s "$((bs * count))" | \
                 ssh "${ssh_arguments[@]}" 'cat > /dev/null'
             ;;
         "d" | "down" | "download")
-            echo "Testing Download speed: "
+            echo "Testing download speed (server => client): "
             ssh "${ssh_arguments[@]}" "$dd_rand" 2>&1 | \
                 pv -pterab -s "$((bs * count))" | \
                 dd of=/dev/null 2>/dev/null
             ;;
         "ud" | "updown" | "both")
-            echo "Testing Upload speed: "
-            $dd_rand 2>&1 | \
-                pv -pterab -s "$((bs * count))" | \
-                ssh "${ssh_arguments[@]}" 'cat > /dev/null'
-            echo "Testing Download speed: "
-            ssh "${ssh_arguments[@]}" "$dd_rand" 2>&1 | \
-                pv -pterab -s "$((bs * count))" | \
-                dd of=/dev/null 2>/dev/null
+            speed_test "u" "${ssh_arguments[@]}"
+            speed_test "d" "${ssh_arguments[@]}"
             ;;
         *)
             echo "Invalid operation: $operation."
