@@ -50,6 +50,7 @@ if [[ $KXH_DEBUG == '1' ]]; then
     echo -e "${LIGHTGRAY}\$KXH_NAME=$KXH_NAME${SET}"
     echo -e "${LIGHTGRAY}\$KXH_HOME=$KXH_HOME${SET}"
     echo -e "${LIGHTGRAY}\$KXH_INIT=$KXH_INIT${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_PREWARM=$KXH_PREWARM${SET}"
     echo -e "${LIGHTGRAY}\$KXH_CONDA_PREFIX=$KXH_CONDA_PREFIX${SET}"
     echo -e "${LIGHTGRAY}\$KXH_PYTHON=$KXH_PYTHON${SET}"
     echo -e "${LIGHTGRAY}\$KXH_SHELL=$KXH_SHELL${SET}"
@@ -154,6 +155,7 @@ export KXH_HOST=${KXH_HOST:-localhost}
 export KXH_NAME=${KXH_NAME}
 export KXH_MODE=hermetic
 export KXH_OLD_HOME=\${KXH_OLD_HOME:-\$HOME}
+export KXH_PREWARMER=none
 exec $KXH_INIT "\$@"
 EOF
     chmod +x $KXH_OLD_HOME/.local/bin/xh
@@ -164,7 +166,7 @@ fi
 if [ ! -f $KXH_SHELL ]; then
     echo -e "${RED}Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
     exec $KXH_FALLBACK_SHELL "$@"
-elif [ -z $KXH_PREWARMED ] && [ ! -z $KXH_PREWARMER ] && [ -z "$@" ]; then
+elif [ -z "$KXH_PREWARMED" ] && [ ! -z "$KXH_PREWARMER" ] && [ $# -eq 0 ]; then
     SHELL=$KXH_SHELL KXH_PREWARMED=1 exec $KXH_PREWARM
 else
     SHELL=$KXH_SHELL exec $KXH_SHELL "$@"

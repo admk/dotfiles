@@ -6,11 +6,11 @@
 PREFIX="prewarm_$(echo "$@" | md5sum | head -c 8)"
 
 _tmux() {
-    $KXH_PREWARMER -L __kxh_prewarm -f /dev/null "$@"
+    $KXH_PREWARMER -L __kxh_prewarm -f $XDG_CONFIG_HOME/tmux/prewarm.conf "$@"
 }
 _tmux_detached_sessions() {
     _tmux ls -f '#{==:#{session_attached},0}' 2>/dev/null | \
-        grep -E "${PREFIX}_(\d+)_$1" | cut -d ':' -f 1
+        grep -E "${PREFIX}_[0-9]+_$1" | cut -d ':' -f 1
 }
 _tmux_invalidate() {
     local sessions=$(_tmux_detached_sessions "reserve")
@@ -37,19 +37,7 @@ _tmux_prewarm() {
     if [[ -z "$reserve_sess_id" ]]; then
         local rand=$(_rand)
         reserve_sess_id="${PREFIX}_${rand}_reserve"
-        local env_vars=(
-            TERM SSH_AUTH_SOCK SSH_CONNECTION
-            KITTY_WINDOW_ID KITTY_PUBLIC_KEY KXH_COLOR_MODE)
-        _tmux new-session -s "$reserve_sess_id" -d "$@" \
-            \; set -g update-environment "${env_vars[*]}" \
-            \; set -g default-terminal '$TERM' \
-            \; set -g mouse on \
-            \; set -g prefix None \
-            \; set -g prefix2 None \
-            \; set -g status off \
-            \; set -g set-titles on \
-            \; set -g set-titles-string "#T" \
-            \; set -g allow-passthrough on
+        _tmux new-session -s "$reserve_sess_id" -d "$@"
     fi
     local rand=$(_rand)
     local active_sess_id=$(echo $reserve_sess_id | sed "s/_reserve/_active/")
@@ -64,10 +52,11 @@ _tmux_prewarm() {
             "if -F '#{==:#{session_attached},0}' 'kill-session -t $active_sess_id'"
 }
 
-if [[ $KXH_PREWARMER == "invalidate" ]]; then
+if [[ $KXH_PREWARMER =~ ^invalidate: ]]; then
+    KXH_PREWARMER=$(echo $KXH_PREWARMER | cut -d ':' -f 2)
     _tmux_invalidate
 fi
-if [[ $KXH_PREWARMER == "tmux" ]]; then
+if [[ $KXH_PREWARMER =~ tmux$ ]]; then
     _tmux_prewarm "$@"
 elif [[ -z "$@" ]]; then
     exec $SHELL

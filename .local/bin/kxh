@@ -399,7 +399,6 @@ class KXH:
         return updated_files
 
     def _shared_files(self):
-        name = self.config['kxh']['name']
         shared_dir = os.path.join(self.config_home, 'share')
         shared_pat = os.path.join(shared_dir, '**', '**')
         shared_files = glob.glob(
@@ -412,7 +411,8 @@ class KXH:
         cached_shared_dir = os.path.join(self.cache_home, 'share')
         # move shared files to cache
         self._rsync(shared_dir, cached_shared_dir, shared_files)
-        return [os.path.join(self.cache_home, 'share', f) for f in shared_files]
+        return [
+            os.path.join(self.cache_home, 'share', f) for f in shared_files]
 
     def _file_list_file(self):
         home = self.config['kxh']['home']
@@ -482,8 +482,8 @@ class KXH:
         host = f'{dest}:{port}' if port else dest
         if self.config['kxh']['cold_start']:
             prewarmer = 'none'
-        if updated_files:
-            prewarmer = 'invalidate'
+        if updated_files and prewarmer != 'none':
+            prewarmer = f'invalidate:{prewarmer}'
         # TODO: also set prewarmer to "invalidate" when env vars change?
         prefix = [
             f'KXH_HOST={host}',
