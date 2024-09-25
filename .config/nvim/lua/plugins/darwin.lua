@@ -34,6 +34,7 @@ return {
     {
         "nvim-neorg/neorg",
         cmd = { "Neorg" },
+        ft = "norg",
         dependencies = { "hrsh7th/nvim-cmp" },
         version = "*",
         opts = function(_, opts)

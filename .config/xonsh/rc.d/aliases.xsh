@@ -128,6 +128,12 @@ def _y(args):
     rm -f @(tmp)
 
 
+@aliases.register('yc')
+@aliases.return_command
+def _yc(args):
+    return "yazi --chooser-file /dev/stdout".split() + args
+
+
 @aliases.register('tmux')
 def _tmux(args):
     tm = $(@(_which('which')) 'tmux').strip()
@@ -179,7 +185,7 @@ def _pydb(args):
         client = 'nvim'
         # auto-attach to debugpy in nvim
         cmd = f"<c-\\\\>;DapPyAttach {port}<CR>"
-        execx(f'nvr --remote-send "{cmd}"')
+        execx(f'{$KXH_CONDA_PREFIX}/bin/nvr --remote-send "{cmd}"')
     else:
         client = 'client'
     print(f'Waiting for {client} to attach to {port}...')

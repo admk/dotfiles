@@ -35,9 +35,9 @@ fi
 
 tmux=$(which tmux)
 _tmux() {
-     $tmux -f /dev/null -L ke "$@"\; set -g status off
+     $tmux -f /dev/null -L __kxh_remote_edit "$@"\; set -g status off
 }
-killserver="$tmux -L ke kill-session -t ke_${rand}_server; rm $socket"
+killserver="$tmux -L __kxh_remote_edit kill-session -t ke_${rand}_server; rm $socket"
 
 _tmux new-session -d -s ke_${rand}_server \
     "kxh +f +o ssh_command=ssh -v -L $socket:$socket $destination -- \
@@ -59,12 +59,14 @@ _echo_info() {
 }
 
 if [ $frontend = "neovide" ]; then
-    _tmux new-session -d -s ke_${rand}_client "_retry 30 1 \"neovide --server $socket\"; $killserver"
+    _tmux new-session -d -s ke_${rand}_client \
+        "_retry 30 1 \"neovide --server $socket\"; $killserver"
     info+=("\"client.tmux\": \"ke_${rand}_client\"")
     _echo_info
 elif [ $frontend = "nvim" ]; then
     _echo_info
-    _retry 30 1 "nvim --server $socket --remote-expr \"\"" 1>/dev/null 2>/dev/null \
+    _retry 30 1 "nvim --server $socket --remote-expr \"\"" \
+            1>/dev/null 2>/dev/null \
         && exec bash -c "nvim --server $socket --remote-ui; $killserver"
 else
     echo "Unknown frontend: $frontend" > /dev/stderr

@@ -9,11 +9,12 @@ return {
             })
         end,
     },
-    -- {
-    --     "folke/tokyonight.nvim",
-    --     priority = 1000,
-    --     lazy = false,
-    -- },
+    {
+        "folke/tokyonight.nvim",
+        enabled = false,
+        priority = 1000,
+        lazy = false,
+    },
     {
         "LazyVim/LazyVim",
         opts = {
@@ -29,5 +30,18 @@ return {
                 end
             end,
         },
+    },
+    {
+        "NvChad/nvim-colorizer.lua",
+        ft = { "sh", "bash", "lua", "vim" },
+        opts = {
+            user_default_options = {
+                names = false,
+                mode = "background",
+            },
+        },
+        config = function(_, opts)
+            require("colorizer").setup(opts)
+        end,
     },
 }
