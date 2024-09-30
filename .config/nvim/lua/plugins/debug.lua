@@ -27,7 +27,10 @@ return {
             "rcarriga/cmp-dap",
             "williamboman/mason.nvim",
             "jay-babu/mason-nvim-dap.nvim",
-            "mfussenegger/nvim-dap-python",
+            {
+                "mfussenegger/nvim-dap-python",
+                ft = "python",
+            },
             "theHamsta/nvim-dap-virtual-text",
             {
                 "nvim-treesitter/nvim-treesitter",
@@ -40,6 +43,7 @@ return {
                 end
             },
         },
+        cmd = { "DapPyAttach" },
         config = function(_, opts)
             local dap = require("dap")
             require("dap.ext.vscode").load_launchjs("launch.json")

@@ -15,7 +15,7 @@ return {
     },
     {
         "f-person/auto-dark-mode.nvim",
-        -- enabled = false,
+        enabled = false,  -- this plugin spawns shells, which is annoying
         opts = {
             -- update_interval = 10000,
             set_dark_mode = function()

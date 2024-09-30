@@ -1,3 +1,4 @@
+local is_remote = os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY")
 return {
     {
         "catppuccin/nvim",
@@ -34,6 +35,7 @@ return {
     {
         "NvChad/nvim-colorizer.lua",
         ft = { "sh", "bash", "lua", "vim" },
+        enabled = not is_remote,
         opts = {
             user_default_options = {
                 names = false,
