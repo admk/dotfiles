@@ -102,6 +102,14 @@ def _install_apts():
         locale-gen "en_US.UTF-8"
 
 
+def _set_timezone():
+    if $USER != 'root' or p'/etc/timezone'.exists():
+        return
+    $DEBIAN_FRONTEND='noninteractive' apt install -y tzdata
+    ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    dpkg-reconfigure --frontend noninteractive tzdata
+
+
 def _install_homebrew():
     if $USER != "root":
         $PATH.append('/home/linuxbrew/.linuxbrew/bin')
@@ -166,6 +174,7 @@ def _ubuntu_specific():
     if ${...}.get('KXH_FAST') != '1':
         _install_apts()
         _install_homebrew()
+        _set_timezone()
     aliases.register('share-folder')(_share_folder)
 
 
@@ -185,5 +194,5 @@ try:
 except KeyboardInterrupt:
     print('Interrupted')
 del (
-    _ubuntu_specific, _install_apts, _install_homebrew,
+    _ubuntu_specific, _install_apts, _install_homebrew, _set_timezone,
     _share_folder, _centos_specific)

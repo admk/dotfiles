@@ -48,6 +48,7 @@ _tmux_prewarm() {
     _tmux rename-session -t "$reserve_sess_id" "$active_sess_id"
     _tmux attach-session -t "$active_sess_id" \
         \; set @kxh_prewarm_id "$active_sess_id" \
+        \; set @kxh_prewarm_kitty_pid "$KITTY_PID" \
         \; set-hook -t "$active_sess_id" client-detached \
             "if -F '#{==:#{session_attached},0}' 'kill-session -t $active_sess_id'"
 }

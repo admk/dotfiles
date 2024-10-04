@@ -17,6 +17,10 @@ $COMMAND_ICON_MAP = {
     'system-color': ' ',
     'starship': ' ',
     'xh': ' ',
+    'top': '󰄩 ',
+    'htop': '󰄩 ',
+    'btop': '󰄩 ',
+    'bpytop': '󰄩 ',
 }
 
 
@@ -74,7 +78,7 @@ def _starship_main():
             _preprompt_linebreak = True
 
     @events.on_post_spec_run_clear
-    @events.on_post_spec_run_cd
+    @events.on_post_spec_run_reset
     def on_post_run_no_linebreak(spec=None, **kwargs):
         global _preprompt_linebreak
         _preprompt_linebreak = False
@@ -91,7 +95,7 @@ if _which('atuin'):
 
 load_term_integration = [
     ${...}.get('TERM_PROGRAM') == 'iTerm.app',
-    ${...}.get('TERM') == 'xterm-kitty',
+    ${...}.get('KITTY_PID') is not None,
 ]
 
 

@@ -56,9 +56,6 @@ def _kitty_integration():
         'icat': 'kitten icat',
         'notify': 'kitten notify',
     }
-    @events.on_post_rc
-    def _fix_multiline_prompt():
-        $MULTILINE_PROMPT = '│'
 
 
 def _fzf_integration():
@@ -100,15 +97,20 @@ def _vscode_shell_integration():
 
 
 def _tmux_main():
-    if not os.environ.get("TMUX"):
+    if "TMUX" not in ${...}:
         return
 
-    $TERM="xterm-256color"
+    server = $TMUX.split(',')[0]
+    source_once = False
 
-    # @events.on_pre_prompt
     @events.on_precommand
-    def _tmux_refresh(cmd, *args, **kwargs):
-        source-bash $(bash -c "tmux showenv -s")
+    def tmux_refresh(cmd, *args, **kwargs):
+        nonlocal source_once
+        if source_once:
+            return
+        source_once = "SSH_CONNECTION" not in ${...}
+        $TERM = "xterm-256color"
+        source-bash $(bash -c @(f"tmux -S {server} showenv -s"))
 
 
 _kitty_integration()
