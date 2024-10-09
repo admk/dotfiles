@@ -20,6 +20,7 @@ source "$ITEM_DIR/battery.sh"
 source "$ITEM_DIR/volume.sh"
 source "$ITEM_DIR/weather.sh"
 source "$ITEM_DIR/music.sh"
+source "$ITEM_DIR/borders.sh"
 
 sketchybar \
     --add bracket left_side logo yabai '/space\..*/' \
@@ -32,12 +33,4 @@ sketchybar --update
 
 yabai -m config external_bar "all:32:0"
 
-borders_options=(
-    style=round
-    width=8.0
-    hidpi=off
-    inactive_color="$(getcolor black 10)"
-    active_color="$HIGHLIGHT"
-)
-borders "${borders_options[@]}" &
 kitty @ set-colors -a -c "active_tab_background=#${HIGHLIGHT:4}"
