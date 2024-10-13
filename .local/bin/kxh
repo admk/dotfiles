@@ -8,6 +8,7 @@ import shutil
 import argparse
 import tempfile
 import subprocess
+from typing import Dict, List, Optional
 
 import tomlkit
 from cryptography.fernet import Fernet
@@ -140,7 +141,7 @@ Options:
             self.add_argument(f'-{option}', dest=option)
         self.add_argument('destination', type=str)
 
-    def parse_args(self, args=None, namespace=None):
+    def parse(self, args=None, namespace=None):
         args = args or sys.argv[1:]
         if '-h' in args or '--help' in args:
             self.print_usage()
@@ -190,11 +191,16 @@ Options:
             ssh_args.p = port
         return kxh_args, ssh_args
 
-    def unparse_ssh_args(self, parsed_args, ssh_command=None, dest=True):
-        if not isinstance(parsed_args, dict):
-            parsed_args = vars(parsed_args)
+    def unparse_ssh_args(
+        self, parsed_args: Dict[str, str],
+        ssh_command: Optional[str] = None,
+        dest: bool = True
+    ) -> List[str]:
         if ssh_command is None:
             ssh_command = shutil.which('ssh')
+            if ssh_command is None:
+                print_message('error', 'ssh command not found.')
+                exit(1)
         command_line = [ssh_command]
         for option in '46AaCfGgKkMNnqsTtVvXxYy':
             if parsed_args.get(option):
@@ -209,7 +215,7 @@ Options:
         return command_line
 
     def print_usage(self, file=None):
-        print_message('info', f'Usage:\n{self._USAGE}')
+        print_message('info', f'Usage:\n{self._USAGE}', file=file)
 
     def error(self, message):
         self.print_usage()
@@ -254,7 +260,7 @@ class KXH:
     def __init__(self):
         super().__init__()
         parser = KxhArgumentParser()
-        kxh_args, ssh_args = parser.parse_args()
+        kxh_args, ssh_args = parser.parse()
         config_home = os.environ.get('XDG_CONFIG_HOME', '~/.config')
         cache_home = os.environ.get('XDG_CACHE_HOME', '~/.cache')
         config = self._load_rc(config_home, kxh_args.rc)
@@ -402,7 +408,7 @@ class KXH:
         shared_dir = os.path.join(self.config_home, 'share')
         shared_pat = os.path.join(shared_dir, '**', '**')
         shared_files = glob.glob(
-            shared_pat, recursive=True, include_hidden=True)
+            shared_pat, recursive=True, include_hidden=True)  # type: ignore
         # omit directories
         shared_files = [f for f in shared_files if os.path.isfile(f)]
         shared_files = [
@@ -501,7 +507,8 @@ class KXH:
         else:
             command = f'.{name}/.local/bin/_kxh_init'
         init_script += f"/bin/bash --norc -c {command!r}"
-        ssh_cmd = self.ssh_cmd + ['-o', 'RequestTTY=yes', dest, init_script]
+        ssh_cmd: List[str] = \
+            self.ssh_cmd + ['-o', 'RequestTTY=yes', dest, init_script]
         if not sys.stdout.isatty():
             rsh_cmd = self.config['kxh']['rsh_command']
             ssh_cmd = [rsh_cmd] + ssh_cmd[1:]
