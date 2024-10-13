@@ -6,7 +6,9 @@ return {
         enabled = is_local,
         lazy = true,
         ft = { "tex", "bib" },
+        cmd = { "VimtexInverseSearch" },
         config = function (_, opts)
+            vim.g.vimtex_syntax_enabled = 0
             vim.g.vimtex_quickfix_mode = 0
             vim.g.vimtex_view_method = "sioyek"
             vim.g.vimtex_view_sioyek_sync = 1
