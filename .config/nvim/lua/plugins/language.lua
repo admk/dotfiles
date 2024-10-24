@@ -26,8 +26,8 @@ return {
                 "stylua",
                 "shellcheck",
                 "shfmt",
-                "ruff",
                 "debugpy",
+                "pyright",
             })
         end,
     },
@@ -56,13 +56,16 @@ return {
             autoformat = false,
             inlay_hints = { enabled = false },
             use_virtual_text = false,
-            document_highlight = {
-                enabled = false,  -- adds CursorMoved autocommands, sluggish
-            },
+            -- document_highlight = {
+            --     enabled = false,  -- adds CursorMoved autocommands, sluggish
+            -- },
             servers = {
                 pyright = {
                     single_file_support = true,
                     settings = {
+                        pyright = {
+                            disableOrganizeImports = true,
+                        },
                         python = {
                             pythonPath = vim.fn.exepath("python"),
                             analysis = {

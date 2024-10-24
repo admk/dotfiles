@@ -169,7 +169,7 @@ return {
         "rachartier/tiny-inline-diagnostic.nvim",
         dependencies = { "neovim/nvim-lspconfig" },
         event = "VeryLazy",
-        -- enabled = false,
+        -- enabled = false,  -- CursorMoved autocmd could be sluggish
         config = function()
             vim.diagnostic.config({
                 virtual_text = false,
