@@ -44,6 +44,13 @@ return {
             },
         },
         cmd = { "DapPyAttach" },
+        keys = {
+            {
+                "<leader>dd",
+                "<cmd>DapPyAttach<CR>",
+                desc = "Attach remote (localhost:5678)"
+            },
+        },
         config = function(_, opts)
             local dap = require("dap")
             require("dap.ext.vscode").load_launchjs("launch.json")
