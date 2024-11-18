@@ -13,7 +13,7 @@
     sw = swich
     st = stash
     un = reset
-    lg = log --graph --date-order --abbrev-commit --date=relative
+    lg = log --graph --date-order --abbrev-commit --date=relative --decorate-refs-exclude=refs/tags
     bl = blame -w -C -C -C
     unstage = reset
     unstage-all = reset --soft HEAD^
