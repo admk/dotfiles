@@ -113,8 +113,9 @@ update_kitty() {
 
 update_sioyek() {
     # TODO: cli activation
-    local dir=$XDG_CONFIG_HOME/sioyek/themes
-    ln -sf $dir/$(theme).config $dir/_active_theme.config
+    local dir=$XDG_CONFIG_HOME/sioyek
+    ln -sf $dir/themes/$(theme).config $dir/themes/_active_theme.config
+    touch $dir/prefs_user.config
 }
 
 
