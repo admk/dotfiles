@@ -28,6 +28,16 @@ return {
                 sections = 1,
                 styles = 1,
             }
+            vim.api.nvim_create_autocmd('FileType', {
+                pattern = { "tex" },
+                callback = function()
+                    vim.cmd([[set iskeyword+=\\]])
+                    vim.cmd([[set iskeyword-=:]])
+                    vim.cmd([[set iskeyword-=_]])
+                    vim.cmd([[set indentkeys-=}]])
+                    vim.cmd([[set indentkeys-=&]])
+                end,
+            })
         end
     },
     {
@@ -40,29 +50,16 @@ return {
         end,
     },
     {
-        "OXY2DEV/markview.nvim",
-        lazy = true,
-        ft = { "markdown", "Avante" },
-        dependencies = {
-            "nvim-treesitter/nvim-treesitter",
-            "nvim-tree/nvim-web-devicons"
-        },
-        keys = {
-            {
-                "<localleader>mt",
-                mode = { "n", "v" },
-                "<cmd>Markview toggle<cr>",
-                desc = "Toggle Markview",
-            },
-        },
-        opts = {
-            checkboxes = {
-                enabled = true,
-                checked = { text = "󰄵", hl = "MarkviewCheckboxChecked" },
-                unchecked = { text = "󰄱", hl = "MarkviewCheckboxUnhecked" },
-                pending = { text = "󱋭", hl = "MarkviewCheckboxPending" },
-            },
-        },
+        "iamcco/markdown-preview.nvim",
+        cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+        build = function()
+            require("lazy").load({ plugins = { "markdown-preview.nvim" } })
+            vim.fn["mkdp#util#install"]()
+        end,
+        init = function()
+            vim.g.mkdp_filetypes = { "markdown" }
+        end,
+        ft = { "markdown" },
     },
     {
         "rafi/telescope-thesaurus.nvim",

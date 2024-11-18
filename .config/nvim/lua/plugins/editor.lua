@@ -1,6 +1,6 @@
 return {
     { "echasnovski/mini.pairs", enabled = false },
-    { import = "lazyvim.plugins.extras.coding.copilot" },
+    { import = "lazyvim.plugins.extras.ai.copilot" },
     {
         "kylechui/nvim-surround",
         version = "*",

@@ -91,4 +91,29 @@ return {
             },
         },
     },
+    {
+        "OXY2DEV/markview.nvim",
+        lazy = true,
+        ft = { "Avante" },
+        dependencies = {
+            "nvim-treesitter/nvim-treesitter",
+            "nvim-tree/nvim-web-devicons"
+        },
+        keys = {
+            {
+                "<localleader>mt",
+                mode = { "n", "v" },
+                "<cmd>Markview toggle<cr>",
+                desc = "Toggle Markview",
+            },
+        },
+        opts = {
+            checkboxes = {
+                enabled = true,
+                checked = { text = "󰄵", hl = "MarkviewCheckboxChecked" },
+                unchecked = { text = "󰄱", hl = "MarkviewCheckboxUnhecked" },
+                pending = { text = "󱋭", hl = "MarkviewCheckboxPending" },
+            },
+        },
+    },
 }
