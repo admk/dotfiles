@@ -75,6 +75,7 @@ vim.opt.foldnestmax = 2
 -- Motion: {
 vim.opt.virtualedit = "block"
 vim.opt.mouse = "a"
+vim.opt.mousemoveevent = true
 -- }
 -- }
 -- Other: {

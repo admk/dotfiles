@@ -2,6 +2,13 @@ return {
     { import = "lazyvim.plugins.extras.ui.edgy" },
     { import = "lazyvim.plugins.extras.ui.mini-indentscope" },
     {
+        "folke/which-key.nvim",
+        event = "VeryLazy",
+        opts = {
+            preset = "helix",
+        },
+    },
+    {
         'mikesmithgh/borderline.nvim',
         enabled = true,
         lazy = true,
@@ -14,36 +21,6 @@ return {
         end,
     },
     -- { "lukas-reineke/indent-blankline.nvim", enabled = false },
-    {
-        "nvimdev/dashboard-nvim",
-        event = "VimEnter",
-        dependencies = {
-            "nvim-tree/nvim-web-devicons",
-            "ColaMint/pokemon.nvim",
-        },
-        opts = function(_, opts)
-            opts.disable_move = true
-            local pokemon = require("pokemon")
-            pokemon.setup({ number = "random" })
-            opts.config.header = pokemon.header()
-            -- table.remove(opts.config.center, 5)
-            local action = [[
-                lua require('telescope.builtin').find_files({
-                    hidden = true,
-                    no_ignore = true,
-                    cwd = vim.fn.expand('~/.config')
-                }) ]]
-            opts.config.center[5].action = action:gsub("\n", " ")
-            local minifiles = {
-                action = "lua require('mini.files').open()",
-                desc = " Explore Here",
-                icon = " ",
-                key = "m" ,
-                key_format = "  %s",
-            }
-            table.insert(opts.config.center, 2, minifiles)
-        end,
-    },
     {
         "nvim-lualine/lualine.nvim",
         event = "VeryLazy",
@@ -94,7 +71,7 @@ return {
         "folke/noice.nvim",
         -- FIXME: this commit is needed to avoid hanging on nvim exit
         -- see: https://github.com/folke/noice.nvim/issues/921
-        commit = "d9328ef903168b6f52385a751eb384ae7e906c6f",
+        -- commit = "d9328ef903168b6f52385a751eb384ae7e906c6f",
         opts = {
             lsp = {
                 override = {
@@ -159,7 +136,6 @@ return {
         opts = {
             options = {
                 mode = "tabs",
-                -- separator_style = "slant",
                 show_buffer_close_icons = false,
                 show_close_icon = false,
             },

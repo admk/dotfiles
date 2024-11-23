@@ -1,6 +1,7 @@
 local is_remote = os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY")
-return {
-    {
+local color = "kanagawa"
+local colorschemes = {
+    catppuccin = {
         "catppuccin/nvim",
         priority = 1000,
         lazy = false,
@@ -10,18 +11,47 @@ return {
             })
         end,
     },
-    {
+    tokyonight = {
         "folke/tokyonight.nvim",
-        enabled = false,
         priority = 1000,
         lazy = false,
     },
+    kanagawa = {
+        "rebelot/kanagawa.nvim",
+        priority = 1000,
+        lazy = false,
+        config = function()
+            require("kanagawa").setup({
+                compile = false,
+                colors = {
+                    theme = {
+                        lotus = {
+                            ui = {
+                                bg = "#fbf8ea",
+                                bg_p1 = "#f6f1d5",
+                                bg_p2 = "#f6f1d5",
+                                bg_gutter = "#f6f1d5",
+                            },
+                        },
+                    },
+                },
+                background = {
+                    light = "lotus",
+                    dark = "dragon",
+                },
+            })
+            vim.cmd.colorscheme("kanagawa")
+        end
+    },
+}
+local colorscheme = colorschemes[color]
+return {
+    colorscheme,
     {
         "LazyVim/LazyVim",
         opts = {
             colorscheme = function()
-                require("catppuccin").load()
-                vim.cmd("colorscheme catppuccin")
+                require(color).load()
                 -- vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
                 local color_mode = os.getenv("KXH_COLOR_MODE")
                 color_mode = color_mode and vim.split(color_mode, ":")[1]
