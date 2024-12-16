@@ -47,6 +47,11 @@ require("lazy").setup({
 
 -- View
 vim.cmd("colorscheme catppuccin")
+if vim.fn.split(vim.env.KXH_COLOR_MODE, ":")[1] == "light" then
+    vim.opt.background = "light"
+else
+    vim.opt.background = "dark"
+end
 vim.opt.showmatch = true
 vim.opt.showcmd = false
 vim.opt.showmode = false

@@ -40,6 +40,13 @@ def _rc_path():
         '/sbin',
     ] + $PATH
     os.environ['PATH'] = ':'.join($PATH)
+    additional_lib_path = [
+        '$KXH_HOME/.local/lib/',
+    ]
+    try:
+        $DYLD_LIBRARY_PATH += additional_lib_path
+    except KeyError:
+        $DYLD_LIBRARY_PATH = additional_lib_path
 
 
 def _rc_main():
