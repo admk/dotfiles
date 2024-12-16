@@ -88,8 +88,9 @@ return {
         opts = {
             servers = {
                 tinymist = {
+                    -- offset_encoding = "utf-8",
                     settings = {
-                        exportPdf = "onSave",
+                        exportPdf = "never",
                     },
                 },
             },
@@ -97,19 +98,20 @@ return {
     },
     { "abhishekmukherg/xonsh-vim", lazy = true, ft = "xonsh" },
     {
-        "keaising/im-select.nvim",
-        ft = { "neorg", "markdown", "typst", "mail" },
+        "liubianshi/cmp-lsp-rimels",
+        keys = {
+            { ";f", mode = "i" },
+        },
+        opts = {
+            max_candidates = 9,
+        },
         config = function()
-            require("im_select").setup({})
-            -- a filetype-specific hack
-            -- to allow <C-c> in insert mode
-            -- to switch input method
-            vim.keymap.set(
-                "i",
-                "<C-c>",
-                "<C-c>:doautocmd InsertLeave<CR>",
-                { buffer = true, noremap = true, silent = true }
-            )
+            require('rimels').setup({})
         end,
     },
+    -- {
+    --     "Bakudankun/PICO-8.vim",
+    --     lazy = true,
+    --     ft = { "pico8" },
+    -- }
 }

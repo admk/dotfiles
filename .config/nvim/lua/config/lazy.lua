@@ -14,6 +14,67 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
     spec = {
         { "LazyVim/LazyVim", import = "lazyvim.plugins", },
+        {
+            "folke/snacks.nvim",
+            priority = 1000,
+            lazy = false,
+            opts = {
+                dashboard = {
+                    preset = { header = [[
+███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗
+████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║
+██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║
+██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║
+██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║
+╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝]],
+                    },
+                    sections = {
+                        { section = "header" },
+                        {
+                            icon = " ",
+                            title = "Keymaps",
+                            section = "keys",
+                            indent = 2,
+                            padding = 1
+                        },
+                        {
+                            icon = " ",
+                            title = "Recent Files",
+                            section = "recent_files",
+                            indent = 2,
+                            padding = 1
+                        },
+                        {
+                            icon = " ",
+                            title = "Projects",
+                            section = "projects",
+                            indent = 2,
+                            padding = 1
+                        },
+                        { section = "startup" },
+                    },
+                }
+            },
+            config = function(_, opts)
+                local action = [[
+                    :lua require('telescope.builtin').find_files({
+                        hidden = true,
+                        no_ignore = true,
+                        cwd = vim.fn.expand('~/.config'),
+                    })
+                ]]
+                action = action:gsub("\n", " ")
+                opts.dashboard.preset.keys[5].action = action
+                local minifiles = {
+                    icon = " ",
+                    key = "m" ,
+                    action = ":lua require('mini.files').open()",
+                    desc = "Explore Here",
+                }
+                table.insert(opts.dashboard.preset.keys, 2, minifiles)
+                require("snacks").setup(opts)
+            end
+        },
         { import = "plugins" },
     },
     defaults = { lazy = false, version = false },

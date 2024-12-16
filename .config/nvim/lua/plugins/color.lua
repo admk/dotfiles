@@ -1,5 +1,5 @@
 local is_remote = os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY")
-local color = "kanagawa"
+local color = "catppuccin"
 local colorschemes = {
     catppuccin = {
         "catppuccin/nvim",

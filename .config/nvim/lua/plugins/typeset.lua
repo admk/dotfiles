@@ -43,10 +43,47 @@ return {
     {
         'chomosuke/typst-preview.nvim',
         enabled = is_local,
+        tag  = 'v1.2.0',  -- FIXME: 'v1.2.1' does not launch
         ft = "typst",
-        version = '0.3.*',
-        build = function()
-            require('typst-preview').update()
+        opts = {
+            invert_colors = "auto",
+            get_main_file = function(path_of_buffer)
+                -- read .typst.json from current dir to get the main file
+                local config_file = vim.fn.findfile('.typst.json', '.;')
+                if config_file == '' then
+                    return path_of_buffer
+                end
+                local config = vim.json.decode(io.open(config_file):read('*a'))
+                if config.main == nil then
+                    vim.notify(
+                        '"main" entry not found in .typst.json.' ..
+                        'Fallback to previewing current file.',
+                        vim.log.levels.WARN)
+                    return path_of_buffer
+                end
+                vim.notify('Previewing main file: ' .. config.main)
+                local main_path = vim.fn.fnamemodify(config.main, ':p')
+                vim.lsp.buf.execute_command({
+                    command = 'tinymist.pinMain',
+                    arguments = { main_path },
+                })
+                return config.main
+            end,
+        },
+        config = function(_, opts)
+            require('typst-preview').setup(opts)
+            vim.api.nvim_create_autocmd('FileType', {
+                pattern = { "typst" },
+                callback = function()
+                    vim.cmd([[set iskeyword+=-]])
+                    vim.cmd([[set iskeyword+=#]])
+                    vim.cmd([[set indentkeys-=#]])
+                end,
+            })
+            vim.keymap.set(
+                "n", "<localleader>t", "<cmd>TypstPreview<cr>", {
+                    desc = "Preview Typst Document",
+                })
         end,
     },
     {
@@ -67,11 +104,16 @@ return {
         dependencies = { "nvim-telescope/telescope.nvim" },
         keys = {
             {
-                "<localleader>t",
+                "<localleader>d",
                 mode = {"n", "v"},
-                "<cmd>Telescope thesaurus lookup<cr>",
+                cmd = "<cmd>Telescope thesaurus lookup<cr>",
                 desc = "Thesaurus lookup",
             },
         },
     },
+    -- {
+    --     'noearc/jieba.nvim',
+    --     enabled = is_local,
+    --     dependencies = {'noearc/jieba-lua'},
+    -- },
 }

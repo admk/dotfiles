@@ -68,65 +68,6 @@ return {
         end,
     },
     {
-        "folke/noice.nvim",
-        -- FIXME: this commit is needed to avoid hanging on nvim exit
-        -- see: https://github.com/folke/noice.nvim/issues/921
-        -- commit = "d9328ef903168b6f52385a751eb384ae7e906c6f",
-        opts = {
-            lsp = {
-                override = {
-                    ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
-                    ["vim.lsp.util.stylize_markdown"] = true,
-                    ["cmp.entry.get_documentation"] = true,
-                },
-                hover = { silent = true },
-            },
-            presets = {
-                bottom_search = true,
-                command_palette = true,
-                long_message_to_split = true,
-                lsp_doc_border = true,
-            },
-            routes = {
-                {
-                    filter = {
-                        event = "msg_show",
-                        any = {
-                            { find = "%d+L, %d+B" },
-                            { find = "; after #%d+" },
-                            { find = "; before #%d+" },
-                            { find = "lines" },
-                            { find = "Already at newest change" },
-                        },
-                    },
-                    view = "mini",
-                },
-            },
-        },
-    },
-    {
-        "rcarriga/nvim-notify",
-        dependencies = { "folke/noice.nvim" },
-        keys = {
-            {
-                "<C-c>",
-                function()
-                    require("notify").dismiss({
-                        pending = true,
-                        silent = true,
-                    })
-                    vim.cmd("nohlsearch")
-                end,
-                desc = "Dismiss notification",
-            },
-        },
-        opts = {
-            timeout = 5000,
-            top_down = false,
-            stages = "slide",
-        },
-    },
-    {
         "akinsho/bufferline.nvim",
         event = "VeryLazy",
         keys = {

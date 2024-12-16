@@ -50,7 +50,7 @@ vim.api.nvim_create_autocmd('FileType', {
             vim.o.spellfile = root .. "/.nvim.en.utf-8.add"
         end
         vim.o.spell = true
-        vim.o.spelllang = "en_us"
+        vim.o.spelllang = "en_us,cjk"
     end,
 })
 

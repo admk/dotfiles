@@ -66,6 +66,23 @@ return {
             })
             return opts
         end,
+        config = function(_, opts)
+            local compare = require('cmp.config.compare')
+            opts.sorting = {
+                priority_weight = 2,
+                comparators = {
+                    compare.sort_text,
+                    compare.offset,
+                    compare.exact,
+                    compare.score,
+                    compare.recently_used,
+                    compare.kind,
+                    compare.length,
+                    compare.order,
+                }
+            }
+            require("cmp").setup(opts)
+        end
     },
     {
         "zbirenbaum/copilot-cmp",

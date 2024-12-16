@@ -85,9 +85,12 @@ vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.splitkeep = "cursor"
 vim.opt.conceallevel = 2
+vim.lsp.set_log_level = "ERROR"
+-- Spelling
+vim.opt.spelllang = vim.opt.spelllang + "cjk"
 -- Undercurl
-vim.cmd([[let &t_Cs = "\e[4:3m"]])
-vim.cmd([[let &t_Ce = "\e[4:0m"]])
+-- vim.cmd([[let &t_Cs = "\e[4:3m"]])
+-- vim.cmd([[let &t_Ce = "\e[4:0m"]])
 -- kitty
 vim.o.clipboard = "unnamedplus"
 if vim.env.TERM == "xterm-kitty" and vim.env.SSH_TTY then
