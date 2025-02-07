@@ -54,10 +54,33 @@ vim.api.nvim_create_autocmd('FileType', {
     end,
 })
 
+-- editor settings for typst
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { "typst" },
+    callback = function()
+        vim.cmd([[set iskeyword+=-]])
+        -- vim.cmd([[set iskeyword+=#]])
+        vim.cmd([[set indentkeys-=#]])
+    end,
+})
+
+-- editor settings for tex
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { "tex" },
+    callback = function()
+        -- vim.cmd([[set iskeyword+=\\]])
+        vim.cmd([[set iskeyword-=:]])
+        vim.cmd([[set iskeyword-=_]])
+        vim.cmd([[set indentkeys-=}]])
+        vim.cmd([[set indentkeys-=&]])
+    end,
+})
+
 -- comment strings for various files
 local commentstring_map = {
     typst = "// %s",
     xonsh = "# %s",
+    openscad = "// %s",
 }
 for filetype, commentstring in pairs(commentstring_map) do
     vim.api.nvim_create_autocmd('FileType', {

@@ -28,16 +28,6 @@ return {
                 sections = 1,
                 styles = 1,
             }
-            vim.api.nvim_create_autocmd('FileType', {
-                pattern = { "tex" },
-                callback = function()
-                    vim.cmd([[set iskeyword+=\\]])
-                    vim.cmd([[set iskeyword-=:]])
-                    vim.cmd([[set iskeyword-=_]])
-                    vim.cmd([[set indentkeys-=}]])
-                    vim.cmd([[set indentkeys-=&]])
-                end,
-            })
         end
     },
     {
@@ -72,14 +62,7 @@ return {
         },
         config = function(_, opts)
             require('typst-preview').setup(opts)
-            vim.api.nvim_create_autocmd('FileType', {
-                pattern = { "typst" },
-                callback = function()
-                    vim.cmd([[set iskeyword+=-]])
-                    vim.cmd([[set iskeyword+=#]])
-                    vim.cmd([[set indentkeys-=#]])
-                end,
-            })
+            -- FIXME: specifying "keys" for the lazy.nvim plugin does not work
             vim.keymap.set(
                 "n", "<localleader>t", "<cmd>TypstPreview<cr>", {
                     desc = "Preview Typst Document",
@@ -97,19 +80,6 @@ return {
             vim.g.mkdp_filetypes = { "markdown" }
         end,
         ft = { "markdown" },
-    },
-    {
-        "rafi/telescope-thesaurus.nvim",
-        enabled = is_local,
-        dependencies = { "nvim-telescope/telescope.nvim" },
-        keys = {
-            {
-                "<localleader>d",
-                mode = {"n", "v"},
-                cmd = "<cmd>Telescope thesaurus lookup<cr>",
-                desc = "Thesaurus lookup",
-            },
-        },
     },
     -- {
     --     'noearc/jieba.nvim',

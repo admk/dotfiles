@@ -1,12 +1,10 @@
 return {
-    { import = "lazyvim.plugins.extras.ui.edgy" },
+    -- { import = "lazyvim.plugins.extras.ui.edgy" },
     { import = "lazyvim.plugins.extras.ui.mini-indentscope" },
     {
         "folke/which-key.nvim",
         event = "VeryLazy",
-        opts = {
-            preset = "helix",
-        },
+        opts = { preset = "helix" },
     },
     {
         'mikesmithgh/borderline.nvim',
@@ -20,7 +18,6 @@ return {
             })
         end,
     },
-    -- { "lukas-reineke/indent-blankline.nvim", enabled = false },
     {
         "nvim-lualine/lualine.nvim",
         event = "VeryLazy",
@@ -88,10 +85,20 @@ return {
         event = "VeryLazy",
         -- enabled = false,  -- CursorMoved autocmd could be sluggish
         config = function()
-            vim.diagnostic.config({
-                virtual_text = false,
-            })
+            vim.diagnostic.config({ virtual_text = false })
             require("tiny-inline-diagnostic").setup()
         end,
+    },
+    {
+        "OXY2DEV/helpview.nvim",
+        lazy = false,
+        dependencies = {
+            "nvim-tree/nvim-web-devicons",
+        },
+        opts = {
+            preview = {
+                icon_provider = "internal", -- "mini" or "devicons"
+            },
+        },
     },
 }

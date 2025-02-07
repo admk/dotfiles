@@ -57,7 +57,7 @@ vim.opt.formatoptions = "rqlmB1"
 -- }
 -- Indentation: {
 vim.opt.autoindent = true
-vim.opt.smartindent = true
+vim.opt.smartindent = false
 vim.opt.copyindent = true
 -- vim.opt.breakindent = true
 vim.opt.smarttab = true

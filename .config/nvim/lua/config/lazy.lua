@@ -56,15 +56,15 @@ require("lazy").setup({
                 }
             },
             config = function(_, opts)
-                local action = [[
-                    :lua require('telescope.builtin').find_files({
-                        hidden = true,
-                        no_ignore = true,
-                        cwd = vim.fn.expand('~/.config'),
-                    })
-                ]]
-                action = action:gsub("\n", " ")
-                opts.dashboard.preset.keys[5].action = action
+                -- local action = [[
+                --     :lua require('telescope.builtin').find_files({
+                --         hidden = true,
+                --         no_ignore = true,
+                --         cwd = vim.fn.expand('~/.config'),
+                --     })
+                -- ]]
+                -- action = action:gsub("\n", " ")
+                -- opts.dashboard.preset.keys[5].action = action
                 local minifiles = {
                     icon = " ",
                     key = "m" ,

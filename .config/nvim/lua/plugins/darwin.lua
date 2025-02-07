@@ -32,39 +32,6 @@ return {
         dependencies = { "leafo/magick" },
     },
     {
-        "nvim-neorg/neorg",
-        cmd = { "Neorg" },
-        ft = "norg",
-        dependencies = { "hrsh7th/nvim-cmp" },
-        version = "*",
-        opts = function(_, opts)
-            opts = vim.tbl_deep_extend("force", opts, {
-                load = {
-                    ["core.defaults"] = {},
-                    ["core.concealer"] = {},
-                    ["core.dirman"] = {
-                        config = {
-                            workspaces = {
-                                notes = "~/Documents/notes",
-                            },
-                        },
-                    },
-                    ["core.completion"] = {
-                        config = { engine = "nvim-cmp" },
-                    },
-                    ["core.integrations.nvim-cmp"] = {},
-                },
-            })
-            if supports_images then
-                opts.load = vim.tbl_deep_extend("force", opts.load, {
-                    ["core.integrations.image"] = {},
-                    ["core.latex.renderer"] = {},
-                })
-            end
-            return opts
-        end,
-    },
-    {
         "nvim-treesitter/nvim-treesitter",
         opts = {
             ensure_installed = {
@@ -97,21 +64,18 @@ return {
         },
     },
     { "abhishekmukherg/xonsh-vim", lazy = true, ft = "xonsh" },
-    {
-        "liubianshi/cmp-lsp-rimels",
-        keys = {
-            { ";f", mode = "i" },
-        },
-        opts = {
-            max_candidates = 9,
-        },
-        config = function()
-            require('rimels').setup({})
-        end,
-    },
     -- {
     --     "Bakudankun/PICO-8.vim",
     --     lazy = true,
     --     ft = { "pico8" },
     -- }
+    {
+        "salkin-mada/openscad.nvim",
+        branch = "dev",
+        ft = "openscad",
+        dependencies = { "ibhagwan/fzf-lua" },
+        config = function(_, opts)
+            require("openscad")
+        end,
+    },
 }

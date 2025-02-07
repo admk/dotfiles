@@ -5,10 +5,14 @@ local colorschemes = {
         "catppuccin/nvim",
         priority = 1000,
         lazy = false,
-        config = function()
-            require("catppuccin").setup({
-                term_colors = true,
-            })
+        opts = {
+            term_colors = true,
+            integrations = {
+                blink_cmp = true,
+            },
+        },
+        config = function(_, opts)
+            require("catppuccin").setup(opts)
         end,
     },
     tokyonight = {
