@@ -32,4 +32,9 @@ gui:
     # defaultFgColor:
     #   - "#c0caf5"
 
-disableStartupPopups: true
+disableStartupPopups:
+  true
+
+git:
+  merging:
+    args: "--no-ff"
