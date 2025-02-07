@@ -97,6 +97,7 @@ def _mdfind_fzf_open(args):
 def _auto_theme(force=False):
     if _which("system-color"):
         $KXH_COLOR_MODE = $(system-color)
+        $AICHAT_LIGHT_THEME = str('light' in $KXH_COLOR_MODE).lower()
 
 
 @events.on_pre_prompt
@@ -151,9 +152,21 @@ def _proxy_browser(args):
     ssh -S @(socket_path) -O exit @(args)
 
 
+@aliases.register('osc')
+def _openscad_compile(args):
+    if len(args) != 1:
+        echo 'Usage: osc <file.scad>'
+        return
+    f = args[0]
+    g = f.replace('.scad', '.stl')
+    print(f"Rendering and exporting {g!r}...")
+    openscad -o @(g) --backend Manifold @(f)
+
+
 aliases |= {
     'chrome': "'$CHROMIUM'",
     'a': 'aerc',
+    'ac': 'aichat',
 }
 
 

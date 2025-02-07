@@ -22,9 +22,14 @@
     pretty=format:%C(bold red)%h%Creset%C(yellow)%d%Creset %s %Cgreen(%ad) %C(bold blue)<%an>%Creset
 [core]
     autocrlf = input
-    pager = "!colordiff 2>/dev/null || cat | less --tabs=4 -RFX"
+    pager = delta
     untrackedcache = true
     fsmonitor = false
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    navigate = true
+    line-numbers = true
 [color]
     ui = auto
     diff = true
@@ -42,6 +47,7 @@
 [merge]
     log = true
     summary = true
+    ; conflictstyle = zdiff3
 [push]
     default = matching
 [filter "lfs"]

@@ -51,6 +51,7 @@ if [[ $KXH_DEBUG == '1' ]]; then
     echo -e "${LIGHTGRAY}\$KXH_HOME=$KXH_HOME${SET}"
     echo -e "${LIGHTGRAY}\$KXH_INIT=$KXH_INIT${SET}"
     echo -e "${LIGHTGRAY}\$KXH_PREWARM=$KXH_PREWARM${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_PREWARMER=$KXH_PREWARMER${SET}"
     echo -e "${LIGHTGRAY}\$KXH_CONDA_PREFIX=$KXH_CONDA_PREFIX${SET}"
     echo -e "${LIGHTGRAY}\$KXH_PYTHON=$KXH_PYTHON${SET}"
     echo -e "${LIGHTGRAY}\$KXH_SHELL=$KXH_SHELL${SET}"
