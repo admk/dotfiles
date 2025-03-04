@@ -1,3 +1,5 @@
+--- @since 25.2.26
+
 local AVAILABLE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789."
 
 local changed = ya.sync(function(st, new)
@@ -22,9 +24,9 @@ return {
 
 		local kw = escape(cands[idx].on)
 		if changed(kw) then
-			ya.manager_emit("find_do", { "^" .. kw })
+			ya.mgr_emit("find_do", { "^" .. kw })
 		else
-			ya.manager_emit("find_arrow", {})
+			ya.mgr_emit("find_arrow", {})
 		end
 	end,
 }
