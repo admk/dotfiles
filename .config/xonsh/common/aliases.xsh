@@ -9,7 +9,7 @@ def _env_exec(env, cmd=None, setmode='off'):
     def wrapper(args, stdin=None, stdout=None, stderr=None, spec=None):
         args, _env = env(args)
         if cmd is not None:
-            args = [cmd] + args
+            args = ([cmd] if isinstance(cmd, str) else cmd) + args
         if args:
             with ${...}.swap(**_env):
                 args = [repr(a) if ' ' in a else a for a in args]
@@ -46,9 +46,8 @@ def _env_exec(env, cmd=None, setmode='off'):
 def register_env_alias(names, cmd=None, setmode='off'):
     import inspect
     def wrapper(env):
-        nonlocal names
-        names = [names] if isinstance(names, str) else names
-        for name in names:
+        pnames = [names] if isinstance(names, str) else names
+        for name in pnames:
             wrapped = _env_exec(env, cmd, setmode)
             # FIXME: functools.wraps(env)(wrapped)
             # doesn't work with xonsh aliases

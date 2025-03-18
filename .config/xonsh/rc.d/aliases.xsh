@@ -53,8 +53,6 @@ register_dep_aliases({
     'cat': 'bat',
     'rcp': 'rsync --progress --recursive --archive',
     'ls': ['lsd', 'eza'],
-    'cs': 'gh copilot suggest -t shell',
-    'ce': 'gh copilot explain',
     'wttr': 'curl wttr.in',
 })
 
@@ -238,3 +236,13 @@ def ssh_exit_all():
         p = socket_dir / p
         if p.exists():
             execx(f'ssh -O exit -o ControlPath="{p}" bogus')
+
+
+@register_env_alias('cs', cmd='gh copilot suggest -t shell'.split(' '))
+def github_copilot_suggest(args):
+    return args, {'GITHUB_TOKEN': ''}
+
+
+@register_env_alias('ce', cmd='gh copilot explain'.split(' '))
+def github_copilot_suggest(args):
+    return args, {'GITHUB_TOKEN': ''}
