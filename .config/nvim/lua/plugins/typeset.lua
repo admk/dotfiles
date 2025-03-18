@@ -1,6 +1,5 @@
 local is_local = not (os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY"))
 return {
-    { import = "lazyvim.plugins.extras.lang.tex" },
     {
         "lervag/vimtex",
         enabled = is_local,
@@ -52,11 +51,6 @@ return {
                     return path_of_buffer
                 end
                 vim.notify('Previewing main file: ' .. config.main)
-                local main_path = vim.fn.fnamemodify(config.main, ':p')
-                vim.lsp.buf.execute_command({
-                    command = 'tinymist.pinMain',
-                    arguments = { main_path },
-                })
                 return config.main
             end,
         },
@@ -68,6 +62,20 @@ return {
                     desc = "Preview Typst Document",
                 })
         end,
+    },
+    {
+        "neovim/nvim-lspconfig",
+        dependencies = {
+            "mason.nvim",
+            "williamboman/mason-lspconfig.nvim",
+        },
+        opts = {
+            servers = {
+                tinymist = {
+                    offset_encoding = "utf-8",
+                },
+            },
+        },
     },
     {
         "iamcco/markdown-preview.nvim",

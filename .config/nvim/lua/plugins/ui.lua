@@ -1,6 +1,4 @@
 return {
-    -- { import = "lazyvim.plugins.extras.ui.edgy" },
-    { import = "lazyvim.plugins.extras.ui.mini-indentscope" },
     {
         "folke/which-key.nvim",
         event = "VeryLazy",

@@ -1,5 +1,4 @@
 return {
-    -- { import = "lazyvim.plugins.extras.lang.python" },
     {
         "nvim-treesitter/nvim-treesitter",
         event = "VeryLazy",
@@ -33,6 +32,9 @@ return {
     },
     {
         "neovim/nvim-lspconfig",
+        -- dependencies = {
+        --     "williamboman/mason-lspconfig.nvim",
+        -- },
         init = function()
             local keys = require("lazyvim.plugins.lsp.keymaps").get()
             for i, key in ipairs(keys) do
@@ -90,6 +92,20 @@ return {
                 },
             },
         },
+        -- config = function(_, opts)
+        --     local capabilities = vim.lsp.protocol.make_client_capabilities()
+        --     capabilities = require('blink.cmp').get_lsp_capabilities(capabilities)
+        --     capabilities.general.positionEncodings = { 'utf-8', 'utf-16' }
+        --     require('mason-lspconfig').setup_handlers({
+        --         function(server_name)
+        --             require('lspconfig')[server_name].setup({
+        --                 -- wtf? if not set, it shows warning
+        --                 offset_encoding = "utf-8",
+        --                 capabilities = capabilities,
+        --             })
+        --         end,
+        --     })
+        -- end,
     },
     {
         "OXY2DEV/markview.nvim",

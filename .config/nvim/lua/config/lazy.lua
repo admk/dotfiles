@@ -14,6 +14,14 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
     spec = {
         { "LazyVim/LazyVim", import = "lazyvim.plugins", },
+        -- { import = "lazyvim.plugins.extras.ui.edgy" },
+        { import = "lazyvim.plugins.extras.ui.mini-indentscope" },
+        { import = "lazyvim.plugins.extras.ai.copilot" },
+        -- { import = "lazyvim.plugins.extras.ai.codeium" },
+        { import = "lazyvim.plugins.extras.dap.core" },
+        { import = "lazyvim.plugins.extras.test.core" },
+        -- { import = "lazyvim.plugins.extras.lang.python" },
+        { import = "lazyvim.plugins.extras.lang.tex" },
         {
             "folke/snacks.nvim",
             priority = 1000,

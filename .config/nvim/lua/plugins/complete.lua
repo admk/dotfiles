@@ -1,8 +1,8 @@
 return {
-    { import = "lazyvim.plugins.extras.ai.copilot" },
-    -- { import = "lazyvim.plugins.extras.ai.codeium" },
     {
         "saghen/blink.cmp",
+        -- build = 'cargo +nightly build --release',
+        version = "*",
         opts = {
             keymap = {
                 preset = "super-tab",

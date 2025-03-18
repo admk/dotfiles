@@ -1,6 +1,4 @@
 return {
-    { import = "lazyvim.plugins.extras.dap.core" },
-    { import = "lazyvim.plugins.extras.test.core" },
     {
         "nvim-neotest/neotest",
         -- event = "VeryLazy",
@@ -24,7 +22,7 @@ return {
         lazy = true,
         dependencies = {
             "rcarriga/nvim-dap-ui",
-            "rcarriga/cmp-dap",
+            -- "rcarriga/cmp-dap",
             "williamboman/mason.nvim",
             "jay-babu/mason-nvim-dap.nvim",
             {
@@ -153,20 +151,18 @@ return {
                 pattern = "*",
                 callback = function() dapui_reset(vim.fn.bufnr()) end,
             })
-
-            -- repl
-            local cmp = require("cmp")
-            cmp.setup({
-                enabled = function()
-                    local buftype = vim.bo.buftype
-                    return buftype ~= "prompt"
-                        or require("cmp_dap").is_dap_buffer()
-                end,
-            })
-            cmp.setup.filetype(
-                { "dap-repl", "dapui_watches", "dapui_hover" },
-                { sources = { { name = "dap" } } }
-            )
+            -- -- repl local cmp = require("cmp")
+            -- cmp.setup({
+            --     enabled = function()
+            --         local buftype = vim.bo.buftype
+            --         return buftype ~= "prompt"
+            --             or require("cmp_dap").is_dap_buffer()
+            --     end,
+            -- })
+            -- cmp.setup.filetype(
+            --     { "dap-repl", "dapui_watches", "dapui_hover" },
+            --     { sources = { { name = "dap" } } }
+            -- )
         end,
     },
 }
