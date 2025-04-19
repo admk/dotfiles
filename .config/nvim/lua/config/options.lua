@@ -112,5 +112,6 @@ if vim.env.TERM == "xterm-kitty" and vim.env.SSH_TTY then
         },
     }
 end
+vim.g.snacks_animate = false
 -- }
 -- vim: set fdm=marker fmr={,}:

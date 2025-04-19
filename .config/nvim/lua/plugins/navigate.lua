@@ -148,13 +148,12 @@ return {
                         { buffer = buf_id, desc = "Set cwd" })
                 end,
             })
-
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "MiniFilesActionRename",
-                callback = function(event)
-                    LazyVim.lsp.on_rename(event.data.from, event.data.to)
-                end,
-            })
+            -- vim.api.nvim_create_autocmd("User", {
+            --     pattern = "MiniFilesActionRename",
+            --     callback = function(event)
+            --         LazyVim.lsp.on_rename(event.data.from, event.data.to)
+            --     end,
+            -- })
         end,
     },
     {
