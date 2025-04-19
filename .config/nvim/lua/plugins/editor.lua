@@ -1,5 +1,7 @@
 return {
+    { "stevearc/conform.nvim", enabled = false },
     { "echasnovski/mini.pairs", enabled = false },
+    { "mfussenegger/nvim-lint", enabled = false },
     {
         "kylechui/nvim-surround",
         version = "*",
