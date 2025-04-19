@@ -2,6 +2,8 @@ from shutil import which as _which
 
 $COMMAND_ICON_MAP = {
     'aerc': ' ',  # FIXME not working, aerc sets its own title
+    'ac': '󰚩 ',
+    'aichat': '󰚩 ',
     'brew': ' ',
     'fzf': ' ',
     'k': '󰣀 ',

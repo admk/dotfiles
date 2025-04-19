@@ -48,6 +48,7 @@ aliases |= {
     'ssh-exit': 'ssh -O exit',
     'vim': f"{_which('vim')} -u $KXH_HOME/.config/nvim/init.vim",
     'clash-start': 'klash $CLASH_SUBSCRIPTION --config $XDG_CONFIG_HOME/kxh/share/clash.yaml',
+    'ae': 'aichat -e',
 }
 register_dep_aliases({
     'cat': 'bat',
