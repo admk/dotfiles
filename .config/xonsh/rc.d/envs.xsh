@@ -78,10 +78,12 @@ def _nvim_shell_integration():
         return
     if not _which('nvim'):
         return
-    # FIXME: does not work well.
-    # 1. [ ] nvim does not show the file in the current window
-    # 2. [ ] can't use --remote-wait, complains command not found
-    $EDITOR = f'{$KXH_CONDA_PREFIX}/bin/nvr --remote-wait'
+    aliases['_editor'] = [
+        '$KXH_CONDA_PREFIX/bin/nvr',
+        '--nostart',
+        '--remote-tab-wait',
+        '+setlocal bufhidden=wipe']
+    $EDITOR = '_editor'
 
 
 def _vscode_shell_integration():
