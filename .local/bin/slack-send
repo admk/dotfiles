@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <channel> <text>"
+    exit 1
+fi
+CHANNEL="$1"
+TEXT="$2"
+
+if [[ -z "$SLACK_CLI_TOKEN" ]]; then
+    echo "Error: \$SLACK_CLI_TOKEN environment variable is not set."
+    exit 1
+fi
+
+response=$(curl -s -X POST https://slack.com/api/chat.postMessage \
+    -H "Content-type: application/json; charset=utf-8" \
+    -H "Authorization: Bearer $SLACK_CLI_TOKEN" \
+    -d "{\"channel\": \"$CHANNEL\", \"text\": \"$TEXT\"}")
+echo "$response"
+
+if ! echo "$response" | grep -q '"ok":true'; then
+    exit 1
+fi
