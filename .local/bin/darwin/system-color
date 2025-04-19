@@ -72,6 +72,15 @@ update_aerc() {
 }
 
 
+update_aichat() {
+    if [ $MODE == "dark" ]; then
+        export AICHAT_LIGHT_THEME=false
+    else
+        export AICHAT_LIGHT_THEME=true
+    fi
+}
+
+
 update_alacritty() {
     if [ -z $ALACRITTY_SOCKET ]; then
         return
