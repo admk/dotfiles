@@ -99,7 +99,7 @@ mouse_clicked() {
     #     ~/.config/yabai/cycle_windows.sh
     else
         # yabai -m space --focus $SID
-        skhd -k "ctrl - $SID"
+        skhd -k "alt - $SID"
     fi
 }
 
