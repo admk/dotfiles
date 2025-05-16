@@ -5,18 +5,6 @@ return {
         opts = { preset = "helix" },
     },
     {
-        'mikesmithgh/borderline.nvim',
-        enabled = true,
-        lazy = true,
-        event = 'VeryLazy',
-        config = function()
-            local bl_borders = require('borderline.borders')
-            require('borderline').setup({
-                border = bl_borders.rounded,
-            })
-        end,
-    },
-    {
         "nvim-lualine/lualine.nvim",
         event = "VeryLazy",
         opts = {
