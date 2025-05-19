@@ -1,3 +1,5 @@
+--- @since 25.3.2
+
 -- For development
 --[[ local function notify(message) ]]
 --[[     ya.notify({ title = "Bypass", content = message, timeout = 5 }) ]]
@@ -5,8 +7,15 @@
 
 ---Returns the loading state of the current directory
 ---@type fun(): boolean
-local is_directory_loaded = ya.sync(function(_)
-    return cx.active.current.stage.is_loading
+local is_directory_loading = ya.sync(function(_)
+    -- Try to use the v25.4.8 interface
+    local ok, res = pcall(cx.active.current.stage)
+    if ok then
+        return not res
+    -- Fallback to the v25.3.2 interface
+    else
+        return cx.active.current.stage.is_loading
+    end
 end)
 
 ---Enter hovered item if it is a directory
@@ -75,7 +84,7 @@ return {
     entry = function(_, job)
         -- old version of Yazi will pass args directly, new version passes job. Below code ensures we derive args in both 0.3 and 0.4 Yazi API versions.
         local args = job.args or job
-        local use_smart_enter = args and args[1] == "smart_enter"
+        local use_smart_enter = args and args[1] == "smart-enter"
         local is_reverse = args and args[1] == "reverse"
 
         -- Initial run, should behave like a regular enter/smart-enter/leave
@@ -83,7 +92,7 @@ return {
 
         while run do
             -- Wait for directory to have loaded
-            while is_directory_loaded() do
+            while is_directory_loading() do
                 ya.sleep(0.002)
             end
 
