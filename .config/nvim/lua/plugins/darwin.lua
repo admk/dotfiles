@@ -78,4 +78,8 @@ return {
             require("openscad")
         end,
     },
+    {
+        "admk/tali.nvim",
+        ft = "tali",
+    },
 }
