@@ -68,7 +68,11 @@ cmd + alt - l : \
 # }
 # macos {
 # disable accidental hide
-cmd - h : :
+cmd - h : terminal-notifier -message "Hiding windows is disabled" -title "skhd"
+# remap to escape
+ctrl - c [
+    "Arc" : skhd -k "escape"
+]
 # dark mode toggle
 alt - d : osascript -e "tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode"
 # }
