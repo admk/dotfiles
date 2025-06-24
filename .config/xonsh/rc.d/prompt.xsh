@@ -105,3 +105,4 @@ load_term_integration = (
 )
 if load_term_integration:
     xontrib load term_integration
+    $MULTILINE_PROMPT = '│'
