@@ -14,18 +14,13 @@ run = '$EDITOR "$@"'
 block = true
 # for = "linux"
 
-[[plugin.prepend_previewers]]
-mime = "application/{,g}zip"
-run = "lsar"
-
-[[plugin.prepend_previewers]]
-mime = "application/x-{tar,bzip*,7z-compressed,xz,rar}"
-run = "lsar"
-
-# [[plugin.prepend_previewers]]
-# mime = "{image,audio,video}/*"
-# run = "mediainfo"
-
-# [[plugin.prepend_previewers]]
-# mime = "application/x-subrip"
-# run = "mediainfo"
+[plugin]
+prepend_previewers = [
+    { mime = "application/{,g}zip", run = "lsar" },
+    { mime = "application/x-{tar,bzip*,7z-compressed,xz,rar}", run = "lsar" },
+    { name = "*.csv", run = "rich-preview"}, # for csv files
+    { name = "*.md", run = "rich-preview" }, # for markdown (.md) files
+    { name = "*.rst", run = "rich-preview"}, # for restructured text (.rst) files
+    { name = "*.ipynb", run = "rich-preview"}, # for jupyter notebooks (.ipynb)
+    { name = "*.json", run = "rich-preview"}, # for json (.json) files
+]
