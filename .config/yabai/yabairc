@@ -26,10 +26,10 @@ else
 fi
 yabai -m config insert_feedback_color $COLOR
 
-yabai -m config mouse_modifier alt
-yabai -m config mouse_action1 move
-yabai -m config mouse_action2 resize
-yabai -m config mouse_drop_action swap
+yabai -m config mouse_modifier ctrl
+yabai -m config mouse_drop_action stack
+# yabai -m config mouse_action1 move
+# yabai -m config mouse_action2 resize
 
 # exclude apps from tiling
 ignored_apps=(
@@ -83,10 +83,13 @@ yabai \
     -m rule --add label="Safari" app="^Safari$" \
     title="^(General|Tabs|Passwords|Websites|Extensions|AutoFill|Search|Security|Privacy|Advance)$" \
     manage=off
+yabai -m rule --add label="Arc" app="^Arc$" manage=on
 yabai \
-    -m rule --add label="Arc" app="^Arc$" \
-    title="^($USER|General|Profiles|Max|Links|Shortcuts|Icon|Advanced|Developer Tools)$" \
+    -m rule --add label="Arc Floats" app="^Arc$" \
+    title="^($USER|General|Profiles|Max|Links|Shortcuts|Icon|Advanced|Developer Tools)?$" \
     manage=off
 yabai \
     -m rule --add label="WeChat Floats" app="^微信$" \
-    title!="^微信（聊天)$" manage=off
+    title!="^微信$" manage=off
+
+yabai -m rule --apply
