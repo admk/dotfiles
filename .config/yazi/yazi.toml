@@ -1,4 +1,4 @@
-[manager]
+[mgr]
 ratio = [2, 4, 3]
 linemode = "mtime"
 title_format = "󰇥 │{cwd}"

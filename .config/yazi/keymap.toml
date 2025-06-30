@@ -1,4 +1,4 @@
-[manager]
+[mgr]
 prepend_keymap = [
     { on = "<C-c>", run = "escape", desc = "Exit visual mode, clear selected, or cancel search" },
     { on = [ "q" ], run = "close", desc = "Close window" },
