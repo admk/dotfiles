@@ -49,6 +49,8 @@ aliases |= {
     'vim': f"{_which('vim')} -u $KXH_HOME/.config/nvim/init.vim",
     'clash-start': 'klash $CLASH_SUBSCRIPTION --config $XDG_CONFIG_HOME/kxh/share/clash.yaml',
     'ae': 'aichat -e',
+    'ad': 'aider --config=$XDG_CONFIG_HOME/aider/conf.yml',
+    'aider': 'aider --config=$XDG_CONFIG_HOME/aider/conf.yml',
 }
 register_dep_aliases({
     'cat': 'bat',
@@ -204,14 +206,18 @@ def _hf_env(args):
     }
 
 
-@register_env_alias(['px', 'proxy'], setmode='toggle')
-def _proxy(args):
+def _proxy_env(args):
     return args, {
         'http_proxy': f'http://{$PROXY}',
         'https_proxy': f'http://{$PROXY}',
         'all_proxy': f'socks5://{$PROXY}',
     }
 ${...}.setdefault('PROXY', '127.0.0.1:7890')
+
+
+@register_env_alias(['px', 'proxy'], setmode='toggle')
+def _proxy(args):
+    return _proxy_env(args)
 
 
 _BASH_ENV = lambda args: (args, {'SHELL': '/bin/bash'})
@@ -239,11 +245,11 @@ def ssh_exit_all():
             execx(f'ssh -O exit -o ControlPath="{p}" bogus')
 
 
-@register_env_alias('cs', cmd='gh copilot suggest -t shell'.split(' '))
-def github_copilot_suggest(args):
-    return args, {'GITHUB_TOKEN': ''}
+@register_env_alias(['claude', 'cc'], cmd=['claude'])
+def _claude(args):
+    return _proxy_env(args)
 
 
-@register_env_alias('ce', cmd='gh copilot explain'.split(' '))
-def github_copilot_suggest(args):
-    return args, {'GITHUB_TOKEN': ''}
+@register_env_alias(['gemini', 'gm'], cmd=['gemini'])
+def _gemini(args):
+    return _proxy_env(args)
