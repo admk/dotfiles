@@ -91,3 +91,11 @@ shell = 'bash'
 when = '[ ! -z $YAZI_LEVEL ]'
 format = 'at [$symbol($output )]($style)'
 style = 'bold yellow'
+
+[custom.tali]
+command = "result=$(tali -j .. =^ ,p | jq '.[0].grouped_todos.null'); [[ -n $result ]] && echo $(echo $result | jq 'length') || echo 0"
+symbol = ' '
+shell = "bash"
+when = '[ -f ./.tali/main ]'
+format = 'has [$symbol($output) ]($style)'
+style = 'bold yellow'
