@@ -1,0 +1,208 @@
+#!/usr/bin/env python
+import shlex
+import re
+import yaml
+import os
+import subprocess
+import sys
+import argparse
+from pathlib import Path
+
+
+def _run_command(command, dry_run=False, capture_output=True):
+    if dry_run:
+        return
+    try:
+        result = subprocess.run(
+            command,
+            shell=True,
+            check=True,
+            text=True,
+            capture_output=capture_output,
+        )
+        return result.stdout.strip() if capture_output else None
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e.stderr.strip()}", file=sys.stderr)
+        sys.exit(-1)
+    except FileNotFoundError:
+        print(f"Error: Command not found: {command.split()[0]}", file=sys.stderr)
+        sys.exit(-1)
+
+
+def _load_config(path):
+    """Loads and parses the YAML configuration file."""
+    try:
+        with open(path, "r") as f:
+            return yaml.safe_load(f)
+    except FileNotFoundError:
+        print(f"Error: Config file not found at {path}", file=sys.stderr)
+        sys.exit(1)
+    except yaml.YAMLError as e:
+        print(f"Error: Could not parse YAML config: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def _process_rule(
+    account_tag, account_dir, tag, folder, dry_run=False, base_query=None
+):
+    """Constructs and executes the notmuch command for a single rule."""
+    search_query = f"tag:{shlex.quote(account_tag)} and tag:{shlex.quote(tag)}"
+    search_query += f" and not 'folder:\"{account_dir / folder}\"'"
+    if base_query:
+        search_query += f" and {base_query}"
+    search_command = f"notmuch search --output=files {search_query}"
+    files_output = _run_command(search_command)
+    if files_output is None:
+        raise RuntimeError("Unexpected missing output.")
+    files_to_move = files_output.splitlines()
+    print(
+        f"[ tag: {tag} -> folder: {folder} ] "
+        f"{len(files_to_move)} files to move.")
+    for file_path_str in files_to_move:
+        src = Path(file_path_str)
+        dest_filename = re.sub(",U=[0-9]+", "", src.name)
+        dest = src.parent.parent.parent / folder / src.parent.name / dest_filename
+        try:
+            action = "Would move" if dry_run else "Moving"
+            print(f"- {action} {src} to {dest}")
+            if not dry_run:
+                os.rename(src, dest)
+        except OSError as e:
+            print(f"! Failed to move {src} to {dest}: {e}", file=sys.stderr)
+
+
+def _handle_tagging(query, tags_to_add, tags_to_remove, message, dry_run):
+    """Helper to perform or simulate tagging."""
+    # Search for mails matching the query
+    search_cmd = f"notmuch search --output=files {query}"
+    result = _run_command(search_cmd, False)
+    if result is not None:
+        print(f"[ {message} ] {len(result.splitlines())} mails to tag.")
+    if not result:
+        return
+    # Construct the actual tag command
+    add_tags_str = " ".join(f"+{t}" for t in tags_to_add)
+    remove_tags_str = " ".join(f"-{t}" for t in tags_to_remove)
+    tag_cmd = f"notmuch tag {add_tags_str} {remove_tags_str} -- {query}"
+    _run_command(tag_cmd, dry_run)
+
+
+def pre_sync(settings, account_tag, account_dir, dry_run):
+    """Handles the pre-sync mail moving."""
+    print("\n--- Pre-Sync: Moving Mails ---")
+    for rule in settings.get("rules", []):
+        tag = rule.get("tag")
+        folder = rule.get("folder")
+        if not tag or not folder:
+            continue
+        _process_rule(
+            account_tag, account_dir, tag, folder, dry_run, "tag:move")
+    # remove move tag from all mails
+    _handle_tagging("tag:move", [], ["move"], "Clean up (-move)", dry_run)
+
+
+def sync(settings, dry_run):
+    """Handles the mail synchronization."""
+    sync_command = settings.get("sync_command")
+    print("\n--- Sync: Running Mail Synchronization ---")
+    if not sync_command:
+        print("! No sync command specified for this account.")
+    else:
+        _run_command(sync_command, dry_run, capture_output=False)
+
+
+def post_sync(settings, account_tag, relative_account_dir, dry_run):
+    """Handles the post-sync tagging."""
+    print("\n--- Post-Sync: Tagging New Mails ---")
+    # Index new mails
+    _run_command("notmuch new", dry_run)
+    # Tag account-specific new mails
+    query = f"tag:new and 'folder:\"/^{re.escape(str(relative_account_dir))}/\"'"
+    _handle_tagging(
+        query, [account_tag], [], f"tag:+new", dry_run)
+    # Tag rules-specific new mails
+    new_query = f'tag:new and tag:{account_tag}'
+    for rule in settings.get("rules", []):
+        tag = rule.get("tag")
+        folder = rule.get("folder")
+        if not tag or not folder:
+            continue
+        query = f"{new_query} and 'folder:\"/{re.escape(folder)}/\"' and not tag:{tag}"
+        _handle_tagging(query, [tag], [], f"folder: {folder} -> tag: {tag}", dry_run)
+    # Remove 'new' tag
+    _handle_tagging(new_query, [], ["new"], "tag:-new", dry_run)
+    if not dry_run:
+        print("Post-sync tagging complete.")
+
+
+def main():
+    """
+    Moves emails based on notmuch queries defined in a YAML configuration file.
+    """
+    config_path = Path(os.environ.get("XDG_CONFIG_HOME", "~/.config"))
+    config_path /= "mail-mover.yaml"
+    parser = argparse.ArgumentParser(
+        description="Moves emails based on notmuch queries."
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=Path,
+        default=config_path,
+        help="Path to the configuration file.",
+    )
+    parser.add_argument(
+        "-d",
+        "--dry-run",
+        action="store_true",
+        help="Perform a dry run without moving any files.",
+    )
+    parser.add_argument(
+        "--no-pre-sync",
+        action="store_true",
+        help="Skip pre-sync mail moving.",
+    )
+    parser.add_argument(
+        "--no-sync",
+        action="store_true",
+        help="Skip mail synchronization.",
+    )
+    parser.add_argument(
+        "--no-post-sync",
+        action="store_true",
+        help="Skip post-sync tagging.",
+    )
+    parser.add_argument(
+        "name",
+        help="Name of the account to process from the configuration file."
+    )
+    args = parser.parse_args()
+    config = _load_config(args.config)
+    if not config:
+        return
+    account_name = args.name
+    settings = config.get(account_name)
+    if not settings:
+        print(
+            f"Error: Account '{account_name}' not found in config.",
+            file=sys.stderr)
+        return 1
+    if not settings.get("enable", False):
+        print(
+            f"Account '{account_name}' is disabled. Exiting.",
+            file=sys.stderr)
+        return 0
+    print(f"Processing account: {account_name}")
+    account_tag = settings.get("tag", account_name)
+    default_account_dir = Path(f"~/Mail/{settings['account']}")
+    account_dir = Path(settings.get("account_dir", default_account_dir))
+    if not args.no_pre_sync:
+        pre_sync(settings, account_tag, account_dir, args.dry_run)
+    if not args.no_sync:
+        sync(settings, args.dry_run)
+    if not args.no_post_sync:
+        post_sync(settings, account_tag, account_dir, args.dry_run)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

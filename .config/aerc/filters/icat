@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# a hack to ensure aerc can display images in a tmux session
+kitty +kitten icat --stdin yes --clear --image-id 0 --passthrough tmux > /dev/tty
