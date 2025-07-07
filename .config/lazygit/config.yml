@@ -38,3 +38,4 @@ disableStartupPopups:
 git:
   merging:
     args: "--no-ff"
+  overrideGpg: true
