@@ -74,6 +74,7 @@ def _process_rule(
 def _handle_tagging(query, tags_to_add, tags_to_remove, message, dry_run):
     """Helper to perform or simulate tagging."""
     # Search for mails matching the query
+    query = shlex.quote(query)
     search_cmd = f"notmuch search --output=files {query}"
     result = _run_command(search_cmd, False)
     if result is not None:
@@ -90,7 +91,7 @@ def _handle_tagging(query, tags_to_add, tags_to_remove, message, dry_run):
 def pre_sync(settings, account_tag, account_dir, dry_run):
     """Handles the pre-sync mail moving."""
     print("\n--- Pre-Sync: Moving Mails ---")
-    for rule in settings.get("rules", []):
+    for rule in settings.get("sync_rules", []):
         tag = rule.get("tag")
         folder = rule.get("folder")
         if not tag or not folder:
@@ -111,28 +112,43 @@ def sync(settings, dry_run):
         _run_command(sync_command, dry_run, capture_output=False)
 
 
-def post_sync(settings, account_tag, relative_account_dir, dry_run):
+def post_sync(settings, account_tag, relative_account_dir, tag_all, dry_run):
     """Handles the post-sync tagging."""
     print("\n--- Post-Sync: Tagging New Mails ---")
     # Index new mails
     _run_command("notmuch new", dry_run)
     # Tag account-specific new mails
-    query = f"tag:new and 'folder:\"/^{re.escape(str(relative_account_dir))}/\"'"
-    _handle_tagging(
-        query, [account_tag], [], f"tag:+new", dry_run)
+    tag_all_prefix = "tag:new and " if not tag_all else ""
+    query = f"{tag_all_prefix}'folder:\"/^{re.escape(str(relative_account_dir))}/\"'"
+    _handle_tagging(query, [account_tag], [], f"tag:+{account_tag}", dry_run)
     # Tag rules-specific new mails
-    new_query = f'tag:new and tag:{account_tag}'
-    for rule in settings.get("rules", []):
+    account_query = f'{tag_all_prefix}tag:{account_tag}'
+    for rule in settings.get("sync_rules", []):
         tag = rule.get("tag")
         folder = rule.get("folder")
         if not tag or not folder:
             continue
-        query = f"{new_query} and 'folder:\"/{re.escape(folder)}/\"' and not tag:{tag}"
+        query = f"{account_query} and 'folder:\"/{re.escape(folder)}/\"'"
+        query += f"and not tag:{tag}"
         _handle_tagging(query, [tag], [], f"folder: {folder} -> tag: {tag}", dry_run)
+    # Apply tag_rules on new mails for the account
+    print("--- Post-Sync: Applying Tag Rules ---")
+    for rule in settings.get("tag_rules", []):
+        rule_query = rule.get("query")
+        tags = rule.get("tags").split()
+        if not rule_query or not tags:
+            continue
+        tags_to_remove = [t for t in tags if t.startswith("-")]
+        tags_to_add = [
+            t.lstrip("+") for t in tags if t not in tags_to_remove]
+        tags_to_remove = [t.lstrip("-") for t in tags_to_remove]
+        # Apply on new mails within the account
+        message = f"rule: {rule_query} -> tags: {' '.join(tags)}"
+        query = f"{account_query} and ({rule_query})"
+        _handle_tagging(query, tags_to_add, tags_to_remove, message, dry_run)
     # Remove 'new' tag
-    _handle_tagging(new_query, [], ["new"], "tag:-new", dry_run)
-    if not dry_run:
-        print("Post-sync tagging complete.")
+    if tag_all:
+        _handle_tagging(account_query, [], ["new"], "tag:-new", dry_run)
 
 
 def main():
@@ -156,6 +172,11 @@ def main():
         "--dry-run",
         action="store_true",
         help="Perform a dry run without moving any files.",
+    )
+    parser.add_argument(
+        "--tag-all",
+        action="store_true",
+        help="Apply tag rules to all new mails, not just newly synced ones.",
     )
     parser.add_argument(
         "--no-pre-sync",
@@ -201,7 +222,7 @@ def main():
     if not args.no_sync:
         sync(settings, args.dry_run)
     if not args.no_post_sync:
-        post_sync(settings, account_tag, account_dir, args.dry_run)
+        post_sync(settings, account_tag, account_dir, args.tag_all, args.dry_run)
 
 
 if __name__ == "__main__":
