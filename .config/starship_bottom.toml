@@ -68,6 +68,14 @@ when = '[ ! -z $HF_DATASETS_OFFLINE ] || [ ! -z $HF_EVALUATE_OFFLINE ] || [ ! -z
 format = 'with [$symbol($output )]($style)'
 style = 'bold red'
 
+[custom.private_git]
+command = "echo private"
+symbol = ' '
+shell = 'bash'
+when = '[ $GIT_DIR = "$KXH_HOME/.private.git" ]'
+format = 'in [$symbol($output )]($style)'
+style = 'bold red'
+
 [custom.cuda_visisble_devices]
 command = "echo $CUDA_VISIBLE_DEVICES"
 symbol = ' '

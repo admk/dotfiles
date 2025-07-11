@@ -68,6 +68,14 @@ def _supercomma():
     cd @("../" * (len($__ALIAS_NAME)))
 
 
+@register_env_alias(['pg', 'private-git'], setmode='toggle')
+def _private_git(args):
+    return args, {
+        'GIT_WORK_TREE': $KXH_HOME,
+        'GIT_DIR': f"{$KXH_HOME}/.private.git",
+    }
+
+
 @aliases.register('g')
 @aliases.return_command
 def _git(args):
