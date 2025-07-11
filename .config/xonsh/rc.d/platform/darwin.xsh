@@ -167,11 +167,13 @@ aliases |= {
     'chrome': "'$CHROMIUM'",
     'a': 'aerc',
     'ac': 'aichat',
+    't': 'tali-cli',
 }
 
 
 _install_homebrew()
 _install_secretive()
 del (
+    _install_homebrew,
     _install_secretive,
 )
