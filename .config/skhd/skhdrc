@@ -69,19 +69,24 @@ cmd + alt - l : \
 # macos {
 # disable accidental hide
 cmd - h : terminal-notifier -message "Hiding windows is disabled" -title "skhd"
-# remap to escape
-ctrl - c [
-    "Arc" : skhd -k "escape"
-]
-# dark mode toggle
-alt - d : osascript -e "tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode"
-# }
-# cmd + j/k keybinds
+# remaps
 cmd - j [
     "微信" : skhd -k "alt - 0x7D"
 ]
 cmd - k [
     "微信" : skhd -k "alt - 0x7E"
 ]
-# alt - t : yabai -m window --focus $(yabai -m query --windows | jq -r '.[] | select(.app == "Arc") | .id') && skhd -k "cmd - t"
+ctrl - j [
+    "sioyek" : skhd -k "0x7D"
+]
+ctrl - k [
+    "sioyek" : skhd -k "0x7E"
+]
+ctrl - c [
+    "Arc" : skhd -k "escape"
+    "sioyek" : skhd -k "escape"
+]
+# dark mode toggle
+alt - d : osascript -e "tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode"
+# }
 # vim: foldmethod=marker foldmarker={,}
