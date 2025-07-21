@@ -253,9 +253,17 @@ def ssh_exit_all():
             execx(f'ssh -O exit -o ControlPath="{p}" bogus')
 
 
-@register_env_alias(['claude', 'cc'], cmd=['claude'])
+@register_env_alias(['cc', 'claude'], cmd=['claude'])
 def _claude(args):
     return _proxy_env(args)
+
+
+@register_env_alias(['mc', 'moonshot_claude'], cmd=['claude'])
+def _moonshot_claude(args):
+    return args, {
+        'ANTHROPIC_AUTH_TOKEN': $MOONSHOT_API_KEY,
+        'ANTHROPIC_BASE_URL': 'https://api.moonshot.cn/anthropic',
+    }
 
 
 @register_env_alias(['gemini', 'gm'], cmd=['gemini'])
