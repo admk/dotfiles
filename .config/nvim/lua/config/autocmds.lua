@@ -54,6 +54,14 @@ vim.api.nvim_create_autocmd('FileType', {
     end,
 })
 
+-- HACK: set formatoptions for markdown files
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "markdown",
+  callback = function()
+    vim.opt_local.formatoptions = "rqlmB1"
+  end,
+})
+
 -- editor settings for typst
 vim.api.nvim_create_autocmd('FileType', {
     pattern = { "typst" },
