@@ -47,53 +47,6 @@ def _install_secretive():
     brew services start secretive
 
 
-@aliases.register('ff')
-def _mdfind_fzf_open(args):
-    import os
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-o', '--open', action='store_true', help='Open file')
-    parser.add_argument(
-        '-c', '--cwd', action='store_true',
-        help='Search only in current directory')
-    parser.add_argument('names', nargs='*')
-    args = parser.parse_args(args)
-    for cmd in ('mdfind', 'fzf', 'magika'):
-        if not _which(cmd):
-            print(f'{cmd} not found.', file=sys.stderr)
-            return -1
-    flags = ()
-    cwd = os.getcwd()
-    if args.cwd:
-        flags += ('-onlyin', cwd)
-    files = $(mdfind @(flags) @(args.names) 2> /dev/null).splitlines()
-    files = '\n'.join(os.path.relpath(f, cwd) for f in files)
-    files = $(
-        echo @(files) | fzf \
-            --height 25 --layout=reverse \
-            --border --border-label " File Search " \
-            --preview '_fzf_preview {}' \
-            --header 'ctrl-o: system open \nctrl-r: reveal in Finder \nctrl-y: copy file' \
-            --bind 'ctrl-o:execute(open {})' \
-            --bind 'ctrl-r:execute(open -R {})' \
-            --bind 'ctrl-y:execute(system-copy {})' \
-            --multi)
-    if not files:
-        return
-    if not args.open:
-        return files
-    for file in files.splitlines():
-        if not os.path.exists(file):
-            print(f'File not found: {file}', file=sys.stderr)
-            continue
-        group = $(magika -i --jsonl @(file) | jq -r ".dl.group").strip()
-        if group in ['text', 'code']:
-            $EDITOR @(file)
-        else:
-            open @(file) > /dev/null
-
-
 def _auto_theme(force=False):
     if _which("system-color"):
         $KXH_COLOR_MODE = $(system-color)

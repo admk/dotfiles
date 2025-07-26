@@ -1,0 +1,83 @@
+#!/usr/bin/env kxh_python
+import os
+import sys
+import subprocess
+import argparse
+from shutil import which
+
+
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-o', '--open', action='store_true', help='Open file')
+    parser.add_argument(
+        '-c', '--cwd', action='store_true',
+        help='Search only in current directory')
+    parser.add_argument('names', nargs='*')
+    return parser.parse_args(sys.argv[1:])
+
+
+def open_files(files):
+    for file in files.splitlines():
+        if not os.path.exists(file):
+            print(f'File not found: {file}', file=sys.stderr)
+            continue
+        magika_result = subprocess.run(
+            ['magika', '-i', '--jsonl', file], capture_output=True, text=True)
+        group = subprocess.run(
+            ['jq', '-r', '.dl.group'],
+            input=magika_result.stdout, capture_output=True, text=True)
+        group = group.stdout.strip()
+        if group in ['text', 'code']:
+            subprocess.run([os.environ.get('EDITOR', 'vi'), file])
+        else:
+            subprocess.run(['open', file], stdout=subprocess.DEVNULL)
+
+
+def main():
+    for cmd in ('mdfind', 'fzf', 'magika'):
+        if not which(cmd):
+            print(f'{cmd} not found.', file=sys.stderr)
+            sys.exit(1)
+    args = parse_args()
+    flags = ()
+    cwd = os.getcwd()
+    if args.cwd:
+        flags += ('-onlyin', cwd)
+    if not args.names:
+        print('No search terms provided.', file=sys.stderr)
+        sys.exit(1)
+    result = subprocess.run(
+        ['mdfind'] + list(flags) + args.names,
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    files = result.stdout.strip().splitlines()
+    if not files:
+        print('No files found.', file=sys.stderr)
+        sys.exit(1)
+    files = '\n'.join(os.path.relpath(f, cwd) for f in files)
+    fzf_cmd = [
+        'fzf',
+        '--height', '25',
+        '--layout=reverse',
+        '--border',
+        '--border-label', ' File Search ',
+        '--preview', '_fzf_preview {}',
+        '--header', 'ctrl-o: system open \nctrl-z: open in yazi\nctrl-r: reveal in Finder \nctrl-y: copy file',
+        '--bind', 'ctrl-o:execute(open {})',
+        '--bind', 'ctrl-z:execute(yazi {})',
+        '--bind', 'ctrl-r:execute(open -R {})',
+        '--bind', 'ctrl-y:execute(system-copy {})',
+        '--multi']
+    fzf_process = subprocess.Popen(
+        fzf_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+    files, _ = fzf_process.communicate(input=files)
+    if not files:
+        return
+    if not args.open:
+        return files
+    open_files(files)
+
+
+if __name__ == '__main__':
+    main()
