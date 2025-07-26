@@ -5,7 +5,7 @@ source "$CONFIG_DIR/globalstyles.sh"
 
 [ -f "$CONFIG_DIR/personal.sh" ] && source "$CONFIG_DIR/personal.sh"
 API_KEY=$WEATHER_API_KEY
-CITY="$(curl -s -m 5 ipinfo.io/loc)"
+CITY="$(curl -s -m 5 ipinfo.io/city)"
 
 # first comment is description, second is icon number
 WEATHER_ICONS_DAY=(
@@ -135,6 +135,10 @@ render_popup() {
 update() {
     if [ "$CITY" != "" ] && [ ! -z "$API_KEY" ]; then
         DATA=$(curl -s -m 5 "http://api.weatherapi.com/v1/current.json?key=$API_KEY&q=$CITY")
+        if [[ $? -ne 0 ]] || [ -z "$DATA" ]; then
+            echo "Error fetching weather data" >&2
+            exit 0
+        fi
         CONDITION=$(echo $DATA | jq -r '.current.condition.code')
         CONDITION_TEXT=$(echo $DATA | jq -r '.current.condition.text')
         TEMP=$(echo $DATA | jq -r '.current.temp_c | floor')

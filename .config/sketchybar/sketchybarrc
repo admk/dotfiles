@@ -20,12 +20,13 @@ source "$ITEM_DIR/battery.sh"
 source "$ITEM_DIR/volume.sh"
 source "$ITEM_DIR/weather.sh"
 source "$ITEM_DIR/music.sh"
+source "$ITEM_DIR/mail.sh"
 source "$ITEM_DIR/borders.sh"
 
 sketchybar \
     --add bracket left_side logo yabai '/space\..*/' \
     --set left_side "${bracket_defaults[@]}" \
-    --add bracket right_side control_center date clock cpu battery volume_icon volume weather music \
+    --add bracket right_side control_center date clock cpu battery volume_icon volume weather music mail \
     --set right_side "${bracket_defaults[@]}"
 
 sketchybar --hotload on
