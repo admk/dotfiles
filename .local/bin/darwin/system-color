@@ -91,6 +91,15 @@ update_alacritty() {
 }
 
 
+update_claude_code() {
+    if [ $MODE == "dark" ]; then
+        claude config set -g theme dark
+    else
+        claude config set -g theme light
+    fi
+}
+
+
 _kitty_get_colors() {
     kitty @ get-colors | grep "^$1" | tr -s ' ' | cut -d ' ' -f 2
 }
@@ -183,6 +192,7 @@ if [ ! -z $COLOR ]; then
     update_macos
     update_aerc
     update_alacritty
+    update_claude_code
     update_kitty $COLOR $MODE
     update_sioyek
     update_sketchybar
