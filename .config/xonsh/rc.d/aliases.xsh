@@ -214,18 +214,18 @@ def _hf_env(args):
     }
 
 
-def _proxy_env(args):
-    return args, {
+${...}.setdefault('PROXY', '127.0.0.1:7890')
+def _proxy_env():
+    return {
         'http_proxy': f'http://{$PROXY}',
         'https_proxy': f'http://{$PROXY}',
         'all_proxy': f'socks5://{$PROXY}',
     }
-${...}.setdefault('PROXY', '127.0.0.1:7890')
 
 
 @register_env_alias(['px', 'proxy'], setmode='toggle')
 def _proxy(args):
-    return _proxy_env(args)
+    return args, _proxy_env()
 
 
 _BASH_ENV = lambda args: (args, {'SHELL': '/bin/bash'})
@@ -253,19 +253,24 @@ def ssh_exit_all():
             execx(f'ssh -O exit -o ControlPath="{p}" bogus')
 
 
-@register_env_alias(['cc', 'claude'], cmd=['claude'])
+@register_env_alias(['cc'], cmd=['claude'])
 def _claude(args):
-    return _proxy_env(args)
+    return args, _proxy_env()
 
 
-@register_env_alias(['mc', 'moonshot_claude'], cmd=['claude'])
-def _moonshot_claude(args):
-    return args, {
+@register_env_alias(['ccm', 'claude-moonshot'], cmd=['claude'])
+def _claude_moonshot(args):
+    return args, _proxy_env() | {
         'ANTHROPIC_AUTH_TOKEN': $MOONSHOT_API_KEY,
         'ANTHROPIC_BASE_URL': 'https://api.moonshot.cn/anthropic',
     }
 
 
+@register_env_alias(['ccr', 'claude-router'], cmd=['ccr'])
+def _claude_router(args):
+    return ['code'] + args, _proxy_env()
+
+
 @register_env_alias(['gemini', 'gm'], cmd=['gemini'])
 def _gemini(args):
-    return _proxy_env(args)
+    return args, _proxy_env()
