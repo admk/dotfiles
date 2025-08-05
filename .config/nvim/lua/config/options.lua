@@ -12,10 +12,11 @@ vim.opt.path:append({ "**" })
 -- Display: {
 vim.opt.title = true
 if vim.env.KITTY_WINDOW_ID and not vim.g.neovide then
-    vim.opt.titlestring =
-        "󱃖 │%{expand('%:t')}│%{substitute(getcwd(), $HOME, '~', '')}"
+  vim.opt.titlestring =
+  "󱃖 │%{expand('%:t')}│%{substitute(getcwd(), $HOME, '~', '')}"
 end
 vim.opt.winblend = 15
+vim.opt.winborder = "rounded"
 vim.opt.pumblend = 15
 vim.opt.relativenumber = true
 vim.opt.scrolloff = 3
@@ -24,10 +25,10 @@ vim.opt.showcmd = false
 vim.opt.showmode = false
 vim.opt.list = true
 vim.opt.listchars = {
-    tab = "» ",
-    trail = "·",
-    extends = ">",
-    precedes = "<",
+  tab = "» ",
+  trail = "·",
+  extends = ">",
+  precedes = "<",
 }
 vim.opt.showbreak = "↪"
 vim.opt.cmdheight = 1
@@ -94,23 +95,23 @@ vim.opt.spelllang = vim.opt.spelllang + "cjk"
 -- kitty
 vim.o.clipboard = "unnamedplus"
 if vim.env.TERM == "xterm-kitty" and vim.env.SSH_TTY then
-    local function paste()
-        return {
-            vim.fn.split(vim.fn.getreg(""), "\n"),
-            vim.fn.getregtype(""),
-        }
-    end
-    vim.g.clipboard = {
-        name = "OSC 52 (copy only)",
-        copy = {
-            ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
-            ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
-        },
-        paste = {
-            ["+"] = paste,
-            ["*"] = paste,
-        },
+  local function paste()
+    return {
+      vim.fn.split(vim.fn.getreg(""), "\n"),
+      vim.fn.getregtype(""),
     }
+  end
+  vim.g.clipboard = {
+    name = "OSC 52 (copy only)",
+    copy = {
+      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+    },
+    paste = {
+      ["+"] = paste,
+      ["*"] = paste,
+    },
+  }
 end
 vim.g.snacks_animate = false
 -- }

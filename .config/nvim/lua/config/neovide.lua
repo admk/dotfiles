@@ -13,23 +13,23 @@ vim.opt.termguicolors = true
 -- keymaps
 local opts = { noremap = true, silent = true }
 local change_transparency = function(delta)
-    vim.g.neovide_transparency = vim.g.neovide_transparency + delta
+  vim.g.neovide_transparency = vim.g.neovide_transparency + delta
 end
 vim.keymap.set({ "n", "v", "o" }, "<D-]>", function()
-    change_transparency(0.01)
+  change_transparency(0.01)
 end)
 vim.keymap.set({ "n", "v", "o" }, "<D-[>", function()
-    change_transparency(-0.01)
+  change_transparency(-0.01)
 end)
 vim.g.neovide_scale_factor = 1.0
 local change_scale_factor = function(delta)
-    vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
+  vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
 end
 vim.keymap.set("n", "<D-=>", function()
-    change_scale_factor(1.125)
+  change_scale_factor(1.125)
 end)
 vim.keymap.set("n", "<D-->", function()
-    change_scale_factor(1 / 1.125)
+  change_scale_factor(1 / 1.125)
 end)
 vim.keymap.set('n', '<D-s>', ':w<CR>', opts)
 vim.keymap.set('v', '<D-c>', '"+y', opts)

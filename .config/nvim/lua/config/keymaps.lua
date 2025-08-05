@@ -40,10 +40,10 @@ keymap.set("i", "<C-z>", "<Esc>[s1z=`]a", opts)
 -- }
 -- Macros
 keymap.set("n", "Q", "q", opts)
-keymap.set("n", "q", function ()
-    if vim.fn.reg_recording() ~= "" then
-        vim.cmd("normal! q")
-    end
+keymap.set("n", "q", function()
+  if vim.fn.reg_recording() ~= "" then
+    vim.cmd("normal! q")
+  end
 end, opts)
 -- Commands {
 keymap.set("c", "<C-A>", "<Home>", opts)
