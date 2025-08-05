@@ -72,19 +72,30 @@ cmd - h : terminal-notifier -message "Hiding windows is disabled" -title "skhd"
 # remaps
 cmd - j [
     "微信" : skhd -k "alt - 0x7D"
+    "Orion" : skhd -k "ctrl - tab"
 ]
 cmd - k [
     "微信" : skhd -k "alt - 0x7E"
+    "Orion" : skhd -k "ctrl + shift - tab"
 ]
 ctrl - j [
     "sioyek" : skhd -k "0x7D"
+    "Orion" : skhd -k "0x7D"
 ]
 ctrl - k [
     "sioyek" : skhd -k "0x7E"
+    "Orion" : skhd -k "0x7E"
 ]
 ctrl - c [
     "Arc" : skhd -k "escape"
     "sioyek" : skhd -k "escape"
+    "Orion" : skhd -k "escape"
+]
+cmd - s [
+    "Orion" : skhd -k "ctrl + cmd - s"  # toggle sidebar
+]
+cmd - e [
+    "Orion" : skhd -k "ctrl + cmd + shift - s"  # suspend tab
 ]
 # dark mode toggle
 alt - d : osascript -e "tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode"
