@@ -51,7 +51,10 @@ def register_env_alias(names, cmd=None, setmode='off'):
             wrapped = _env_exec(env, cmd, setmode)
             # FIXME: functools.wraps(env)(wrapped)
             # doesn't work with xonsh aliases
-            wrapped.src = inspect.getsource(env)
+            try:
+                wrapped.src = inspect.getsource(env)
+            except OSError:
+                wrapped.src = f'# source not available for {env}'
             aliases.register(name)(wrapped)
     return wrapper
 
