@@ -182,7 +182,7 @@ Options:
         del kxh_args.non_hermetic  # type: ignore
         if kxh_args.debug:
             kxh_args.verbose = True
-        # FIXME a temporary hack to handle localhost connection
+        # HACK: a temporary hack to handle localhost connection
         kxh_args.bootstrap = (
             ssh_args.destination == 'localhost' and ssh_args.p in (None, ))
         if ':' in ssh_args.destination:
