@@ -21,9 +21,9 @@ def _run_command(command, dry_run=False, capture_output=True):
             capture_output=capture_output,
         )
         return result.stdout.strip() if capture_output else None
-    except subprocess.CalledProcessError as e:
-        print(f"Error: {e.stderr.strip()}", file=sys.stderr)
-        sys.exit(-1)
+    # except subprocess.CalledProcessError as e:
+    #     print(f"Error: {e}", file=sys.stderr)
+    #     sys.exit(-1)
     except FileNotFoundError:
         print(f"Error: Command not found: {command.split()[0]}", file=sys.stderr)
         sys.exit(-1)
@@ -108,8 +108,11 @@ def sync(settings, dry_run):
     print("\n--- Sync: Running Mail Synchronization ---")
     if not sync_command:
         print("! No sync command specified for this account.")
-    else:
+        return
+    try:
         _run_command(sync_command, dry_run, capture_output=False)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: Sync command failed: {e}", file=sys.stderr)
 
 
 def post_sync(settings, account_tag, relative_account_dir, tag_all, dry_run):
@@ -147,8 +150,7 @@ def post_sync(settings, account_tag, relative_account_dir, tag_all, dry_run):
         query = f"{account_query} and ({rule_query})"
         _handle_tagging(query, tags_to_add, tags_to_remove, message, dry_run)
     # Remove 'new' tag
-    if tag_all:
-        _handle_tagging(account_query, [], ["new"], "tag:-new", dry_run)
+    _handle_tagging(account_query, [], ["new"], "tag:-new", dry_run)
 
 
 def main():
