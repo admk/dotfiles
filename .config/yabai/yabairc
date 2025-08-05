@@ -81,12 +81,29 @@ yabai \
     manage=off
 yabai \
     -m rule --add label="Safari" app="^Safari$" \
-    title="^(General|Tabs|Passwords|Websites|Extensions|AutoFill|Search|Security|Privacy|Advance)$" \
+    title="^(General|Tabs|Passwords|Websites|Extensions|AutoFill|Search|Security|Privacy|Advanced)$" \
     manage=off
 yabai -m rule --add label="Arc" app="^Arc$" manage=on
 yabai \
     -m rule --add label="Arc Floats" app="^Arc$" \
     title="^($USER|General|Profiles|Max|Links|Shortcuts|Icon|Advanced|Developer Tools)?$" \
+    manage=off
+yabai -m rule --add label="Orion" app="^Orion$" manage=on
+yabai \
+    -m rule --add label="Orion Settings 1" app="^Orion$" \
+    title="^(History|Bookmarks|Reading List|Passwords|Extensions|Profiles)?$" \
+    manage=off
+yabai \
+    -m rule --add label="Orion Settings 2" app="^Orion$" \
+    title="^(General|Appearance|Tabs|Browsing|Sync|Passwords|Privacy|Search|Websites|Advanced|Plus)?$" \
+    manage=off
+yabai \
+    -m rule --add label="Orion Update" app="^Orion$" \
+    title="^Updating Orion$" \
+    manage=off
+yabai \
+    -m rule --add label="Orion Preview" app="^Orion$" \
+    title="^Orion Preview" \
     manage=off
 yabai \
     -m rule --add label="WeChat Floats" app="^微信$" \
