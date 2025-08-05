@@ -40,6 +40,8 @@ $PYDEVD_WARN_SLOW_RESOLVE_TIMEOUT = 10
 
 $NOTMUCH_CONFIG = f'{$XDG_CONFIG_HOME}/aerc/notmuch.conf'
 
+$BASH_MAX_TIMEOUT_MS = 24 * 60 * 60 * 1000  # 24 hours
+$CLAUDE_CONFIG_DIR=f'{$XDG_CONFIG_HOME}/claude'
 try:
     $XONTRIB_ONEPATH_ACTIONS |= {
         'text/': $VISUAL,
