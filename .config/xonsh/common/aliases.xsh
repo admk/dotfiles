@@ -7,23 +7,29 @@ from xonsh.tools import unthreadable
 from .pipe import pipe_through_subprocess
 
 
+def _formatted_env():
+    _env = {}
+    for e in $(env).splitlines():
+        k, v = e.split('=', 1)
+        _env[k] = v
+    return _env
+
+
 def _env_exec(local_env, cmd=None, setmode='off'):
     if setmode not in ('toggle', 'update', 'off'):
         raise ValueError(f'invalid setmode: {setmode!r}')
-    def wrapper(args, stdin=None):
+    def wrapper(args, stdin=None, stdout=None, stderr=None, spec=None):
         args, _env = local_env(args)
         if cmd is not None:
             args = ([cmd] if isinstance(cmd, str) else cmd) + args
         if args:
             with ${...}.swap(**_env):
                 args = [repr(a) if ' ' in a else a for a in args]
-                _env = {}
-                for e in $(env).splitlines():
-                    k, v = e.split('=', 1)
-                    _env[k] = v
-                if stdin is not None:
-                    return pipe_through_subprocess(args, stdin=stdin, env=_env)
-                return execx(' '.join(args))
+                if spec.last_in_pipeline:
+                    stdout = None
+                return pipe_through_subprocess(
+                    args, stdin=stdin, stdout=stdout, stderr=stderr,
+                    env=_formatted_env())
         if setmode == 'off':
             return
         match = all(${...}.get(k) == v for k, v in _env.items())
