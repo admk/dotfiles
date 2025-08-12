@@ -2,25 +2,27 @@ from functools import wraps as _wraps
 from textwrap import dedent as _dedent
 from shutil import which as _which
 
+from xonsh.tools import unthreadable
 
-def _env_exec(env, cmd=None, setmode='off'):
+from .pipe import pipe_through_subprocess
+
+
+def _env_exec(local_env, cmd=None, setmode='off'):
     if setmode not in ('toggle', 'update', 'off'):
         raise ValueError(f'invalid setmode: {setmode!r}')
-    def wrapper(args, stdin=None, stdout=None, stderr=None, spec=None):
-        args, _env = env(args)
+    def wrapper(args, stdin=None):
+        args, _env = local_env(args)
         if cmd is not None:
             args = ([cmd] if isinstance(cmd, str) else cmd) + args
         if args:
             with ${...}.swap(**_env):
                 args = [repr(a) if ' ' in a else a for a in args]
-                # FIXME:
-                # 1. doesn't work with pipes
-                # 2. doesn't return error codes
-                from xonsh.procs.pipelines import STDOUT_CAPTURE_KINDS
-                if spec.captured in STDOUT_CAPTURE_KINDS:
-                    return $(@(args))
-                if not spec.last_in_pipeline:
-                    return $(@(args))
+                _env = {}
+                for e in $(env).splitlines():
+                    k, v = e.split('=', 1)
+                    _env[k] = v
+                if stdin is not None:
+                    return pipe_through_subprocess(args, stdin=stdin, env=_env)
                 return execx(' '.join(args))
         if setmode == 'off':
             return
@@ -45,16 +47,16 @@ def _env_exec(env, cmd=None, setmode='off'):
 
 def register_env_alias(names, cmd=None, setmode='off'):
     import inspect
-    def wrapper(env):
+    def wrapper(local_env):
         pnames = [names] if isinstance(names, str) else names
         for name in pnames:
-            wrapped = _env_exec(env, cmd, setmode)
-            # FIXME: functools.wraps(env)(wrapped)
+            wrapped = _env_exec(local_env, cmd, setmode)
+            # FIXME: functools.wraps(local_env)(wrapped)
             # doesn't work with xonsh aliases
             try:
-                wrapped.src = inspect.getsource(env)
+                wrapped.src = inspect.getsource(local_env)
             except OSError:
-                wrapped.src = f'# source not available for {env}'
+                wrapped.src = f'# source not available for {local_env}'
             aliases.register(name)(wrapped)
     return wrapper
 
