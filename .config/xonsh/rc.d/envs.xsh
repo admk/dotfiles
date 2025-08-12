@@ -62,7 +62,7 @@ def _kitty_integration():
 
 
 def _fzf_integration():
-    $fzf_history_binding = "c-r"
+    # $fzf_history_binding = "c-r"
     $fzf_ssh_binding = "c-s"
     $fzf_file_binding = "c-t"
     $fzf_dir_binding = "c-g"
