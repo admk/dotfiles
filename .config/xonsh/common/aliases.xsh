@@ -27,12 +27,10 @@ def _env_exec(local_env, cmd=None, setmode='off'):
                 args = [repr(a) if ' ' in a else a for a in args]
                 if spec.last_in_pipeline:
                     stdout = None
-                # FIXME:
-                # 1. aliases in args does not work...
-                # 2. broken interactivity?
-                return pipe_through_subprocess(
-                    args, stdin=stdin, stdout=stdout, stderr=stderr,
-                    env=_formatted_env())
+                if stdin is not None:
+                    ![echo @(stdin.read()) | @(args)]
+                else:
+                    ![@(args)]
         if setmode == 'off':
             return
         match = all(${...}.get(k) == v for k, v in _env.items())
