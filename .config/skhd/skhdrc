@@ -91,6 +91,9 @@ ctrl - c [
     "sioyek" : skhd -k "escape"
     "Orion" : skhd -k "escape"
 ]
+ctrl - f [
+    "Orion" : skhd -k "cmd + shift - f"
+]
 cmd - s [
     "Orion" : skhd -k "ctrl + cmd - s"  # toggle sidebar
 ]
