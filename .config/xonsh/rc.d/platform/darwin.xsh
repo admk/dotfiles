@@ -21,7 +21,6 @@ if 'DBUS_LAUNCHD_SESSION_BUS_SOCKET' in ${...}:
 
 $CHROMIUM = p'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
 $BROWSER = 'open'
-$LLM_USER_PATH = f"{$XDG_CONFIG_HOME}/io.datasette.llm/"
 
 
 def _install_homebrew():

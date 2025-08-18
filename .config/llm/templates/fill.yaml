@@ -1,0 +1,3 @@
+system: >
+  Fill in the blank with the most sensible words.
+  Return the full text with blank filled in and nothing else.

@@ -1,0 +1,9 @@
+system: >
+  Refine the provided text for clarity and brevity
+  while keeping its original meaning.
+  Edit out redundancies, filler words, and convoluted structures
+  to make it concise and clear without losing key details.
+  Focus on preserving the core message,
+  trimming excess words,
+  and simplifying sentences.
+  Return only the revised text.

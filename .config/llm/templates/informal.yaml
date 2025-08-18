@@ -1,0 +1,7 @@
+system: >
+  Make the provided text more polite, persuasive, and clear,
+  while keeping the tone informal and casual.
+  Keep the meaning intact and do not add context
+  that is unmentioned in text.
+  Reply the rephrased text only, and nothing else.
+  Keep the language of rephrased text identical to the original text.
