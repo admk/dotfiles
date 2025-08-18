@@ -65,7 +65,6 @@ return {
     enabled = false,
     keys = {
       { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude Code" },
-      { "<C-.>",      "<cmd>ClaudeCode<cr>", desc = "Toggle Claude Code" },
     },
     dependencies = {
       "nvim-lua/plenary.nvim",
@@ -86,7 +85,7 @@ return {
     keys = {
       { "<leader>a",  nil,                              desc = "AI/Claude Code" },
       { "<leader>ac", "<cmd>ClaudeCode<cr>",            desc = "Toggle Claude" },
-      { "<C-\\>",     "<cmd>ClaudeCodeFocus<cr>",       desc = "Focus Claude" },
+      { "<C-g>",      "<cmd>ClaudeCodeFocus<cr>",       desc = "Focus Claude" },
       { "<leader>af", "<cmd>ClaudeCodeFocus<cr>",       desc = "Focus Claude" },
       { "<leader>ar", "<cmd>ClaudeCode --resume<cr>",   desc = "Resume Claude" },
       { "<leader>aC", "<cmd>ClaudeCode --continue<cr>", desc = "Continue Claude" },
@@ -117,7 +116,7 @@ return {
           border = "rounded",
           keys = {
             claude_hide = {
-              "<C-\\>",
+              "<C-g>",
               function(self) self:hide() end,
               desc = "Hide",
               mode = "t",
