@@ -10,8 +10,8 @@ api.map('>', '>>');
 api.map('<', '<<');
 
 // Theme https://github.com/brookhong/Surfingkeys/wiki/Color-Themes#base-on-monokai
-api.Hints.style('border: solid 1px #3D3E3E; color:#F92660; background: initial; background-color: #272822; font-family: Iosevka; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.8);');
-api.Hints.style("border: solid 1px #3D3E3E !important; padding: 1px !important; color: #A6E22E !important; background: #272822 !important; font-family: Iosevka !important; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.8) !important;", "text");
+api.Hints.style('border: solid 1px #3D3E3E; color:#F92660; background: initial; background-color: #272822; font-family: Iosevka; font-size: 12pt; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);');
+api.Hints.style("border: solid 1px #3D3E3E !important; padding: 1px !important; color: #A6E22E !important; background: #272822 !important; font-family: Iosevka !important; font-size: 12pt; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5) !important;", "text");
 api.Visual.style('marks', 'background-color: #A6E22E99;');
 api.Visual.style('cursor', 'background-color: #F92660;');
 settings.theme = `
@@ -36,7 +36,7 @@ settings.theme = `
 #sk_omnibar {
     width: 60%;
     left:20%;
-    box-shadow: 0px 30px 50px rgba(0, 0, 0, 0.8);
+    box-shadow: 0px 25px 50px rgba(0, 0, 0, 0.5);
 }
 .sk_omnibar_middle {
 	top: 15%;
@@ -65,7 +65,7 @@ settings.theme = `
 	border-color: #181818;
 	border-radius: 12px;
 	position: relative;
-	box-shadow: 1px 3px 5px rgba(0, 0, 0, 0.8);
+	box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
 }
 #sk_omnibarSearchArea > input {
 	display: inline-block;
@@ -86,7 +86,7 @@ settings.theme = `
     background-color: rgba(0, 0, 0, 0);
 	overflow: auto;
 	z-index: 2147483000;
-    box-shadow: 0px 30px 50px rgba(0, 0, 0, 0.8);
+    box-shadow: 0px 25px 50px rgba(0, 0, 0, 0.5);
 	margin-left: 1rem;
 	margin-top: 1.5rem;
     border: solid 1px #282828;
@@ -103,14 +103,14 @@ settings.theme = `
     // background: #181818 !important;
 	margin: 0px;
 	box-shadow: 0px 0px 0px 0px rgba(245, 245, 0, 0.3);
-	box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.8) !important;
+	box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5) !important;
 	// padding-top: 2px;
 	border-top: solid 0px black;
 	margin-block: 0rem;
 }
 #sk_tabs div.sk_tab:not(:has(.sk_tab_hint)) {
 	background-color: #181818 !important;
-	box-shadow: 1px 3px 5px rgba(0, 0, 0, 0.8) !important;
+	box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5) !important;
 	border: 1px solid #181818;
 	border-radius: 20px;
 	position: relative;
@@ -134,7 +134,7 @@ settings.theme = `
     left: 8pt;
     margin-top: 3px;
     border: solid 1px #3D3E3E; color:#F92660; background: initial; background-color: #272822; font-family: Iosevka;
-    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.8);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
 }
 #sk_tabs.vertical div.sk_tab_wrap {
 	display: inline-block;
@@ -154,7 +154,7 @@ settings.theme = `
 	top: 10%;
 	left: 10%;
 	text-align: left;
-	box-shadow: 0px 30px 50px rgba(0, 0, 0, 0.8);
+	box-shadow: 0px 25px 50px rgba(0, 0, 0, 0.5);
 	z-index: 2147483298;
 	padding: 1rem;
 	border: 1px solid #282828;
@@ -173,7 +173,7 @@ settings.theme = `
 	border-radius: 10px;
 	margin-bottom: 1rem;
 	margin-right: 1rem;
-	box-shadow: 0px 30px 50px rgba(0, 0, 0, 0.8);
+	box-shadow: 0px 25px 50px rgba(0, 0, 0, 0.5);
 }
 #sk_status {
 	position: fixed;
