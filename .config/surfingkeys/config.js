@@ -10,10 +10,11 @@ api.map('>', '>>');
 api.map('<', '<<');
 
 // Theme https://github.com/brookhong/Surfingkeys/wiki/Color-Themes#base-on-monokai
-api.Hints.style('border: solid 1px #3D3E3E; color:#F92660; background: initial; background-color: #272822; font-family: Iosevka; font-size: 12pt; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);');
-api.Hints.style("border: solid 1px #3D3E3E !important; padding: 1px !important; color: #A6E22E !important; background: #272822 !important; font-family: Iosevka !important; font-size: 12pt; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5) !important;", "text");
-api.Visual.style('marks', 'background-color: #A6E22E99;');
-api.Visual.style('cursor', 'background-color: #F92660;');
+const hintsCss = "font-size: 13pt; font-family: 'Iosevka', 'Helvetica Neue', Helvetica, Arial, sans-serif; border-color: #282828; color: #282828 !important; background: #ebdbb280; backdrop-filter: blur(20pt);";
+api.Hints.style(hintsCss);
+api.Hints.style(hintsCss, "text");
+api.Visual.style('marks', 'background-color: #f9266099;');
+api.Visual.style('cursor', 'background-color: #f92660;');
 settings.theme = `
 .sk_theme {
     font-family: Iosevka, sans-serif;

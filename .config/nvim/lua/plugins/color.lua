@@ -100,7 +100,7 @@ return {
   },
   {
     "NvChad/nvim-colorizer.lua",
-    ft = { "sh", "bash", "lua", "vim" },
+    ft = { "sh", "bash", "lua", "vim", "javascript" },
     enabled = not is_remote,
     opts = {
       user_default_options = {
