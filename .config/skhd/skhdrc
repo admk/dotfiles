@@ -67,29 +67,36 @@ cmd + alt - l : \
 # }
 # }
 # macos {
+# text filters
+alt - u : bash -c "pbpaste | LLM_USER_PATH=$HOME/.config/llm/ llm -m dsv3f -t informal | sendkeys send --delay 0.0"
 # disable accidental hide
 cmd - h : terminal-notifier -message "Hiding windows is disabled" -title "skhd"
 # remaps
 cmd - j [
     "微信" : skhd -k "alt - 0x7D"
     "Orion" : skhd -k "ctrl - tab"
+    "Zen" : skhd -k "alt + cmd - right"
 ]
 cmd - k [
     "微信" : skhd -k "alt - 0x7E"
     "Orion" : skhd -k "ctrl + shift - tab"
+    "Zen" : skhd -k "alt + cmd - left"
 ]
 ctrl - j [
     "sioyek" : skhd -k "0x7D"
     "Orion" : skhd -k "0x7D"
+    "Zen" : skhd -k "0x7D"
 ]
 ctrl - k [
     "sioyek" : skhd -k "0x7E"
     "Orion" : skhd -k "0x7E"
+    "Zen" : skhd -k "0x7E"
 ]
 ctrl - c [
     "Arc" : skhd -k "escape"
     "sioyek" : skhd -k "escape"
     "Orion" : skhd -k "escape"
+    "Zen" : skhd -k "escape"
 ]
 ctrl - f [
     "Orion" : skhd -k "cmd + shift - f"
