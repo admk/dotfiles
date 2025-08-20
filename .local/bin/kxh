@@ -1,6 +1,7 @@
 #!/usr/bin/env kxh_python
 import os
 import re
+import ast
 import sys
 import glob
 import shlex
@@ -237,6 +238,7 @@ class KXH:
     kxh_defaults = {
         'name': 'kxh',
         'repo': 'https://github.com/admk/dotfiles.git',
+        'private_repo': '',
         'ssh_command': shutil.which('ssh'),
         'rsh_command': shutil.which('ssh'),
         'prewarmer': 'none',
@@ -422,11 +424,22 @@ class KXH:
 
     def _file_list_file(self):
         home = self.config['kxh']['home']
-        file_list = self._run(
+        public_files = self._run(
             ['git', 'ls-files'],
             f'Failed to list files in {home!r}.',
             verbose=False, cwd=home)
-        file_list = file_list.strip().split('\n') if file_list else []
+        if self.config['kxh']['debug']:
+            print_message('debug', f'Public files:\n{public_files}')
+        file_list = public_files.strip().split('\n')
+        private_repo = self.config['kxh']['private_repo']
+        if private_repo:
+            private_files = self._run(
+                ['git', '--git-dir', private_repo, 'ls-files'],
+                f'Failed to list files in private repo.',
+                verbose=False, cwd=home)
+            file_list += private_files.strip().split('\n')
+            if self.config['kxh']['debug']:
+                print_message('debug', f'Private files:\n{private_files}')
         custom_files = self._ssh_host_specific_rcs()
         custom_files += self._shared_files()
         files = [
@@ -436,6 +449,11 @@ class KXH:
             vcf = '\n  ' + '\n  '.join(files)
             print_message('debug', f"Custom files: {vcf}")
         file_list += files
+        # `git ls-files` may quote files, which breaks rsync
+        # we use ast.literal_eval to unquote files if necessary
+        file_list = [
+            ast.literal_eval(f) if f.startswith('\"') else f
+            for f in file_list]
         missing_files = [
             f for f in file_list if not os.path.exists(os.path.join(home, f))]
         if missing_files:
