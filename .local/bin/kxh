@@ -87,7 +87,8 @@ class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
         [+d | ++dry] [+v | ++verbose] [+D | ++debug] [+c | ++cold-start]
-        [+F | ++force-reinstall] [+S | ++sync-only] [+f | ++fast] [+p | ++public-only]
+        [+F | ++force-reinstall] [+S | ++sync-only] [+p | ++public-only]
+        [+f | ++skip-sync]
         [(+o | ++option) OPTION] [(+r | ++rc) RC] [(+N | ++name) NAME]
         [(+h | ++hermetic) | (+s | ++semi-hermetic) | (+n | ++non-hermetic)]
         [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
@@ -105,7 +106,7 @@ Options:
     +c, ++cold-start: cold start shell.
     +F, ++force-reinstall: force reinstall on remote host.
     +S, ++sync-only: sync files only.
-    +f, ++fast: skip file sync.
+    +f, ++skip-sync: skip file sync.
     +p, ++public-only: sync only public files, skip private repo.
     (+o | ++option) OPTION: set KXH option.
     (+r | ++rc) RC: use custom RC file.
@@ -125,7 +126,7 @@ Options:
             ('c', 'cold-start'): store_true,
             ('F', 'force-reinstall'): store_true,
             ('S', 'sync-only'): store_true,
-            ('f', 'fast'): store_true,
+            ('f', 'skip-sync'): store_true,
             ('p', 'public-only'): store_true,
             ('h', 'hermetic'): store_true,
             ('s', 'semi-hermetic'): store_true,
@@ -501,7 +502,7 @@ class KXH:
         mode = self.config['kxh']['mode']
         verbose = self.config['kxh']['verbose']
         debug = self.config['kxh']['debug']
-        fast = self.config['kxh']['fast']
+        skip = self.config['kxh']['skip_sync']
         prewarmer = self.config['kxh']['prewarmer']
         env = self.config['kxh'].get('env', {})
         env = [f'{k}={v}' for k, v in env.items()]
@@ -519,7 +520,7 @@ class KXH:
             f'KXH_MODE={mode}',
             f'KXH_VERBOSE={int(verbose)}',
             f'KXH_DEBUG={int(debug)}',
-            f'KXH_FAST={int(fast)}',
+            f'KXH_SKIP_SYNC={int(skip)}',
             f'KXH_PREWARMER={prewarmer}',
         ] + env
         init_script = f"env {' '.join(prefix)} "
@@ -542,7 +543,7 @@ class KXH:
 
     def main(self):
         verbose = self.config['kxh']['verbose']
-        if not self.config['kxh']['fast']:
+        if not self.config['kxh']['skip_sync']:
             if verbose:
                 print_message('verbose', 'Syncing files...')
             updated_files = self._sync_files() or ''
