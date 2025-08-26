@@ -58,7 +58,7 @@ return {
       require('typst-preview').setup(opts)
       -- FIXME: specifying "keys" for the lazy.nvim plugin does not work
       vim.keymap.set(
-        "n", "<localleader>t", "<cmd>TypstPreview<cr>", {
+        "n", "<localleader>p", "<cmd>TypstPreview<cr>", {
           desc = "Preview Typst Document",
         })
     end,
@@ -77,18 +77,24 @@ return {
       },
     },
   },
-  -- {
-  --   "iamcco/markdown-preview.nvim",
-  --   cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-  --   build = function()
-  --     require("lazy").load({ plugins = { "markdown-preview.nvim" } })
-  --     vim.fn["mkdp#util#install"]()
-  --   end,
-  --   init = function()
-  --     vim.g.mkdp_filetypes = { "markdown" }
-  --   end,
-  --   ft = { "markdown" },
-  -- },
+  {
+    "iamcco/markdown-preview.nvim",
+    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+    build = function()
+      require("lazy").load({ plugins = { "markdown-preview.nvim" } })
+      vim.fn["mkdp#util#install"]()
+    end,
+    init = function()
+      vim.g.mkdp_filetypes = { "markdown" }
+    end,
+    ft = { "markdown" },
+    config = function(_, opts)
+      vim.keymap.set(
+        "n", "<localleader>p", "<cmd>MarkdownPreview<cr>", {
+          desc = "Preview Markdown Document",
+        })
+    end
+  },
   {
       'noearc/jieba.nvim',
       enabled = is_local,

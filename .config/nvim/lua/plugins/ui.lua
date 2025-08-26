@@ -66,6 +66,13 @@ return {
         right_trunc_marker = "",
       },
     },
+    -- HACK: a temp fix for https://github.com/LazyVim/LazyVim/pull/6354
+    init = function()
+      local bufline = require("catppuccin.groups.integrations.bufferline")
+      function bufline.get()
+        return bufline.get_theme()
+      end
+    end,
   },
   {
     "rachartier/tiny-inline-diagnostic.nvim",
