@@ -214,20 +214,6 @@ def _hf_env(args):
     }
 
 
-${...}.setdefault('PROXY', '127.0.0.1:7890')
-def _proxy_env():
-    return {
-        'http_proxy': f'http://{$PROXY}',
-        'https_proxy': f'http://{$PROXY}',
-        'all_proxy': f'socks5://{$PROXY}',
-    }
-
-
-@register_env_alias(['px', 'proxy'], setmode='toggle')
-def _proxy(args):
-    return args, _proxy_env()
-
-
 _BASH_ENV = lambda args: (args, {'SHELL': '/bin/bash'})
 register_env_alias('ssh', cmd='ssh')(_BASH_ENV)
 register_env_alias('sshuttle', cmd='sshuttle')(_BASH_ENV)
