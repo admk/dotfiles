@@ -87,7 +87,7 @@ class KxhArgumentParser(argparse.ArgumentParser):
     _USAGE = """
     kxh [-h | --help]
         [+d | ++dry] [+v | ++verbose] [+D | ++debug] [+c | ++cold-start]
-        [+F | ++force-reinstall] [+S | ++sync-only] [+f | ++fast]
+        [+F | ++force-reinstall] [+S | ++sync-only] [+f | ++fast] [+p | ++public-only]
         [(+o | ++option) OPTION] [(+r | ++rc) RC] [(+N | ++name) NAME]
         [(+h | ++hermetic) | (+s | ++semi-hermetic) | (+n | ++non-hermetic)]
         [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address]
@@ -106,6 +106,7 @@ Options:
     +F, ++force-reinstall: force reinstall on remote host.
     +S, ++sync-only: sync files only.
     +f, ++fast: skip file sync.
+    +p, ++public-only: sync only public files, skip private repo.
     (+o | ++option) OPTION: set KXH option.
     (+r | ++rc) RC: use custom RC file.
     (+N | ++name) NAME: use custom name instead of "kxh".
@@ -125,6 +126,7 @@ Options:
             ('F', 'force-reinstall'): store_true,
             ('S', 'sync-only'): store_true,
             ('f', 'fast'): store_true,
+            ('p', 'public-only'): store_true,
             ('h', 'hermetic'): store_true,
             ('s', 'semi-hermetic'): store_true,
             ('n', 'non-hermetic'): store_true,
@@ -239,6 +241,7 @@ class KXH:
         'name': 'kxh',
         'repo': 'https://github.com/admk/dotfiles.git',
         'private_repo': '',
+        'public_only': False,
         'ssh_command': shutil.which('ssh'),
         'rsh_command': shutil.which('ssh'),
         'prewarmer': 'none',
@@ -432,7 +435,8 @@ class KXH:
             print_message('debug', f'Public files:\n{public_files}')
         file_list = public_files.strip().split('\n')
         private_repo = self.config['kxh']['private_repo']
-        if private_repo:
+        # Skip private repo syncing if --public-only flag is set
+        if private_repo and not self.config['kxh']['public_only']:
             private_files = self._run(
                 ['git', '--git-dir', private_repo, 'ls-files'],
                 f'Failed to list files in private repo.',
