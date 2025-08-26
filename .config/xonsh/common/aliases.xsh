@@ -31,6 +31,7 @@ def _env_exec(local_env, cmd=None, setmode='off'):
                     ![echo @(stdin.read()) | @(args)]
                 else:
                     ![@(args)]
+            return
         if setmode == 'off':
             return
         match = all(${...}.get(k) == v for k, v in _env.items())
