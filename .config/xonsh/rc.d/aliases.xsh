@@ -19,6 +19,8 @@ aliases |= {
     'd': 'dict',
     'b': 'brew',
     'bup': 'brew update && brew upgrade && brew cleanup',
+    'bs': 'brew services',
+    'bsr': 'brew services restart',
     'dl': 'curl --location --fail --continue-at - --progress-bar',
     'gP': 'git push',
     'gPf': 'git push --force-with-lease',
