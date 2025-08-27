@@ -1,0 +1,151 @@
+#!/bin/bash
+
+# Dockerfile content as a string
+DOCKERFILE_CONTENT=$(cat <<'EOF'
+FROM debian:trixie-slim
+
+# Configure apt to use Tsinghua University mirror
+RUN echo "deb http://mirrors.tuna.tsinghua.edu.cn/debian/ trixie main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
+    echo "deb http://mirrors.tuna.tsinghua.edu.cn/debian/ trixie-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list && \
+    echo "deb http://mirrors.tuna.tsinghua.edu.cn/debian/ trixie-backports main contrib non-free non-free-firmware" >> /etc/apt/sources.list && \
+    echo "deb http://mirrors.tuna.tsinghua.edu.cn/debian-security/ trixie-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list
+
+# Install dependencies
+RUN apt-get update && \
+  apt-get install --no-install-recommends -y \
+    nodejs npm zsh git curl \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g @anthropic-ai/claude-code
+
+RUN useradd --create-home claude \
+  && chown -R claude:claude /home/claude
+
+USER claude
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Add ~/.local/bin to PATH for uv installed tools
+ENV PATH="/home/claude/.local/bin:${PATH}"
+
+# Create app directory and set ownership
+WORKDIR /workspace
+RUN chown -R claude:claude /workspace
+
+ENTRYPOINT ["claude"]
+EOF
+)
+
+# Function to build the docker image if it doesn't exist
+build_docker_image() {
+  local image_name="claude-sandbox"
+
+  # Check if image exists by name
+  if ! docker images "$image_name" | grep -q "$image_name"; then
+    echo "Building $image_name image..."
+    local temp_dir=$(mktemp -d)
+    echo "$DOCKERFILE_CONTENT" > "$temp_dir/Dockerfile"
+    if docker build -t "$image_name" "$temp_dir"; then
+      echo "Successfully built $image_name image"
+    else
+      echo "Failed to build $image_name image"
+      rm -rf "$temp_dir"
+      exit 1
+    fi
+    rm -rf "$temp_dir"
+  fi
+}
+
+# Function to run the docker container
+run_docker_container() {
+  local volume_path="$1"
+  shift
+
+  # Build the image if it doesn't exist
+  build_docker_image
+
+  docker run -it --rm \
+    -v "$volume_path:/workspace/$REPO_NAME" \
+    -v "$HOME/.config/claude:/home/claude/.claude" \
+    -v "$HOME/.claude.json:/home/claude/.claude.json" \
+    --network="host" \
+    -w "/workspace/$REPO_NAME" \
+    -e ANTHROPIC_BASE_URL="http://host.docker.internal:3456" \
+    -e ANTHROPIC_AUTH_TOKEN="test" \
+    claude-sandbox --dangerously-skip-permissions "$@"
+}
+
+# Get the basename of the current directory for volume mapping
+REPO_NAME=$(basename "$(git rev-parse --show-toplevel)")
+
+# Initialize variables
+WORKTREE_NAME=""
+
+# Function to display help
+show_help() {
+  echo "Usage: $0 [OPTIONS] [DOCKER_ARGS...]"
+  echo ""
+  echo "Run the claude-sandbox container with optional worktree support."
+  echo ""
+  echo "Options:"
+  echo "  -w, --worktree NAME    Create and use a git worktree with the specified name"
+  echo "  -h, --help            Show this help message"
+  echo ""
+  echo "If no worktree is specified, the container will run in the current directory."
+  echo "Any additional arguments after the options will be passed to the docker container."
+  echo ""
+  echo "Examples:"
+  echo "  $0                          # Run in current directory"
+  echo "  $0 -w my-worktree           # Run in a new worktree named 'my-worktree'"
+  echo "  $0 --worktree my-worktree   # Same as above"
+  echo "  $0 -w my-worktree --arg     # Run in worktree and pass '--arg' to container"
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -w|--worktree)
+      WORKTREE_NAME="$2"
+      shift 2
+      ;;
+    -h|--help)
+      show_help
+      exit 0
+      ;;
+    *)
+      # Pass all remaining arguments to docker
+      break
+      ;;
+  esac
+done
+
+if [ ! -n "$WORKTREE_NAME" ]; then
+  # If no worktree name is provided, run in the current directory
+  echo "Running claude-sandbox container in current directory..."
+  run_docker_container "$(pwd)" "$@"
+  exit 0
+fi
+
+# Create and use git worktree
+WORKTREE_PATH="/tmp/$REPO_NAME-$WORKTREE_NAME"
+echo "Creating git worktree at $WORKTREE_PATH..."
+git worktree add "$WORKTREE_PATH" 2>/dev/null || {
+  echo "Failed to create worktree"
+  exit 1
+}
+# Change to the worktree directory
+cd "$WORKTREE_PATH"
+# Run the docker container
+echo "Running claude-sandbox container..."
+run_docker_container "$WORKTREE_PATH" "$@"
+# Check if the worktree is dirty before cleaning up
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Worktree has uncommitted changes. Committing all changes..."
+  git add .
+  git commit -m "WIP: Auto-commit from claude-box worktree"
+  echo "Committed changes to worktree branch."
+fi
+# Clean up the worktree when done
+echo "Cleaning up worktree..."
+cd - > /dev/null
+git worktree remove "$WORKTREE_PATH"
