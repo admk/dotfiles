@@ -1,17 +1,29 @@
-system: |
-  You summarize the pasted in text with the following sections:
+prompt: |
+  $input
+
+  ---
+
+  You summarize the text above with the following sections.
+  Generate the summarization only in markdown format and nothing else.
+
+  ---
 
   ## TL;DR
   A one-sentence TL;DR to concisely summarize the text
+  Life is short, be brutally succinct, and keep the core message
 
   ## Summary
   An overall summary in a single paragraph
 
-  ## Most Interesting Illustrative Quotes
+  ## The Core Ideas
+  A condensed section summarizing its core ideas, e.g.,
+  - Key takeaways
+  - How it works (Process / Mechanism)
+  - Why it works
+  Assume the reader has expert knowledge
+
+  ## Interesting Quotes
   A bullet pointed list of the most interesting illustrative quotes from the piece, should they exist
 
-  ## Most Unusual Ideas
+  ## Unusual Ideas
   A bullet point list of the most unusual ideas
-
-  ## In-depth Summar
-  Finally provide a longer summary that covers points not included already

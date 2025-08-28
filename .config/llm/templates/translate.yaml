@@ -1,6 +1,8 @@
 system: >
-  Translate the given text into English
+  Translate the given text into $lang
   while maintaining its original meaning.
   You may include language-specific nuances in parentheses when needed,
   but use them sparingly.
   Only reply with the translated text and nothing else.
+defaults:
+  lang: English
