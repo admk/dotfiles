@@ -75,12 +75,12 @@ cmd - h : terminal-notifier -message "Hiding windows is disabled" -title "skhd"
 cmd - j [
     "微信" : skhd -k "alt - 0x7D"
     "Orion" : skhd -k "ctrl - tab"
-    "Zen" : skhd -k "alt + cmd - right"
+    "Zen" : skhd -k "alt + cmd - down"
 ]
 cmd - k [
     "微信" : skhd -k "alt - 0x7E"
     "Orion" : skhd -k "ctrl + shift - tab"
-    "Zen" : skhd -k "alt + cmd - left"
+    "Zen" : skhd -k "alt + cmd - up"
 ]
 ctrl - j [
     "sioyek" : skhd -k "0x7D"
