@@ -1,28 +1,31 @@
 from shutil import which as _which
 
 $COMMAND_ICON_MAP = {
-    'aerc': ' ',  # FIXME not working, aerc sets its own title
     'ac': '󰚩 ',
+    'aerc': ' ',  # FIXME not working, aerc sets its own title
     'aichat': '󰚩 ',
+    'atuin': ' ',
+    'bpytop': '󰄩 ',
     'brew': ' ',
+    'btop': '󰄩 ',
     'fzf': ' ',
-    'k': '󰣀 ',
-    'kxh': '󰣀 ',
-    'ssh': '󰣀 ',
-    'less': ' ',
-    'tmux': ' ',
+    'gP': ' ',
     'gl': ' ',
     'gp': ' ',
-    'gP': ' ',
-    'lg': ' ',
-    'lazygit': ' ',
-    'system-color': ' ',
-    'starship': ' ',
-    'xh': ' ',
-    'top': '󰄩 ',
+    'history': ' ',
     'htop': '󰄩 ',
-    'btop': '󰄩 ',
-    'bpytop': '󰄩 ',
+    'k': '󰣀 ',
+    'kxh': '󰣀 ',
+    'lazygit': ' ',
+    'less': ' ',
+    'lg': ' ',
+    'nvimpager': ' ',
+    'ssh': '󰣀 ',
+    'starship': ' ',
+    'system-color': ' ',
+    'tmux': ' ',
+    'top': '󰄩 ',
+    'xh': ' ',
 }
 
 
@@ -36,7 +39,7 @@ def _title_main():
         host = '' if host == 'localhost' else f' {host}{_TITLE_SEP}'
         curjob = _pf('{current_job}')
         curjob = $COMMAND_ICON_MAP.get(curjob.split('/')[-1], curjob)
-        prompt = _pf(f'{host}{curjob}{_TITLE_SEP}{{short_cwd}}')
+        prompt = _pf(f'{host}{curjob}{_TITLE_SEP}{{cwd_base}}')
         return prompt
 
     $TITLE = title_func
