@@ -20,72 +20,102 @@ prompt: |
   in this document are to be interpreted as described in RFC 2119.
 
   1. Text written as plain text or a compatible markup language
-    **MAY** use semantic line breaks.
+     MAY use semantic line breaks
   2. A semantic line break
-    **MUST NOT** alter the final rendered output of the document.
+     MUST NOT alter the final rendered output of the document
   3. A semantic line break
-    **SHOULD NOT** alter the intended meaning of the text.
-  4. A semantic line break
-    **MUST** occur after a sentence,
-    as punctuated by a period (.), exclamation mark (!), or question mark (?).
+     SHOULD NOT alter the intended meaning of the text
+  4. A semantic line break MUST occur after a sentence,
+     as punctuated by a period (.), exclamation mark (!), or question mark (?)
   5. A semantic line break
-    **SHOULD** occur after an independent clause
-    as punctuated by a comma (,), semicolon (;), colon (:), or em dash (—).
+     SHOULD occur after an independent clause
+     as punctuated by a comma (,), semicolon (;), colon (:), or em dash (—)
   6. A semantic line break
-    **MAY** occur after a dependent clause
-    in order to clarify grammatical structure
-    or satisfy line length constraints.
+     MAY occur after a dependent clause
+     in order to clarify grammatical structure
+     or satisfy line length constraints
   7. A semantic line break is **RECOMMENDED**
-    before an enumerated or itemized list.
+     before an enumerated or itemized list
   8. A semantic line break
-    **MAY** be used after one or more items in a list
-    in order to logically group related items
-    or satisfy line length constraints.
-  9. A semantic line break **MUST NOT** occur within a hyphenated word.
-  10. A semantic line break **MAY** occur before and after a hyperlink.
-  11. A semantic line break **MAY** occur before inline markup.
-  12. A maximum line length of 60 characters is **RECOMMENDED**.
-  13. A line **MAY** exceed the maximum length if necessary,
-      such as to accommodate hyperlinks, code elements, or other markup.
+     MAY be used after one or more items in a list
+     in order to logically group related items
+     or satisfy line length constraints
+  9. A semantic line break MUST NOT occur within a hyphenated word
+  10. A semantic line break MAY occur before and after a hyperlink
+  11. A semantic line break MAY occur before inline markup
+  12. A maximum line length of 60 characters is RECOMMENDED
+  13. A line MAY exceed the maximum length if necessary,
+      such as to accommodate hyperlinks, code elements, or other markup
+
+  ## Style Control Specification
+  The following preferences OPTIMIZES for human readability,
+  cognitive parsing, maintainability, and consistency.
+  Use these preferences as heuristics, not mandates:
+  1. AVOID breaking after a determiner, conjunction or preposition
+     (e.g., "a", "the", "and", "but", "if", "or", "to", "in", etc.)
+     that introduces a new clause
+  2. PREFER breaking between constituents (e.g., between subject and verb)
+     over within them
+  3. OPTIMIZE for semantic hierarchy and parsing clarity
 
   ## Methodology
   0. **Ignore Existing Linebreaks**:
-     Existing text may not have optimal adherence to the SemBr specification
-  1. **Analyze Structure**: Identify sentences, clauses, and semantic units
-  2. **Identify Boundaries**: Locate punctuation marks that indicate natural breaks
-  3. **Consider Dependencies**: Distinguish independent vs dependent clauses
-  4. **Handle Markup**: Preserve all markup syntax and formatting
-  5. **Apply Line Breaks**: Insert breaks according to SemBr rules
-  6. **Verify Output**: Ensure rendered output remains unchanged
+     Existing text may not have optimal adherence
+     to the SemBr specification
+  1. **Analyze Structure**:
+     Identify sentences, clauses, and semantic units
+  2. **Identify Boundaries**:
+     Locate punctuation marks and semantic hierarchy
+     that indicate natural breaks
+  3. **Handle Markup**:
+     Preserve all markup syntax and formatting
+  4. **Apply Line Breaks**:
+     Insert breaks according to SemBr rules
+  5. **Verify Output**:
+     Ensure rendered/compiled output remains unchanged
+     and free of syntax errors
 
   ## Edge Cases
-  - **Complex sentences**: Break at the most logical semantic boundaries
-  - **Technical terms**: Keep technical terms and proper nouns intact
-  - **Code blocks**: Preserve existing formatting within code blocks
-  - **Lists**: Apply appropriate breaks before and after list structures
-  - **Tables**: Maintain table structure while applying semantic breaks within cells
+  - **Code blocks**:
+    Preserve existing formatting within code blocks
+    to avoid altering the rendered output
+  - **Lists** and **Quotes**:
+    Apply appropriate indentations when breaking lines
+  - **Comments**:
+    Use appropriate syntax
+    when applying semantic line breaks to comments
 
   ## Example
+  ### Patterns
+  You MUST AVOID the following BAD pattern enclosed in `<bad-output>` tags.
+  <bad-output reason="fails to consider semantic hierarchy">
+  </bad-output>
+  <bad-output sembr_spec_violation="#6" style_control_violation="#1,#2">
+  The dominant sequence transduction models are based on
+  complex recurrent or convolutional neural networks
+  that include an encoder and a decoder.
+  </bad-output>
 
+  ### Full Example
   Given the following input examples
-  enclosed in `<example-input>` tags,
+  enclosed in `<input>` tags,
   You should provide the formatted output,
-  WITHOUT the enclosing `<example-output>` tags.
-
-  <example-input filetype="latex">
+  WITHOUT the enclosing `<output>` tags.
+  <example filetype="latex">
+  <input>
   The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being  more parallelizable and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU. On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction of the training costs of the best models from the literature. We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing  both with large and limited training data.
 
-  % Recurrent neural networks, long short-term memory \citep{hochreiter1997} and gated recurrent \citep{gruEval14} neural networks in particular, have been firmly established as state of the art approaches in sequence modeling and transduction problems such as language modeling and machine translation \citep{sutskever14, bahdanau2014neural, cho2014learning}. Numerous efforts have since continued to push the boundaries of recurrent language models and encoder-decoder architectures \citep{wu2016google,luong2015effective,jozefowicz2016exploring}.
-  </example-input filetype="latex">
-  <example-output filetype="latex">
+  % Recurrent neural networks, long short-term memory \citep{hochreiter1997} and gated recurrent \citep{gruEval14} neural networks in particular, have been firmly established as state of the art approaches in sequence modeling and transduction problems such as language modeling and machine translation \citep{sutskever14, bahdanau2014neural, cho2014learning}.
+  Numerous efforts have since continued to push the boundaries of recurrent language models and encoder-decoder architectures~\citep{wu2016google,luong2015effective,jozefowicz2016exploring}.
+  </input>
+  <output>
   The dominant sequence transduction models
   are based on complex recurrent or convolutional neural networks
   that include an encoder and a decoder.
   The best performing models
   also connect the encoder and decoder
   through an attention mechanism.
-  We propose a new simple network architecture,
-  the Transformer,
+  We propose a new simple network architecture, the Transformer,
   based solely on attention mechanisms,
   dispensing with recurrence and convolutions entirely.
   Experiments on two machine translation tasks
@@ -94,8 +124,7 @@ prompt: |
   and requiring significantly less time to train.
   Our model achieves 28.4 BLEU
   on the WMT 2014 English-to-German translation task,
-  improving over the existing best results,
-  including ensembles,
+  improving over the existing best results, including ensembles,
   by over 2 BLEU.
   On the WMT 2014 English-to-French translation task,
   our model
@@ -115,20 +144,25 @@ prompt: |
   % in sequence modeling and transduction problems
   % such as language modeling and machine translation
   % \citep{sutskever14, bahdanau2014neural, cho2014learning}.
-  % Numerous efforts
-  % have since continued to push the boundaries
-  % of recurrent language models
-  % and encoder-decoder architectures
-  % \citep{wu2016google,luong2015effective,jozefowicz2016exploring}.
-  </example-output filetype="latex">
+  Numerous efforts
+  have since continued to push the boundaries
+  of recurrent language models
+  and encoder-decoder architectures~\citep{%
+      wu2016google,luong2015effective,jozefowicz2016exploring}.
+  </output>
+  </example>
 
   ## Provided Text
+  Please re-format the following text
+  enclosed within the `<input>` tag.
   <input>
   $input
   </input>
 
   ## Output Format
-  - If no input is provided, return nothing
+  - If no input is provided,
+    return `<error>Input is empty</error>`
+    without the backticks.
   - Return the reformatted text with semantic line breaks applied
   - MUST ONLY return the reformatted text and nothing else
   - Do NOT add any explanations unless specifically requested
@@ -140,5 +174,3 @@ prompt: |
   - Confirm all markup is preserved intact
   - Ensure line breaks follow the SemBr priority rules
   - Validate that the text would render identically
-  - NEVER place conjunctions and prepositions at the end of lines
-    ("and", "but", "if", "or", "to", "in", etc.)
