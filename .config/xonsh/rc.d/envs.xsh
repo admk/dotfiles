@@ -25,6 +25,7 @@ $CLICOLOR = 1
 $LESS = '-F -g -i -M -R -S -w -X -z-4 -j4'
 $LC_CTYPE = 'en_US.UTF-8'
 $LC_ALL = 'en_US.UTF-8'
+$LANG = 'en_US.UTF-8'
 
 # $GPG_TTY = $(tty)
 if 'KXH_OLD_HOME' in ${...}:
