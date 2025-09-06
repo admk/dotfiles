@@ -7,10 +7,10 @@ api.map('<Ctrl-i>', '<Alt-s>');
 api.imap('jk', "<Esc>");
 
 // Theme
-api.Hints.style('border: solid 2px #4C566A; color:#A3BE8C; background: initial; background-color: #3B4252;');
-api.Hints.style("border: solid 2px #4C566A !important; padding: 1px !important; color: #E5E9F0 !important; background: #3B4252 !important;", "text");
-api.Visual.style('marks', 'background-color: #A3BE8C99;');
-api.Visual.style('cursor', 'background-color: #88C0D0;');
+Hints.style('border: solid 2px #4C566A; color:#A3BE8C; background: initial; background-color: #3B4252;');
+Hints.style("border: solid 2px #4C566A !important; padding: 1px !important; color: #E5E9F0 !important; background: #3B4252 !important;", "text");
+Visual.style('marks', 'background-color: #A3BE8C99;');
+Visual.style('cursor', 'background-color: #88C0D0;');
 settings.theme = `
 /* Edit these variables for easy theme making */
 :root {
