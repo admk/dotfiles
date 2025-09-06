@@ -7,12 +7,17 @@ prompt: |
   while strictly preserving the final rendered output and original meaning.
 
   ## Core Principles
-  - You MUST follow the SemBr specification exactly
-  - **VERY IMPORTANT**: You MUST NOT change ANY words in text
-  - **IMPORTANT**: You MUST only add/remove line breaks
-  - You MUST NOT alter the final rendered output
-  - You MUST preserve all markup, links, and formatting
-  - You SHOULD aim for line lengths between 30-60 characters
+  - **CRITICAL**: You MUST NOT change ANY words in text
+  - **CRITICAL**: You MUST only add/remove line breaks
+  - **VERY IMPORTANT**:
+    You MUST NOT alter the final rendered output
+  - **VERY IMPORTANT**:
+    You MUST preserve all markup, links, and formatting
+  - **VERY IMPORTANT**:
+    You MUST follow the "Semantic Line Breaks Specification" exactly
+  - **IMPORTANT**:
+    You MUST prioritize the highest level of human readability
+    by following the "Style Preferences" to the best of your ability
 
   ## Semantic Line Breaks (SemBr) Specification
   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
@@ -43,20 +48,23 @@ prompt: |
   9. A semantic line break MUST NOT occur within a hyphenated word
   10. A semantic line break MAY occur before and after a hyperlink
   11. A semantic line break MAY occur before inline markup
-  12. A maximum line length of 60 characters is RECOMMENDED
+  12. A maximum line length of $max_length characters is RECOMMENDED
   13. A line MAY exceed the maximum length if necessary,
       such as to accommodate hyperlinks, code elements, or other markup
 
-  ## Style Control Specification
-  The following preferences OPTIMIZES for human readability,
-  cognitive parsing, maintainability, and consistency.
-  Use these preferences as heuristics, not mandates:
+  ## Style Preferences
+  Use the following style preferences
+  to OPTIMIZE for human readability, parsability,
+  maintainability, and consistency:
   1. AVOID breaking after a determiner, conjunction or preposition
      (e.g., "a", "the", "and", "but", "if", "or", "to", "in", etc.)
      that introduces a new clause
-  2. PREFER breaking between constituents (e.g., between subject and verb)
+  2. PREFER breaking between constituents
+     (e.g., between subject and verb)
      over within them
   3. OPTIMIZE for semantic hierarchy and parsing clarity
+  4. PREFER line lengths between $min_length to $max_length characters
+     for the majority (95%) of lines
 
   ## Methodology
   0. **Ignore Existing Linebreaks**:
@@ -75,33 +83,56 @@ prompt: |
      Ensure rendered/compiled output remains unchanged
      and free of syntax errors
 
-  ## Edge Cases
+  ## Syntactic Rules
   - **Code blocks**:
     Preserve existing formatting within code blocks
     to avoid altering the rendered output
-  - **Lists** and **Quotes**:
-    Apply appropriate indentations when breaking lines
+  - **Syntactic Blocks**:
+    Apply appropriate nested indentations when breaking lines
+    within nested syntactic blocks
+    (e.g., lists, quotes, math blocks $$...$$,
+    `\command{...}`, `\begin{...}...\end{...}`).
   - **Comments**:
     Use appropriate syntax
     when applying semantic line breaks to comments
 
   ## Example
   ### Patterns
-  You MUST AVOID the following BAD pattern enclosed in `<bad-output>` tags.
-  <bad-output reason="fails to consider semantic hierarchy">
-  </bad-output>
-  <bad-output sembr_spec_violation="#6" style_control_violation="#1,#2">
+  You MUST AVOID the following BAD patterns
+  enclosed in `<output type="bad">` tags,
+  and PREFER to instead write patterns
+  enclosed in `<output type="good">`.
+  <example filetype="plaintext" line_length_range="[40, 60]">
+  <output type="bad" violates="style #1, style #2">
   The dominant sequence transduction models are based on
   complex recurrent or convolutional neural networks
   that include an encoder and a decoder.
-  </bad-output>
+  </output>
+  <output type="good">
+  The dominant sequence transduction models
+  are based on complex recurrent or convolutional neural networks
+  that include an encoder and a decoder.
+  </good-output>
+  </example>
+  <example filetype="plaintext" line_length_range="[40, 60]">
+  <output type="bad" violates="style #3, style #4">
+  He found that he was being followed by a group,
+  then by a swarm,
+  and finally by a dense mass of undergraduates.
+  </output>
+  <output type="good">
+  He found that he was being followed
+  by a group, then by a swarm,
+  and finally by a dense mass of undergraduates.
+  </output>
+  </example>
 
   ### Full Example
   Given the following input examples
   enclosed in `<input>` tags,
   You should provide the formatted output,
   WITHOUT the enclosing `<output>` tags.
-  <example filetype="latex">
+  <example filetype="latex" line_length_range="[40, 60]">
   <input>
   The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being  more parallelizable and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU. On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction of the training costs of the best models from the literature. We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing  both with large and limited training data.
 
@@ -155,9 +186,8 @@ prompt: |
   ## Provided Text
   Please re-format the following text
   enclosed within the `<input>` tag.
-  <input>
-  $input
-  </input>
+  <input line_length_range="[$min_length, $max_length]">
+  $input</input>
 
   ## Output Format
   - If no input is provided,
@@ -174,3 +204,6 @@ prompt: |
   - Confirm all markup is preserved intact
   - Ensure line breaks follow the SemBr priority rules
   - Validate that the text would render identically
+defaults:
+  min_length: 40
+  max_length: 60
