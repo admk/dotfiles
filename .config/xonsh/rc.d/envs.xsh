@@ -31,18 +31,21 @@ $LANG = 'en_US.UTF-8'
 if 'KXH_OLD_HOME' in ${...}:
     mkdir -p $KXH_OLD_HOME/.ssh/control_socket
 
+# non-xdg-compliant tools
 $PIP_CONFIG_FILE = f'{$XDG_CONFIG_HOME}/pip/pip.conf'
 $PIP_CACHE_DIR = f'{$XDG_CACHE_HOME}/pip'
-
 $N_PREFIX = $XDG_DATA_HOME
+$NOTMUCH_CONFIG = f'{$XDG_CONFIG_HOME}/aerc/notmuch.conf'
+$CLAUDE_CONFIG_DIR=f'{$XDG_CONFIG_HOME}/claude'
+$CODEX_HOME = f"{$XDG_CONFIG_HOME}/codex"
+$LLM_USER_PATH = f"{$XDG_CONFIG_HOME}/llm/"
 
+# python
 $PYDEVD_DISABLE_FILE_VALIDATION = 1
 $PYDEVD_WARN_SLOW_RESOLVE_TIMEOUT = 10
 
-$NOTMUCH_CONFIG = f'{$XDG_CONFIG_HOME}/aerc/notmuch.conf'
+# notmuch search
 $XAPIAN_CJK_NGRAM = 1
-$CLAUDE_CONFIG_DIR=f'{$XDG_CONFIG_HOME}/claude'
-$LLM_USER_PATH = f"{$XDG_CONFIG_HOME}/llm/"
 
 try:
     $XONTRIB_ONEPATH_ACTIONS |= {

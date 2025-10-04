@@ -22,7 +22,7 @@ def ssshd(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu_type', type=str)
     parser.add_argument('num_gpus', type=int)
-    parser.add_argument('--cpus-per-gpu', type=int, default=16)
+    parser.add_argument('--cpus-per-gpu', type=int, default=None)
     args, remaining_args = parser.parse_known_args(args)
     try:
         partition, gpu_type = $SLURM_INFO[args.gpu_type]
@@ -38,7 +38,8 @@ def ssshd(args):
         command += f'--gres={gpu_type}:{args.num_gpus} '
     else:
         command += f'--gres="" '
-    command += f'-c {args.cpus_per_gpu} '
+    if args.cpus_per_gpu:
+        command += f'-c {args.cpus_per_gpu} '
     command += " ".join(remaining_args)
     command += ' -- slack chat send '
     command += f'\"Job $SLURM_JOB_ID started on $SLURM_NODELIST, '
