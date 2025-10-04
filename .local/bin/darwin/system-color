@@ -6,7 +6,7 @@ DEFAULT_DARK_THEME=catppuccin_mocha
 DEFAULT_LIGHT_THEME=catppuccin_latte
 DEFAULT_MODE="auto"
 
-TEMP_FILE=/tmp/kxh-daily-color
+TEMP_FILE=$XDG_CACHE_HOME/kxh/color
 FORCE=0
 
 
@@ -91,6 +91,18 @@ update_alacritty() {
 }
 
 
+update_borders() {
+    borders_options=(
+        style=round
+        width=8.0
+        hidpi=off
+        inactive_color=0x1a1b261a
+        active_color=0xff${1:1}
+    )
+    borders "${borders_options[@]}"
+}
+
+
 update_claude_code() {
     if [ $MODE == "dark" ]; then
         claude config set -g theme dark
@@ -126,6 +138,27 @@ update_kitty() {
         inactive_tab_foreground=$FG
     )
     kitty @ set-colors -a -c ${KITTY_COLORS[@]}
+}
+
+
+_kitty_tmux() {
+    /opt/homebrew/bin/tmux \
+        -L "__kitty_$KITTY_PID" \
+        -f $XDG_CONFIG_HOME/tmux/kitty.conf "$@"
+}
+
+
+update_kitty_tmux() {
+    if [ -z $KITTY_PID ] || [ -z $TMUX ]; then
+        return
+    fi
+    if [ $2 == "dark" ]; then
+        _kitty_tmux set -g @catppuccin_flavor "mocha"
+    else
+        _kitty_tmux set -g @catppuccin_flavor "latte"
+    fi
+    _kitty_tmux set -g @catppuccin_window_current_number_color $1
+    _kitty_tmux refresh-client -S
 }
 
 
@@ -188,12 +221,13 @@ if [ ! -z $COLOR ]; then
         fi
     fi
     echo "$MODE:$COLOR:$THEME" | tee $TEMP_FILE
-    echo "export DAILY_COLOR=$COLOR" > $TEMP_FILE.sh
     update_macos
     update_aerc
     update_alacritty
-    update_claude_code
+    update_borders $COLOR
+    # update_claude_code
     update_kitty $COLOR $MODE
+    update_kitty_tmux $COLOR $MODE
     update_sioyek
     update_sketchybar
     update_yabai $COLOR
