@@ -13,10 +13,10 @@ vim.opt.path:append({ "**" })
 vim.opt.title = true
 if vim.env.KITTY_WINDOW_ID and not vim.g.neovide then
   vim.opt.titlestring =
-  "󱃖 │%{expand('%:t')}│%{substitute(getcwd(), $HOME, '~', '')}"
+    "󱃖 │%{expand('%:t')}│%{pathshorten(substitute(getcwd(), $HOME, '~', ''))}"
 end
 vim.opt.winblend = 15
-vim.opt.winborder = "rounded"
+-- vim.opt.winborder = "rounded"
 vim.opt.pumblend = 15
 vim.opt.relativenumber = true
 vim.opt.scrolloff = 3

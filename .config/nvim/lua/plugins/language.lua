@@ -14,11 +14,11 @@ return {
       },
     },
     config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
+      require("nvim-treesitter").setup(opts)
     end,
   },
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     opts = function(_, opts)
       vim.list_extend(opts.ensure_installed, {
         "luacheck",
@@ -33,7 +33,7 @@ return {
   {
     "neovim/nvim-lspconfig",
     -- dependencies = {
-    --     "williamboman/mason-lspconfig.nvim",
+    --     "mason-org/mason-lspconfig.nvim",
     -- },
     init = function()
       local keys = require("lazyvim.plugins.lsp.keymaps").get()
@@ -77,6 +77,9 @@ return {
               },
             },
           },
+        },
+        ruff = {
+          settings = {},
         },
         yamlls = {
           settings = {

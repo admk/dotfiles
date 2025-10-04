@@ -1,11 +1,11 @@
 local is_remote = os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY")
 
 local function set_color()
-  local color_file = "/tmp/kxh-daily-color"
+  local color_file = vim.env.XDG_CACHE_HOME .. "/kxh/color"
   if vim.fn.filereadable(color_file) == 0 then
     return
   end
-  local color_mode = vim.fn.readfile(color_file)[1]
+  local color_mode = vim.split(vim.fn.readfile(color_file)[1], ":")[1]
   if not color_mode then
     color_mode = os.getenv("KXH_COLOR_MODE")
   end

@@ -23,7 +23,7 @@ return {
     dependencies = {
       "rcarriga/nvim-dap-ui",
       -- "rcarriga/cmp-dap",
-      "williamboman/mason.nvim",
+      "mason-org/mason.nvim",
       "jay-babu/mason-nvim-dap.nvim",
       {
         "mfussenegger/nvim-dap-python",

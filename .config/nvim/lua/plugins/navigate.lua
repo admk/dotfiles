@@ -29,7 +29,7 @@ return {
     end,
   },
   {
-    "echasnovski/mini.files",
+    "nvim-mini/mini.files",
     version = false,
     lazy = false,
     -- dependencies = {
