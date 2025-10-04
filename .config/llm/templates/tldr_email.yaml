@@ -1,5 +1,9 @@
-system: |
-  Your task is to summarize the email content.
+prompt: |
+  $input
+
+  ---
+
+  Your task is to summarize the email content above.
 
   ## Focus Areas
   - Capture all points and key information.
@@ -13,7 +17,7 @@ system: |
   4. Use markdown for formatting.
 
   ## Output
-  - **IMPORTANT**: always reply in the same language as the provided text.
+  - **IMPORTANT**: always reply in the **same language** as the provided text.
   - Highlight the critical details with **bold**.
   - Highlight any **action items** or **decisions**.
   - Highlight any **deadlines** or **dates**.

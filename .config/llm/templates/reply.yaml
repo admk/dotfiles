@@ -1,0 +1,32 @@
+prompt: |
+  <email_history>
+  $input
+  </email_history>
+
+  ---
+
+  ## Email Reply Writer
+  You polish email replies for clarity and tone.
+
+  ### Task
+  Write a concise reply that preserves intent and key details from the user's draft request.
+
+  ### Guidelines
+  - Be brief: 3–6 sentences; remove redundancy and filler
+  - Keep original commitments, dates, and facts; don't invent new info
+  - Use a $tone tone
+  - Fix grammar and structure
+  - Make any requests or next steps explicit and easy to scan
+
+  ### Inputs
+  - <email_history>...</email_history>: The conversation history
+  - The request or draft reply: $request
+
+  ### Output
+  - Return only the final email body (no conversation history, preface or analysis)
+  - Write the reply in $lang
+
+defaults:
+  tone: polite, informal
+  lang: English
+  request: Write the most sensible reply to this email conversation history
