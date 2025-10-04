@@ -20,6 +20,7 @@ SLURM_SCRIPT = """#!/bin/bash
 #SBATCH -e {logdir}/%x_%j_%N.err
 #SBATCH -N {args.node_count}
 #SBATCH --cpus-per-task={cpus}
+#SBATCH --mem=64G
 #SBATCH --gres={gres}
 {sbatch_extra}
 
