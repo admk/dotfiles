@@ -20,7 +20,7 @@ require("lazy").setup({
     -- { import = "lazyvim.plugins.extras.ai.codeium" },
     { import = "lazyvim.plugins.extras.dap.core" },
     { import = "lazyvim.plugins.extras.test.core" },
-    -- { import = "lazyvim.plugins.extras.lang.python" },
+    { import = "lazyvim.plugins.extras.lang.python" },
     { import = "lazyvim.plugins.extras.lang.tex" },
     {
       "folke/snacks.nvim",

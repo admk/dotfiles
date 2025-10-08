@@ -57,6 +57,7 @@ return {
     opts = {
       autoformat = false,
       inlay_hints = { enabled = false },
+      folds = { enabled = false },
       use_virtual_text = false,
       -- document_highlight = {
       --     enabled = false,  -- adds CursorMoved autocommands, sluggish

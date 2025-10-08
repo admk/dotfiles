@@ -1,8 +1,8 @@
 return {
   {
     "saghen/blink.cmp",
-    -- build = 'cargo +nightly build --release',
-    version = "*",
+    -- build = 'cargo build --release',
+    version = '1.*',
     opts = {
       keymap = {
         -- HACK: https://github.com/LazyVim/LazyVim/issues/6185

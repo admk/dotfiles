@@ -48,11 +48,10 @@ require("lazy").setup({
 -- View
 vim.cmd("colorscheme catppuccin")
 -- local color_mode = vim.env.KXH_COLOR_MODE
-local color_mode = vim.fn.readfile("/tmp/kxh-daily-color")[1]
-if vim.fn.split(color_mode, ":")[1] == "light" then
-    vim.opt.background = "light"
-else
-    vim.opt.background = "dark"
+local color_file = vim.env.XDG_CACHE_HOME .. "/kxh/color"
+if vim.fn.filereadable(color_file) then
+  local color_mode = vim.fn.readfile(color_file)[1]
+  vim.opt.background = vim.fn.split(color_mode, ":")[1]
 end
 vim.opt.showmatch = true
 vim.opt.showcmd = false

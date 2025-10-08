@@ -40,10 +40,10 @@ return {
           vim.list_extend(opts.ensure_installed, { "dap_repl" })
         end
       },
-      {
-        'Joakker/lua-json5',
-        build = './install.sh',
-      },
+      -- {
+      --   'Joakker/lua-json5',
+      --   build = './install.sh',
+      -- },
     },
     cmd = { "DapPyAttach" },
     keys = {
@@ -55,7 +55,7 @@ return {
     },
     config = function(_, opts)
       local dap = require("dap")
-      require('dap.ext.vscode').json_decode = require('json5').parse
+      -- require('dap.ext.vscode').json_decode = require('json5').parse
       local sign = vim.fn.sign_define
       sign("DapBreakpoint", {
         text = "●",
