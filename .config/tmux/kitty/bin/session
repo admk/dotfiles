@@ -1,0 +1,5 @@
+#!/bin/bash -l
+
+export XDG_CONFIG_HOME=~/.config
+export TMUX_BIN=tmux
+exec $(dirname "$(realpath "$0")")/prewarm attach

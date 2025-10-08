@@ -1,0 +1,87 @@
+#!/bin/bash
+# =============================================================================
+# KXH Kitty Window Shell Prewarmer
+# =============================================================================
+# Maintains an active session (visible windows)
+# and a reserve session (hidden pre-warmed window)
+# for instant window creation.
+
+TMUX_BIN="${TMUX_BIN:-tmux}"
+PREFIX="kitty_prewarm"
+
+_tmux() {
+    $TMUX_BIN -L __kitty_prewarm -f $XDG_CONFIG_HOME/tmux/kitty/kitty.conf "$@"
+}
+
+_get_session() {
+    local session
+    if [[ $1 == "reserve" ]]; then
+        session="${PREFIX}_reserve"
+    elif [[ $1 == "active" ]]; then
+        session="${PREFIX}_${KITTY_PID}_${KITTY_WINDOW_ID}_active"
+    else
+        echo "Invalid session type: $1"
+        exit 1
+    fi
+    if ! _tmux has-session -t "$session" 2>/dev/null; then
+        _tmux new-session -d -s "$session"
+    fi
+    echo "$session"
+}
+
+_count_windows() {
+    local session=$(_get_session "$1")
+    _tmux list-windows -t "$session" 2>/dev/null | wc -l || echo "0"
+}
+
+_create_reserve_window() {
+    local reserve_session=$(_get_session "reserve")
+    local reserve_count=$(_count_windows "reserve")
+    if [[ $reserve_count -le 0 ]]; then
+        _tmux new-window -d -t "$reserve_session"
+    fi
+}
+
+_move_window() {
+    local reserve_session=$(_get_session "reserve")
+    local active_session=$(_get_session "active")
+    local reserve_index=$(_tmux list-windows \
+        -t "$reserve_session" -F "#{window_index}" | head -n 1)
+    local active_index=$(_tmux display-message \
+        -t "$active_session" -p '#{window_index}')
+    if [[ ! -n "$reserve_index" ]]; then
+        echo "No window found in reserve session"
+        exit 1
+    fi
+    _tmux move-window -a \
+        -s "$reserve_session:$reserve_index" \
+        -t "$active_session:$active_index"
+}
+
+_dispense_window() {
+    _move_window
+    _create_reserve_window
+}
+
+_attach_session() {
+    _create_reserve_window
+    _tmux attach-session -t "$(_get_session "active")"
+}
+
+invalidate_reserved_windows() {
+    local reserve_session=$(_get_session "reserve")
+    _tmux kill-session -t "$reserve_session"
+}
+
+main() {
+    case "${1:-status}" in
+        "status") _tmux list-sessions ;;
+        "dispense") _dispense_window ;;
+        "attach") _attach_session ;;
+        "invalidate") invalidate_reserved_windows ;;
+        "kill") _tmux kill-server ;;
+        *) _tmux "$@" ;;
+    esac
+}
+
+main "$@"

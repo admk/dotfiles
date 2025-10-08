@@ -1,24 +1,65 @@
 #!/bin/bash
-# Prewarm shell sessions using screen or tmux,
-# so that new shell sessions can be spawned quickly.
-# This script has been adapted from:
-# https://github.com/anki-code/xonsh-prewarmed
+# =============================================================================
+# KXH Shell Prewarming System
+# =============================================================================
+#
+# Purpose: Prewarm shell sessions using tmux so that new shell sessions can
+# be spawned quickly. This script maintains a pool of pre-warmed tmux sessions
+# that can be instantly activated, reducing shell startup time.
+#
+# Adapted from: https://github.com/anki-code/xonsh-prewarmed
+#
+# Environment Variables:
+#   KXH_PREWARMER - Path to tmux binary or special commands
+#   (e.g., "invalidate:<path>")
+#   XDG_CONFIG_HOME - User config directory (used for tmux config location)
+#   KITTY_PID - Kitty terminal process ID (passed to tmux session for tracking)
+#
+# Session Naming Strategy:
+#   Sessions are named with pattern: "prewarm_<hash>_<random>_<type>"
+#   where <type> is either "reserve" (waiting) or "active" (in use)
+#
+# Usage:
+#   - Called from shell initialization to launch prewarmed sessions
+#   - Automatically manages session lifecycle including cleanup
+#   - Falls back to regular shell if tmux is unavailable
+
+# Generate unique prefix for this command line based on arguments
 PREFIX="prewarm_$(echo "$@" | md5sum | head -c 8)"
 
+# Generate random numbers for unique session identification
+_rand() {
+    shuf -i 0-100000 -n 1
+}
+
+# Wrapper function for tmux with custom configuration
+# Uses a dedicated socket file (-L) and custom config file (-f) to isolate
+# prewarm sessions from regular tmux sessions
 _tmux() {
     $KXH_PREWARMER -L __kxh_prewarm -f $XDG_CONFIG_HOME/tmux/prewarm.conf "$@"
 }
+# List detached prewarm sessions of a specific type
+# $1: session type ("reserve" or "active")
+# Returns: space-separated list of session names matching the pattern
 _tmux_detached_sessions() {
     _tmux ls -f '#{==:#{session_attached},0}' 2>/dev/null | \
         grep -E "${PREFIX}_[0-9]+_$1" | cut -d ':' -f 1
 }
+
+# Terminates all unattached sessions
+# For reserved sessions, this is useful when shell source files change
+# For active sessions, this cleans up orphaned sessions
 _tmux_invalidate() {
-    local sessions=$(_tmux_detached_sessions "reserve")
+    local sessions=$(_tmux_detached_sessions $1)
     for sess in $sessions; do
         _tmux kill-session -t "$sess"
     done
 }
+
+# Main prewarm function - manages session lifecycle and attachment
+# Implements a pool-based approach with reserve and active sessions
 _tmux_prewarm() {
+    # Fallback to regular shell if tmux is not available
     if ! command -v tmux &> /dev/null; then
         echo "tmux is not found, not prewarmed" >&2
         echo "Press Enter to continue" >&2
@@ -29,38 +70,61 @@ _tmux_prewarm() {
             exec "$@"
         fi
     fi
-    _rand() {
-        shuf -i 0-100000 -n 1
-    }
+
+    # Find existing reserve sessions (waiting to be activated)
     local reserve_sessions=$(_tmux_detached_sessions "reserve")
     local reserve_sess_id=$(echo $reserve_sessions | cut -d ' ' -f 1)
+
+    # Create a new reserve session if none exist
     if [[ -z "$reserve_sess_id" ]]; then
         local rand=$(_rand)
         reserve_sess_id="${PREFIX}_${rand}_reserve"
         _tmux new-session -s "$reserve_sess_id" -d "$@"
     fi
+
+    # Prepare active session ID and ensure we have enough reserve sessions
     local rand=$(_rand)
     local active_sess_id=$(echo $reserve_sess_id | sed "s/_reserve/_active/")
     local num_reserved_sessions=$(echo $reserve_sessions | wc -w)
+
+    # Maintain pool: create new reserve session if we're running low
     if [[ $num_reserved_sessions -le 1 ]]; then
         _tmux new-session -s "${PREFIX}_${rand}_reserve" -d "$@"
     fi
+
+    # Clean up any detached sessions in case of orphaned sessions
+    _tmux_invalidate "active"
+    # Convert reserve session to active session and attach to it
     _tmux rename-session -t "$reserve_sess_id" "$active_sess_id"
     _tmux attach-session -t "$active_sess_id" \
         \; set @kxh_prewarm_id "$active_sess_id" \
         \; set @kxh_prewarm_kitty_pid "$KITTY_PID" \
         \; set-hook -t "$active_sess_id" client-detached \
             "if -F '#{==:#{session_attached},0}' 'kill-session -t $active_sess_id'"
+    # The hook above ensures auto-cleanup:
+    # when no clients are attached to the session,
+    # the session is automatically killed to prevent orphaned sessions
 }
 
+# =============================================================================
+# SCRIPT ENTRY POINT AND ENVIRONMENT HANDLING
+# =============================================================================
+
+# Handle special invalidate command for maintenance
+# When KXH_PREWARMER starts with "invalidate:", clean up reserve sessions
 if [[ $KXH_PREWARMER =~ ^invalidate: ]]; then
     KXH_PREWARMER=$(echo $KXH_PREWARMER | cut -d ':' -f 2)
-    _tmux_invalidate
+    _tmux_invalidate "reserve"
 fi
+
+# Main execution logic based on KXH_PREWARMER value
 if [[ $KXH_PREWARMER =~ tmux$ ]]; then
+    # tmux mode: use prewarming system
     _tmux_prewarm "$@"
 elif [[ -z "$@" ]]; then
+    # No arguments: fall back to regular shell
     exec $SHELL
 else
+    # Arguments provided: execute command directly
     exec "$@"
 fi
