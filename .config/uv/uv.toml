@@ -1,1 +1,2 @@
 index-url = "http://mirrors.aliyun.com/pypi/simple/"
+python-install-mirror = "https://gh-proxy.com/github.com/indygreg/python-build-standalone/releases/download"
