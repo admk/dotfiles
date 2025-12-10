@@ -3,6 +3,8 @@ prompt: >
 
   ---
 
-  Write a short TL;DR summary for the text above.
+  Write a short TL;DR summary for the text above, use around $words words.
   Life is short, be brutally succinct, and keep the core message.
   Reply only the summary and nothing else.
+defaults:
+  words: 10% of original

@@ -194,6 +194,7 @@ prompt: |
     return `<error>Input is empty</error>`
     without the backticks.
   - Return the reformatted text with semantic line breaks applied
+  - Respect `line_length_range` argument to optimize line lengths.
   - MUST ONLY return the reformatted text and nothing else
   - Do NOT add any explanations unless specifically requested
   - The output should be ready to use as markup source code
