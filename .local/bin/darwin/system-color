@@ -6,7 +6,7 @@ DEFAULT_DARK_THEME=catppuccin_mocha
 DEFAULT_LIGHT_THEME=catppuccin_latte
 DEFAULT_MODE="auto"
 
-TEMP_FILE=$XDG_CACHE_HOME/kxh/color
+TEMP_FILE=$XDG_CONFIG_HOME/kxh/share/color
 FORCE=0
 
 
@@ -66,7 +66,7 @@ update_macos() {
 update_aerc() {
     local dir=${XDG_CONFIG_HOME}/aerc/stylesets
     ln -sf $dir/$(theme) $dir/_active_theme
-    if [[ ! -z $(pgrep aerc) ]]; then
+    if [[ -S "$HOME/Library/Application Support/aerc.sock" ]]; then
         aerc ":reload -s _active_theme" > /dev/null
     fi
 }
@@ -142,9 +142,7 @@ update_kitty() {
 
 
 _kitty_tmux() {
-    /opt/homebrew/bin/tmux \
-        -L "__kitty_$KITTY_PID" \
-        -f $XDG_CONFIG_HOME/tmux/kitty.conf "$@"
+    tmux -L "__kitty_prewarm" "$@"
 }
 
 
@@ -153,11 +151,12 @@ update_kitty_tmux() {
         return
     fi
     if [ $2 == "dark" ]; then
-        _kitty_tmux set -g @catppuccin_flavor "mocha"
+        _kitty_tmux set -sg @catppuccin_flavor "mocha"
     else
-        _kitty_tmux set -g @catppuccin_flavor "latte"
+        _kitty_tmux set -sg @catppuccin_flavor "latte"
     fi
-    _kitty_tmux set -g @catppuccin_window_current_number_color $1
+    _kitty_tmux set -sg @catppuccin_window_current_number_color "$1"
+    _kitty_tmux source-file "$XDG_CONFIG_HOME/tmux/kitty/kitty.conf"
     _kitty_tmux refresh-client -S
 }
 
@@ -223,7 +222,8 @@ if [ ! -z $COLOR ]; then
     echo "$MODE:$COLOR:$THEME" | tee $TEMP_FILE
     update_macos
     update_aerc
-    update_alacritty
+    # update_aichat
+    # update_alacritty
     update_borders $COLOR
     # update_claude_code
     update_kitty $COLOR $MODE
