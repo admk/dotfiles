@@ -5,12 +5,12 @@ yabai -m config --space 1 layout bsp
 yabai -m config split_type auto
 yabai -m config window_placement second_child
 
-yabai -m config top_padding 12
+yabai -m config top_padding 6
 yabai -m config bottom_padding 12
 yabai -m config left_padding 12
 yabai -m config right_padding 12
 yabai -m config window_gap 12
-yabai -m config external_bar all:36:0
+# yabai -m config external_bar all:36:0
 
 yabai -m config auto_balance off
 yabai -m config split_ratio 0.50
@@ -43,7 +43,6 @@ ignored_apps=(
     "Clash Verge"
     "Cyberduck"
     "Dictionary"
-    "Finder"
     "Home"
     "IINA"
     "Installer"
@@ -95,18 +94,18 @@ yabai \
     manage=off
 yabai \
     -m rule --add label="Orion Settings 2" app="^Orion$" \
-    title="^(General|Appearance|Tabs|Browsing|Sync|Passwords|Privacy|Search|Websites|Advanced|Plus)?$" \
-    manage=off
+    title="^(General|Appearance|Tabs|Browsing|Sync|Passwords|Privacy|Search|Websites|Advanced|Plus)?$" manage=off
 yabai \
     -m rule --add label="Orion Update" app="^Orion$" \
-    title="^Updating Orion$" \
-    manage=off
+    title="^Updating Orion$" manage=off
 yabai \
     -m rule --add label="Orion Preview" app="^Orion$" \
-    title="^Orion Preview" \
-    manage=off
+    title="^Orion Preview" manage=off
 yabai \
     -m rule --add label="WeChat Floats" app="^微信$" \
-    title!="^微信$" manage=off
+    title!="^(微信|WeChat)$" manage=off
+yabai \
+    -m rule --add label="TencentMeeting Floats" app="^腾讯会议$" \
+    title="^腾讯会议$" manage=off
 
 yabai -m rule --apply
