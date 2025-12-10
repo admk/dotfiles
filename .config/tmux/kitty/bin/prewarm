@@ -10,7 +10,8 @@ TMUX_BIN="${TMUX_BIN:-tmux}"
 PREFIX="kitty_prewarm"
 
 _tmux() {
-    $TMUX_BIN -L __kitty_prewarm -f $XDG_CONFIG_HOME/tmux/kitty/kitty.conf "$@"
+    config=${XDG_CONFIG_HOME:-~/.config}
+    $TMUX_BIN -L __$PREFIX -f $config/tmux/kitty/kitty.conf "$@"
 }
 
 _get_session() {
@@ -18,7 +19,19 @@ _get_session() {
     if [[ $1 == "reserve" ]]; then
         session="${PREFIX}_reserve"
     elif [[ $1 == "active" ]]; then
-        session="${PREFIX}_${KITTY_PID}_${KITTY_WINDOW_ID}_active"
+        if [[ -n "$TMUX" ]]; then
+            # if we are attached to a tmux session, use the current session
+            session=$(_tmux display-message -p '#S')
+        else
+            # otherwise find an active session that is not attached
+            sessions=$(_tmux list-sessions -F "#{?session_attached,,#{session_name}}")
+            session=$(echo "$sessions" | grep -v '^$' | grep -v "^${PREFIX}_reserve$" | head -n 1)
+            # generate a new session name if none found
+            if [[ -z "$session" ]]; then
+                index=$(_tmux list-sessions | grep -c "^${PREFIX}_active")
+                session="${PREFIX}_active_${index}"
+            fi
+        fi
     else
         echo "Invalid session type: $1"
         exit 1
