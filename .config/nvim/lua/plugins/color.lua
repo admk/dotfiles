@@ -1,7 +1,7 @@
 local is_remote = os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY")
 
 local function set_color()
-  local color_file = vim.env.XDG_CACHE_HOME .. "/kxh/color"
+  local color_file = vim.env.XDG_CONFIG_HOME .. "/kxh/share/color"
   if vim.fn.filereadable(color_file) == 0 then
     return
   end
@@ -93,12 +93,12 @@ return {
       colorscheme = function()
         require(color).load()
         -- vim.cmd("hi Normal guibg=NONE ctermbg=NONE")
-        local color_mode = os.getenv("KXH_COLOR_MODE")
-        color_mode = color_mode and vim.split(color_mode, ":")[1]
-        color_mode = color_mode and color_mode:lower()
-        if color_mode then
-          vim.cmd("set background=" .. color_mode)
-        end
+        -- local color_mode = os.getenv("KXH_COLOR_MODE")
+        -- color_mode = color_mode and vim.split(color_mode, ":")[1]
+        -- color_mode = color_mode and color_mode:lower()
+        -- if color_mode then
+        --   vim.o.background = color_mode
+        -- end
       end,
     },
   },

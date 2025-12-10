@@ -35,25 +35,6 @@ return {
     -- dependencies = {
     --     "mason-org/mason-lspconfig.nvim",
     -- },
-    init = function()
-      local keys = require("lazyvim.plugins.lsp.keymaps").get()
-      for i, key in ipairs(keys) do
-        if key[1] == "<c-k>" then
-          table.remove(keys, i)
-          break
-        end
-      end
-      keys[#keys + 1] = {
-        "gd",
-        function()
-          require("telescope.builtin").lsp_definitions({
-            reuse_win = false,
-          })
-        end,
-        desc = "Goto Definition",
-        has = "definition",
-      }
-    end,
     opts = {
       autoformat = false,
       inlay_hints = { enabled = false },

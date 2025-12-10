@@ -32,7 +32,6 @@ return {
   {
     'chomosuke/typst-preview.nvim',
     enabled = is_local,
-    tag = 'v1.2.0',  -- FIXME: 'v1.2.1' does not launch
     ft = "typst",
     opts = {
       invert_colors = "auto",
