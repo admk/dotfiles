@@ -61,7 +61,9 @@ def _process_rule(
     for file_path_str in files_to_move:
         src = Path(file_path_str)
         dest_filename = re.sub(",U=[0-9]+", "", src.name)
-        dest = src.parent.parent.parent / folder / src.parent.name / dest_filename
+        dest_dir = src.parent.parent.parent / folder / src.parent.name
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        dest = dest_dir / dest_filename
         try:
             action = "Would move" if dry_run else "Moving"
             print(f"- {action} {src} to {dest}")
@@ -88,24 +90,19 @@ def _handle_tagging(query, tags_to_add, tags_to_remove, message, dry_run):
     _run_command(tag_cmd, dry_run)
 
 
-def pre_sync(settings, account_tag, account_dir, dry_run):
-    """Handles the pre-sync mail moving."""
-    print("\n--- Pre-Sync: Moving Mails ---")
-    for rule in settings.get("sync_rules", []):
+def move(settings, account_tag, account_dir, dry_run=False, base_query=None):
+    for rule in settings.get("move_rules", []):
         tag = rule.get("tag")
         folder = rule.get("folder")
         if not tag or not folder:
             continue
         _process_rule(
-            account_tag, account_dir, tag, folder, dry_run, "tag:move")
-    # remove move tag from all mails
-    _handle_tagging("tag:move", [], ["move"], "Clean up (-move)", dry_run)
+            account_tag, account_dir, tag, folder, dry_run, base_query)
 
 
 def sync(settings, dry_run):
     """Handles the mail synchronization."""
     sync_command = settings.get("sync_command")
-    print("\n--- Sync: Running Mail Synchronization ---")
     if not sync_command:
         print("! No sync command specified for this account.")
         return
@@ -115,18 +112,20 @@ def sync(settings, dry_run):
         print(f"Error: Sync command failed: {e}", file=sys.stderr)
 
 
-def post_sync(settings, account_tag, relative_account_dir, tag_all, dry_run):
+def post_sync(
+    settings, account_tag, account_dir, all_mails,
+    should_move, dry_run
+):
     """Handles the post-sync tagging."""
-    print("\n--- Post-Sync: Tagging New Mails ---")
     # Index new mails
     _run_command("notmuch new", dry_run)
     # Tag account-specific new mails
-    tag_all_prefix = "tag:new and " if not tag_all else ""
-    query = f"{tag_all_prefix}'folder:\"/^{re.escape(str(relative_account_dir))}/\"'"
+    tag_all_prefix = "tag:new and " if not all_mails else ""
+    query = f"{tag_all_prefix}'folder:\"/^{re.escape(str(account_dir))}/\"'"
     _handle_tagging(query, [account_tag], [], f"tag:+{account_tag}", dry_run)
     # Tag rules-specific new mails
     account_query = f'{tag_all_prefix}tag:{account_tag}'
-    for rule in settings.get("sync_rules", []):
+    for rule in settings.get("move_rules", []):
         tag = rule.get("tag")
         folder = rule.get("folder")
         if not tag or not folder:
@@ -149,6 +148,11 @@ def post_sync(settings, account_tag, relative_account_dir, tag_all, dry_run):
         message = f"rule: {rule_query} -> tags: {' '.join(tags)}"
         query = f"{account_query} and ({rule_query})"
         _handle_tagging(query, tags_to_add, tags_to_remove, message, dry_run)
+    # Final move
+    if should_move:
+        print("\n--- Post-Sync: Moving Mails ---")
+        move_tag = None if all_mails else "tag:new"
+        move(settings, account_tag, account_dir, dry_run, move_tag)
     # Remove 'new' tag
     _handle_tagging(account_query, [], ["new"], "tag:-new", dry_run)
 
@@ -158,9 +162,9 @@ def main():
     Moves emails based on notmuch queries defined in a YAML configuration file.
     """
     config_path = Path(os.environ.get("XDG_CONFIG_HOME", "~/.config"))
-    config_path /= "mail-mover.yaml"
+    config_path /= "mail-sync.yaml"
     parser = argparse.ArgumentParser(
-        description="Moves emails based on notmuch queries."
+        description="Moves and tags emails based on notmuch queries."
     )
     parser.add_argument(
         "-c",
@@ -176,14 +180,19 @@ def main():
         help="Perform a dry run without moving any files.",
     )
     parser.add_argument(
-        "--tag-all",
+        "--all",
         action="store_true",
         help="Apply tag rules to all new mails, not just newly synced ones.",
     )
     parser.add_argument(
+        "--no-move",
+        action="store_true",
+        help="Skip mail moving.",
+    )
+    parser.add_argument(
         "--no-pre-sync",
         action="store_true",
-        help="Skip pre-sync mail moving.",
+        help="Skip pre-sync.",
     )
     parser.add_argument(
         "--no-sync",
@@ -193,7 +202,7 @@ def main():
     parser.add_argument(
         "--no-post-sync",
         action="store_true",
-        help="Skip post-sync tagging.",
+        help="Skip post-sync.",
     )
     parser.add_argument(
         "name",
@@ -220,11 +229,19 @@ def main():
     default_account_dir = Path(f"~/Mail/{settings['account']}")
     account_dir = Path(settings.get("account_dir", default_account_dir))
     if not args.no_pre_sync:
-        pre_sync(settings, account_tag, account_dir, args.dry_run)
+        print("\n--- Pre-Sync: Moving mails with 'tag:move' added by aerc ---")
+        move(settings, account_tag, account_dir, args.dry_run, "tag:move")
+        # remove move tag from all mails
+        _handle_tagging(
+            "tag:move", [], ["move"], "Clean up (-move)", args.dry_run)
     if not args.no_sync:
+        print("\n--- Sync: Running Mail Synchronization ---")
         sync(settings, args.dry_run)
     if not args.no_post_sync:
-        post_sync(settings, account_tag, account_dir, args.tag_all, args.dry_run)
+        print("\n--- Post-Sync: Tagging and Moving New Mails ---")
+        post_sync(
+            settings, account_tag, account_dir, args.all,
+            not args.no_move, args.dry_run)
 
 
 if __name__ == "__main__":
