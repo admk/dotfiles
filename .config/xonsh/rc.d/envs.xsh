@@ -111,11 +111,12 @@ def _tmux_main():
 
     @events.on_precommand
     def tmux_refresh(cmd, *args, **kwargs):
+        """Update shell with tmux env. """
         nonlocal source_once
         if source_once:
             return
         source_once = "SSH_CONNECTION" not in ${...}
-        $TERM = "xterm-256color"
+        # $TERM = "xterm-256color"
         source-bash $(bash -c @(f"tmux -S {server} showenv -s"))
 
 

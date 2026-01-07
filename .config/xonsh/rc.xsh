@@ -61,3 +61,8 @@ _rc_path()
 _rc_main()
 _xontrib_load()
 del _rc_path, _rc_main, _xontrib_load
+
+# For debugging envvar changes
+# @events.on_envvar_change
+# def change(name, oldvalue, newvalue) -> None:
+#     print(name, oldvalue, '->', newvalue)

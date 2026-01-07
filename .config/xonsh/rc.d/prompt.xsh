@@ -36,10 +36,14 @@ def _title_main():
 
     def title_func():
         host = ${...}.get('KXH_HOST', '')
-        host = '' if host == 'localhost' else f' {host}{_TITLE_SEP}'
+        host = ''
+        if host != 'localhost' and ${...}.get('TMUX') is None:
+            host = f' {host}{_TITLE_SEP}'
         curjob = _pf('{current_job}')
-        curjob = $COMMAND_ICON_MAP.get(curjob.split('/')[-1], curjob)
-        prompt = _pf(f'{host}{curjob}{_TITLE_SEP}{{cwd_base}}')
+        curjob = curjob.split('/')[-1]
+        curjob_icon = $COMMAND_ICON_MAP.get(curjob, curjob)
+        prompt_template = f'{host}{curjob_icon}{_TITLE_SEP}{{cwd_base}}'
+        prompt = _pf(prompt_template)
         return prompt
 
     $TITLE = title_func

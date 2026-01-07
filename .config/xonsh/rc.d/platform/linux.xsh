@@ -189,9 +189,19 @@ def _centos_specific():
         source-bash --suppress-skip-message module @(args)
 
 
+def _cuda_specific():
+    if not p'/usr/local/cuda/bin/'.exists():
+        return
+    $PATH.append('/usr/local/cuda/bin')
+    if "LD_LIBRARY_PATH" not in ${...}:
+        $LD_LIBRARY_PATH = []
+    $LD_LIBRARY_PATH.append('/usr/local/cuda/lib64')
+
+
 try:
     _ubuntu_specific()
     _centos_specific()
+    _cuda_specific()
 except KeyboardInterrupt:
     print('Interrupted')
 del (
