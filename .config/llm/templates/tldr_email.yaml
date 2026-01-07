@@ -1,5 +1,8 @@
+model: glm-4.7
 prompt: |
+  <email>
   $input
+  </email>
 
   ---
 
@@ -17,7 +20,7 @@ prompt: |
   4. Use markdown for formatting.
 
   ## Output
-  - **IMPORTANT**: always reply in the **same language** as the provided text.
+  - **IMPORTANT**: always reply in the **same language** (either English or Chinese) as the provided email.
   - Highlight the critical details with **bold**.
   - Highlight any **action items** or **decisions**.
   - Highlight any **deadlines** or **dates**.
