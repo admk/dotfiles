@@ -51,7 +51,7 @@ try:
     $XONTRIB_ONEPATH_ACTIONS |= {
         'text/': $VISUAL,
         '*.log': 'tail',
-        'image/': 'kitten icat',
+        # 'image/': 'kitten icat',
     }
 except KeyError:
     pass

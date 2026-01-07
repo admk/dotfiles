@@ -72,25 +72,6 @@ update_aerc() {
 }
 
 
-update_aichat() {
-    if [ $MODE == "dark" ]; then
-        export AICHAT_LIGHT_THEME=false
-    else
-        export AICHAT_LIGHT_THEME=true
-    fi
-}
-
-
-update_alacritty() {
-    if [ -z $ALACRITTY_SOCKET ]; then
-        return
-    fi
-    local dir=${XDG_CONFIG_HOME}/alacritty/themes
-    ln -sf $dir/$(theme).toml $dir/_active_theme.toml
-    touch $dir/alacritty.toml
-}
-
-
 update_borders() {
     borders_options=(
         style=round
@@ -100,15 +81,6 @@ update_borders() {
         active_color=0xff${1:1}
     )
     borders "${borders_options[@]}"
-}
-
-
-update_claude_code() {
-    if [ $MODE == "dark" ]; then
-        claude config set -g theme dark
-    else
-        claude config set -g theme light
-    fi
 }
 
 
@@ -141,23 +113,23 @@ update_kitty() {
 }
 
 
-_kitty_tmux() {
-    tmux -L "__kitty_prewarm" "$@"
+_tmux_prewarm() {
+    tmux -L "__prewarm_$TERM" "$@"
 }
 
 
-update_kitty_tmux() {
-    if [ -z $KITTY_PID ] || [ -z $TMUX ]; then
+update_tmux_prewarm() {
+    if [[ $TMUX == __prewarm* ]]; then
         return
     fi
     if [ $2 == "dark" ]; then
-        _kitty_tmux set -sg @catppuccin_flavor "mocha"
+        _tmux_prewarm set -sg @catppuccin_flavor "mocha"
     else
-        _kitty_tmux set -sg @catppuccin_flavor "latte"
+        _tmux_prewarm set -sg @catppuccin_flavor "latte"
     fi
-    _kitty_tmux set -sg @catppuccin_window_current_number_color "$1"
-    _kitty_tmux source-file "$XDG_CONFIG_HOME/tmux/kitty/kitty.conf"
-    _kitty_tmux refresh-client -S
+    _tmux_prewarm set -sg @catppuccin_window_current_number_color "$1"
+    _tmux_prewarm source-file "$XDG_CONFIG_HOME/tmux/prewarm/default.conf"
+    _tmux_prewarm refresh-client -S
 }
 
 
@@ -222,12 +194,9 @@ if [ ! -z $COLOR ]; then
     echo "$MODE:$COLOR:$THEME" | tee $TEMP_FILE
     update_macos
     update_aerc
-    # update_aichat
-    # update_alacritty
     update_borders $COLOR
-    # update_claude_code
-    update_kitty $COLOR $MODE
-    update_kitty_tmux $COLOR $MODE
+    # update_kitty $COLOR $MODE
+    update_tmux_prewarm $COLOR $MODE
     update_sioyek
     update_sketchybar
     update_yabai $COLOR

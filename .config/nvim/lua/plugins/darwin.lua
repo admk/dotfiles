@@ -5,15 +5,6 @@ if is_remote then
 end
 return {
   {
-    "mikesmithgh/kitty-scrollback.nvim",
-    lazy = true,
-    cmd = {
-      "KittyScrollbackGenerateKittens",
-      "KittyScrollbackCheckHealth",
-    },
-    event = { "User KittyScrollbackLaunch" },
-  },
-  {
     "f-person/auto-dark-mode.nvim",
     enabled = false,     -- this plugin spawns shells, which is annoying
     opts = {

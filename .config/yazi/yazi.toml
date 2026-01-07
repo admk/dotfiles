@@ -3,12 +3,6 @@ ratio = [2, 4, 3]
 linemode = "mtime"
 title_format = "󰇥 │{cwd}"
 
-# [[opener.edit]]
-# run = 'kitty @ launch --type=tab ~/.local/bin/xh -c "$EDITOR \"$@\""'
-# block = false
-# for = "macos"
-# desc = "Edit in new tab"
-
 [[opener.edit]]
 run = '$EDITOR "$@"'
 block = true

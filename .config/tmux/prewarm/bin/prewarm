@@ -1,17 +1,17 @@
 #!/bin/bash
 # =============================================================================
-# KXH Kitty Window Shell Prewarmer
+# KXH Window Shell Prewarmer
 # =============================================================================
 # Maintains an active session (visible windows)
 # and a reserve session (hidden pre-warmed window)
 # for instant window creation.
 
 TMUX_BIN="${TMUX_BIN:-tmux}"
-PREFIX="kitty_prewarm"
+PREFIX="prewarm_$TERM"
 
 _tmux() {
     config=${XDG_CONFIG_HOME:-~/.config}
-    $TMUX_BIN -L __$PREFIX -f $config/tmux/kitty/kitty.conf "$@"
+    $TMUX_BIN -L __$PREFIX -f $config/tmux/prewarm/default.conf "$@"
 }
 
 _get_session() {

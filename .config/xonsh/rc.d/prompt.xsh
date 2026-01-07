@@ -100,16 +100,3 @@ del _title_main, _starship_main
 
 if _which('atuin'):
     execx($(atuin init xonsh --disable-up-arrow))
-
-
-# FIXME: term_integration does not work in tmux-based prewarmed shells
-load_term_integration = (
-    ${...}.get('TERM_PROGRAM') == 'iTerm.app' or
-    ${...}.get('KITTY_PID') is not None
-) and (
-    ${...}.get('KXH_PREWARMER', 'none') != 'none' and
-    ${...}.get('KXH_PREWARMED', '0') == '1'
-)
-if load_term_integration:
-    xontrib load term_integration
-    $MULTILINE_PROMPT = '│'

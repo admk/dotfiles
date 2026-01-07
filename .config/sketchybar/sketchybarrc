@@ -33,5 +33,3 @@ sketchybar --hotload on
 sketchybar --update
 
 yabai -m config external_bar "all:32:0"
-
-kitty @ set-colors -a -c "active_tab_background=#${HIGHLIGHT:4}"

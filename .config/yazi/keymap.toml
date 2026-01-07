@@ -12,7 +12,7 @@ prepend_keymap = [
     { on = "<C-d>", run = "plugin diff", desc = "Diff the selected with the hovered file" },
     # { on = [ "l" ], run = "plugin bypass", desc = "Smart enter" },
     # { on = [ "h" ], run = "plugin bypass --args=reverse", desc = "Smart exit" },
-    { on = [ "E" ], run = "shell --confirm \" kitty @ launch --type=tab ~/.local/bin/xh -c \\\" ${EDITOR} \\\\\\\"\\$@\\\\\\\"\\\" -- \\\"$@\\\" \"", desc = "Edit in kitty new tab" },
+    # { on = [ "E" ], run = "shell --confirm \" kitty @ launch --type=tab ~/.local/bin/xh -c \\\" ${EDITOR} \\\\\\\"\\$@\\\\\\\"\\\" -- \\\"$@\\\" \"", desc = "Edit in kitty new tab" },
     { on = [ "e" ], run = "open", desc = "Edit" },
     # { on = [ "g", "l" ], run = "plugin --sync follow-link", desc = "Follow the symlink" },  # FIXME: does not work
 ]

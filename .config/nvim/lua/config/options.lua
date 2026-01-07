@@ -11,7 +11,8 @@ vim.opt.path:append({ "**" })
 -- }
 -- Display: {
 vim.opt.title = true
-if vim.env.KITTY_WINDOW_ID and not vim.g.neovide then
+if (vim.env.KITTY_WINDOW_ID or vim.env.GHOSTTY_BIN_DIR)
+   and not vim.g.neovide then
   vim.opt.titlestring =
     "󱃖 │%{expand('%:t')}│%{pathshorten(substitute(getcwd(), $HOME, '~', ''))}"
 end
