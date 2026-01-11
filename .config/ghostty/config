@@ -1,0 +1,69 @@
+# general
+command = /Users/$USER/.config/tmux/prewarm/bin/session
+# command = /Users/$USER/.local/bin/xh
+confirm-close-surface = false
+shell-integration = none
+
+# font
+font-size = 18
+font-family = "Maple Mono NF CN Medium"
+font-family-bold = "Maple Mono NF CN SemiBold"
+font-family-italic = "Maple Mono NF CN Medium"
+font-family-bold-italic = "Maple Mono NF CN SemiBold"
+adjust-cell-width = -10%
+adjust-cell-height = -0%
+
+# window
+theme = dark:Catppuccin Mocha,light:Catppuccin Latte
+window-decoration = auto
+macos-titlebar-style = hidden
+window-new-tab-position = current
+window-padding-x = 5
+window-padding-y = 5
+window-padding-balance = true
+# background-opacity = 0.75
+# background-blur = 20
+quick-terminal-position = bottom
+
+# ui
+macos-icon = xray
+# custom-shader = ./shaders/cursor-warp.glsl
+# custom-shader = ./shaders/retro-terminal.glsl
+# custom-shader = ./shaders/bloom.glsl
+# custom-shader = ./shaders/bettercrt.glsl
+custom-shader-animation = false
+
+# terminal
+clipboard-read = allow
+clipboard-write = allow
+link-url = true
+link-previews = true
+# https://example.com
+
+# key mappings
+macos-option-as-alt = true
+# macos-command-to-pty = true
+keybind = cmd+q=quit
+keybind = cmd+c=copy_to_clipboard
+keybind = cmd+v=paste_from_clipboard
+keybind = cmd+n=new_window
+keybind = cmd+ctrl+,=reload_config
+
+# handle tabs in tmux
+key-remap = cmd=alt
+keybind = cmd+t=unbind
+keybind = cmd+j=unbind
+keybind = cmd+k=unbind
+# keybind = cmd+shift+j=unbind  # FIXME: does not work
+# keybind = cmd+shift+k=unbind  # FIXME: does not work
+keybind = cmd+w=unbind
+keybind = cmd+,=unbind
+keybind = cmd+1=unbind
+keybind = cmd+2=unbind
+keybind = cmd+3=unbind
+keybind = cmd+4=unbind
+keybind = cmd+5=unbind
+keybind = cmd+6=unbind
+keybind = cmd+7=unbind
+keybind = cmd+8=unbind
+keybind = cmd+9=unbind
