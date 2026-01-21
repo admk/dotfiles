@@ -111,7 +111,7 @@ if [ -n "$TRANSCRIPT_PATH" ] && [ -f "$TRANSCRIPT_PATH" ]; then
     if [ "$input_total" -gt 0 ] || [ "$output_total" -gt 0 ]; then
         input_formatted=$(format_number "$input_total")
         output_formatted=$(format_number "$output_total")
-        TOKEN_COUNT=" │ $input_formatted $output_formatted"
+        TOKEN_COUNT=" │  $input_formatted  $output_formatted"
     else
         TOKEN_COUNT=""
     fi
