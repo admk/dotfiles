@@ -463,6 +463,7 @@ class KXH:
             f for f in file_list if not os.path.exists(os.path.join(home, f))]
         if missing_files:
             print_message('warning', f'Missing files: {missing_files!r}')
+        file_list = [f for f in file_list if f not in missing_files]
         return file_list
 
     def _sync_files(self):
