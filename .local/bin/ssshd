@@ -20,7 +20,7 @@ SLURM_SCRIPT = """#!/bin/bash
 #SBATCH -e {logdir}/%x_%j_%N.err
 #SBATCH -N {args.node_count}
 #SBATCH --cpus-per-task={cpus}
-#SBATCH --mem=64G
+#SBATCH --mem={args.mem}
 #SBATCH --gres={gres}
 {sbatch_extra}
 
@@ -144,6 +144,9 @@ def parse_args():
         '-N', '--node-count', type=int, default=1, help='Number of nodes.')
     parser.add_argument(
         '-c', '--cpus-per-gpu', type=int, default=16, help='Number of CPU cores.')
+    parser.add_argument(
+        '-m', '--mem', type=str, default='512G',
+        help='Memory per node (e.g. 512G, 256G).')
     parser.add_argument(
         '-g', '--gres', type=str, default='gpu:a100-sxm4-80gb:1')
     parser.add_argument(
