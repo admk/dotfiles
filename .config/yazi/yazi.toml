@@ -1,6 +1,7 @@
 [mgr]
 ratio = [2, 4, 3]
 linemode = "mtime"
+# title_format = "󰇥 "
 title_format = "󰇥 │{cwd}"
 
 [[opener.edit]]
