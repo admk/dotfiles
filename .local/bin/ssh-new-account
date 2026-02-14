@@ -3,8 +3,8 @@
 # Check if the required arguments are provided
 user="$1"
 server="$2"
-if [ -z "$user" ] || [ -z "$server" ]; then
-    echo "Usage: $0 <username> <server>"
+if [ -z "$user" ]; then
+    echo "Usage: $0 <username> [server]"
     exit 1
 fi
 
@@ -16,6 +16,14 @@ if [ ! -f "$key_path.pub" ]; then
     echo "Key pair created for $user."
 else
     echo "Key pair already exists for $user."
+fi
+
+# Open Finder with the key files selected
+open -R $key_path $key_path.pub
+
+# If no server specified, stop here
+if [ -z "$server" ]; then
+    exit 0
 fi
 
 # Read the public keys
@@ -47,6 +55,3 @@ chmod 600 /home/$user/.ssh/authorized_keys
 EOF
 ssh "$server" "$cmd"
 echo "User '$user' created on '$server' with password $password."
-
-# Open Finder with the key files selected
-open -R $key_path $key_path.pub
