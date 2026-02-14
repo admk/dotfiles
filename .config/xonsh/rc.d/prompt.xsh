@@ -42,7 +42,8 @@ def _title_main():
         curjob = _pf('{current_job}')
         curjob = curjob.split('/')[-1]
         curjob_icon = $COMMAND_ICON_MAP.get(curjob, curjob)
-        prompt_template = f'{host}{curjob_icon}{_TITLE_SEP}{{cwd_base}}'
+        # prompt_template = f'{host}{curjob_icon}{_TITLE_SEP}{{cwd_base}}'
+        prompt_template = f'{host}{curjob_icon}'
         prompt = _pf(prompt_template)
         return prompt
 
