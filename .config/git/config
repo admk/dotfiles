@@ -20,6 +20,7 @@
     unstage = reset
     unstage-all = reset --soft HEAD^
     web = "!f() { REPO_URL=$(git remote get-url origin); $BROWSER ${REPO_URL%%.git}; }; f"
+    tidy = !git branch --merged "$(git config init.defaultBranch)"  | grep -Fv "$(git config init.defaultBranch)" | grep -vF '*' | grep -vF '+' | xargs git branch -d && git fetch && git remote prune origin && git branch -v | grep -F '[gone]' | grep -vF '*' | grep -vF '+' | awk '{print $1}' | xargs git branch -D
 [format]
     pretty=format:%C(bold red)%h%Creset%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset
 [core]
