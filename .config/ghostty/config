@@ -6,12 +6,12 @@ shell-integration = none
 
 # font
 font-size = 18
-font-family = "Maple Mono NF CN Medium"
-font-family-bold = "Maple Mono NF CN SemiBold"
-font-family-italic = "Maple Mono NF CN Medium"
-font-family-bold-italic = "Maple Mono NF CN SemiBold"
+font-family = "Maple Mono NF CN"
+# font-family-bold = "Maple Mono NF CN SemiBold"
+# font-family-italic = "Maple Mono NF CN Medium"
+# font-family-bold-italic = "Maple Mono NF CN SemiBold"
 adjust-cell-width = -10%
-adjust-cell-height = -0%
+adjust-cell-height = -5%
 
 # window
 theme = dark:Catppuccin Mocha,light:Catppuccin Latte
@@ -48,6 +48,7 @@ keybind = cmd+c=copy_to_clipboard
 keybind = cmd+v=paste_from_clipboard
 keybind = cmd+n=new_window
 keybind = cmd+ctrl+,=reload_config
+keybind = cmd+==increase_font_size:1
 
 # handle tabs in tmux
 key-remap = cmd=alt
