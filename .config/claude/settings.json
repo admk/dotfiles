@@ -56,7 +56,6 @@
     ],
     "defaultMode": "default"
   },
-  "model": "opus",
   "statusLine": {
     "type": "command",
     "command": "$XDG_CONFIG_HOME/claude/bin/statusline.sh"
@@ -66,5 +65,5 @@
     "pyright-lsp@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true
   },
-  "alwaysThinkingEnabled": true
+  "skipDangerousModePermissionPrompt": true
 }
