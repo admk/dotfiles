@@ -12,7 +12,7 @@ def _xontrib_load():
         'fish_completer',
         'fzf-widgets',
         'jedi',
-        'onepath',
+        # 'onepath',
         # 'output_search',
         'pipeliner',
         # 'readable-traceback',
