@@ -39,7 +39,7 @@ export KXH_SHELL=$KXH_CONDA_PREFIX/bin/xonsh
 export KXH_FALLBACK_SHELL=$SHELL
 export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
-export XDG_CACHE_HOME="$XDG_HOME/.cache"
+export XDG_CACHE_HOME="$KXH_OLD_HOME/.cache"
 # export PATH="$KXH_HOME/.local/bin:$KXH_CONDA_PREFIX/bin:$PATH"
 if [[ $KXH_DEBUG == '1' ]]; then
     echo
@@ -108,6 +108,7 @@ fi
 sync_list=$XDG_CACHE_HOME/$KXH_NAME/sync
 delete_list=()
 if [[ -f $sync_list && ! -z $SSH_CONNECTION ]]; then
+    cache_sync_root=$XDG_CACHE_HOME/$KXH_NAME
     hot_dirs=(
         $XDG_CONFIG_HOME/xonsh/rc.d
         $XDG_CONFIG_HOME/nvim/lua/plugins
@@ -122,7 +123,13 @@ if [[ -f $sync_list && ! -z $SSH_CONNECTION ]]; then
             if [ ! -f $file ]; then
                 continue
             fi
-            rel_file=${file#$KXH_HOME/}
+            if [[ $file == $KXH_HOME/* ]]; then
+                rel_file=${file#$KXH_HOME/}
+            elif [[ $file == $cache_sync_root/* ]]; then
+                rel_file=${file#$cache_sync_root/}
+            else
+                continue
+            fi
             if grep -q -F "$rel_file" $sync_list; then
                 continue
             fi

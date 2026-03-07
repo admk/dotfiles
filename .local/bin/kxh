@@ -297,6 +297,7 @@ class KXH:
         self.config = config
         self.config_home = os.path.join(config_home, name)
         self.cache_home = os.path.join(cache_home, name)
+        os.makedirs(self.cache_home, exist_ok=True)
 
     def _run(self, command, error_message=None, verbose=None, debug=None, **kwargs):
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
@@ -376,7 +377,7 @@ class KXH:
             f.write(key)
         return [collate_rc, key_file]
 
-    def _rsync(self, source, destination, file_list=None, sync_file=None):
+    def _rsync(self, source, destination, file_list=None):
         is_remote = ':' in destination
         rsync_cmd = [
             "rsync --archive --no-owner --no-group --compress --itemize-changes",
@@ -387,14 +388,8 @@ class KXH:
             rsync_cmd.append(f"--rsh {' '.join([ssh] + self.ssh_cmd[1:])!r}")
         file_list_file = None
         if file_list is not None:
-            if sync_file is not None:
-                file_list_file = open(sync_file, 'w', encoding='utf-8')
-                home = self.config['kxh']['home']
-                rel_sync_file = os.path.relpath(sync_file, home)
-                file_list.append(rel_sync_file)
-            else:
-                file_list_file = tempfile.NamedTemporaryFile(
-                    'w', encoding='utf-8', delete=True)
+            file_list_file = tempfile.NamedTemporaryFile(
+                'w', encoding='utf-8', delete=True)
             file_list_file.write('\n'.join(file_list) + '\n')
             file_list_file.flush()
             rsync_cmd.append(f"--files-from {file_list_file.name}")
@@ -426,6 +421,23 @@ class KXH:
         return [
             os.path.join(self.cache_home, 'share', f) for f in shared_files]
 
+    def _cache_file_list(self):
+        cache_files = self._ssh_host_specific_rcs()
+        cache_files += self._shared_files()
+        file_list = [
+            os.path.relpath(f, self.cache_home)
+            for f in cache_files]
+        if self.config['kxh']['debug']:
+            vcf = '\n  ' + '\n  '.join(file_list)
+            print_message('debug', f"Cache files: {vcf}")
+        missing_files = [
+            f for f in file_list
+            if not os.path.exists(os.path.join(self.cache_home, f))]
+        if missing_files:
+            print_message('warning', f'Missing cache files: {missing_files!r}')
+        file_list = [f for f in file_list if f not in missing_files]
+        return file_list
+
     def _file_list_file(self):
         home = self.config['kxh']['home']
         public_files = self._run(
@@ -445,15 +457,6 @@ class KXH:
             file_list += private_files.strip().split('\n')
             if self.config['kxh']['debug']:
                 print_message('debug', f'Private files:\n{private_files}')
-        custom_files = self._ssh_host_specific_rcs()
-        custom_files += self._shared_files()
-        files = [
-            os.path.relpath(f, self.config['kxh']['home'])
-            for f in custom_files]
-        if self.config['kxh']['debug']:
-            vcf = '\n  ' + '\n  '.join(files)
-            print_message('debug', f"Custom files: {vcf}")
-        file_list += files
         # `git ls-files` may quote files, which breaks rsync
         # we use ast.literal_eval to unquote files if necessary
         file_list = [
@@ -491,12 +494,19 @@ class KXH:
                 self.ssh_cmd + [dest, rm_cmd],
                 f'Failed to remove .{name!r} from {dest!r}.')
         file_list = self._file_list_file()
+        cache_file_list = self._cache_file_list()
         if self.config['kxh']['bootstrap']:
             print_message('verbose', 'Bootstrapping...')
             return
         sync_file = os.path.join(self.cache_home, 'sync')
-        return self._rsync(
-            home, f'{dest}:.{name}', file_list, sync_file)
+        sync_list = file_list + cache_file_list + ['sync']
+        with open(sync_file, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(sync_list) + '\n')
+        updated_files = self._rsync(home, f'{dest}:.{name}', file_list)
+        cache_updated_files = self._rsync(
+            self.cache_home, f'{dest}:.cache/{name}', cache_file_list + ['sync'])
+        return updated_files + [
+            os.path.join('.cache', name, f) for f in cache_updated_files]
 
     def _ssh(self, updated_files):
         name = self.config['kxh']['name']
