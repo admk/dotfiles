@@ -94,9 +94,4 @@ return {
         })
     end
   },
-  {
-      'noearc/jieba.nvim',
-      enabled = is_local,
-      ft = { "markdown" },
-  },
 }

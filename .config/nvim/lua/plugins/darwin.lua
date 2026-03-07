@@ -54,6 +54,12 @@ return {
       },
     },
   },
+  {
+    "keaising/im-select.nvim",
+    config = function()
+      require("im_select").setup({})
+    end,
+  },
   { "abhishekmukherg/xonsh-vim", lazy = true, ft = "xonsh" },
   -- {
   --     "Bakudankun/PICO-8.vim",
