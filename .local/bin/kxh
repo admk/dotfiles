@@ -18,6 +18,7 @@ from cryptography.fernet import Fernet
 _quote_pos = re.compile('(?=[^-0-9a-zA-Z_./\n])')
 
 def quote(arg):
+    """Escape a shell argument for the generated bash command line."""
     r"""
     >>> quote('\t')
     '\\\t'
@@ -30,6 +31,7 @@ def quote(arg):
 
 
 def highlight(src, lang):
+    """Render syntax-highlighted terminal output for supported languages."""
     import pygments
     from pygments.formatters import TerminalFormatter
     from pygments.lexers.configs import TOMLLexer
@@ -42,6 +44,7 @@ def highlight(src, lang):
 
 
 def add_border(title, hl_title, src, hl_src, indent=0):
+    """Wrap multi-line text in a unicode box for verbose terminal output."""
     hl_title = hl_title or title
     hl_src = hl_src or src
     width = max(len(l) for l in src.split('\n'))
@@ -72,6 +75,7 @@ class colors:
 
 
 def print_message(flag, message, *args, use_color=True, **kwargs):
+    """Print a prefixed log message with optional severity coloring."""
     color = getattr(colors, flag.upper()) if use_color else ''
     if flag == 'raw':
         print(message, *args, **kwargs)
@@ -146,6 +150,7 @@ Options:
         self.add_argument('destination', type=str)
 
     def parse(self, args=None, namespace=None):
+        """Parse CLI args into separated kxh options and ssh options."""
         args = args or sys.argv[1:]
         if '-h' in args or '--help' in args:
             self.print_usage()
@@ -200,6 +205,7 @@ Options:
         ssh_command: Optional[str] = None,
         dest: bool = True
     ) -> List[str]:
+        """Reconstruct an ssh command line from parsed ssh arguments."""
         if ssh_command is None:
             ssh_command = shutil.which('ssh')
             if ssh_command is None:
@@ -219,15 +225,18 @@ Options:
         return command_line
 
     def print_usage(self, file=None):
+        """Print the custom kxh usage text."""
         print_message('info', f'Usage:\n{self._USAGE}', file=file)
 
     def error(self, message):
+        """Show the kxh-flavored usage text before exiting on parse errors."""
         self.print_usage()
         print_message('error', message.replace('--kxh-', '+'))
         exit(1)
 
 
 def update(mapping, values):
+    """Merge non-empty CLI or config values into the destination mapping."""
     for k, v in values.items():
         if v is None:
             pass
@@ -249,6 +258,7 @@ class KXH:
     }
 
     def _load_rc(self, config_home, rc):
+        """Load the TOML config and fill in default kxh settings."""
         rc = rc or os.path.join(config_home, 'kxh', 'config.toml')
         if os.path.exists(rc):
             with open(rc, 'rb') as f:
@@ -264,6 +274,7 @@ class KXH:
         return config
 
     def __init__(self):
+        """Parse config and derive local paths and ssh command state."""
         super().__init__()
         parser = KxhArgumentParser()
         kxh_args, ssh_args = parser.parse()
@@ -300,6 +311,7 @@ class KXH:
         os.makedirs(self.cache_home, exist_ok=True)
 
     def _run(self, command, error_message=None, verbose=None, debug=None, **kwargs):
+        """Run a subprocess and return decoded stdout, exiting on failure."""
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
         debug = debug if debug is not None else self.config['kxh']['debug']
         dry = self.config['kxh']['dry']
@@ -328,6 +340,7 @@ class KXH:
     def _run_shell(
         self, command, error_message=None, verbose=None, debug=None, **kwargs
     ):
+        """Run a shell command for interactive flows such as ssh sessions."""
         verbose = verbose if verbose is not None else self.config['kxh']['verbose']
         debug = debug if debug is not None else self.config['kxh']['debug']
         dry = self.config['kxh']['dry']
@@ -349,6 +362,7 @@ class KXH:
         return p.returncode
 
     def _ssh_host_specific_rcs(self):
+        """Build encrypted host-specific rc payloads for the target host."""
         key = self.config['kxh']['key']
         rcs_dir = os.path.join(self.config_home, 'hosts')
         os.makedirs(rcs_dir, exist_ok=True)
@@ -378,6 +392,7 @@ class KXH:
         return [collate_rc, key_file]
 
     def _rsync(self, source, destination, file_list=None):
+        """Run rsync for either a full tree or an explicit file list."""
         is_remote = ':' in destination
         rsync_cmd = [
             "rsync --archive --no-owner --no-group --compress --itemize-changes",
@@ -406,6 +421,7 @@ class KXH:
         return updated_files
 
     def _shared_files(self):
+        """Mirror shared secret files into the cache tree and list them."""
         shared_dir = os.path.join(self.config_home, 'share')
         shared_pat = os.path.join(shared_dir, '**', '**')
         shared_files = glob.glob(
@@ -422,6 +438,7 @@ class KXH:
             os.path.join(self.cache_home, 'share', f) for f in shared_files]
 
     def _cache_file_list(self):
+        """Collect generated cache-backed files that must be synced separately."""
         cache_files = self._ssh_host_specific_rcs()
         cache_files += self._shared_files()
         file_list = [
@@ -439,6 +456,7 @@ class KXH:
         return file_list
 
     def _file_list_file(self):
+        """Collect tracked repo files that should sync under `KXH_HOME`."""
         home = self.config['kxh']['home']
         public_files = self._run(
             ['git', 'ls-files'],
@@ -470,6 +488,7 @@ class KXH:
         return file_list
 
     def _sync_files(self):
+        """Sync the repo tree and cache tree to the remote host."""
         url = self.config['kxh']['repo']
         home = self.config['kxh']['home']
         name = self.config['kxh']['name']
@@ -509,6 +528,7 @@ class KXH:
             os.path.join('.cache', name, f) for f in cache_updated_files]
 
     def _ssh(self, updated_files):
+        """Start the remote shell entrypoint after sync completes."""
         name = self.config['kxh']['name']
         mode = self.config['kxh']['mode']
         verbose = self.config['kxh']['verbose']
@@ -553,6 +573,7 @@ class KXH:
         #     self._run_shell('reset', 'Failed to reset terminal.')
 
     def main(self):
+        """Run the sync phase and optionally launch the remote session."""
         verbose = self.config['kxh']['verbose']
         if not self.config['kxh']['skip_sync']:
             if verbose:
