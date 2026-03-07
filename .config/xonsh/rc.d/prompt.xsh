@@ -22,7 +22,7 @@ $COMMAND_ICON_MAP = {
     'nvimpager': ' ',
     'ssh': '󰣀 ',
     'starship': ' ',
-    'system-color': ' ',
+    'theme-apply': ' ',
     'tmux': ' ',
     'top': '󰄩 ',
     'xh': ' ',

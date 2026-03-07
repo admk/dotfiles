@@ -35,6 +35,7 @@ def _install_homebrew():
         'felixkratz/formulae/sketchybar',
         'koekeishiya/formulae/skhd',
         'koekeishiya/formulae/yabai',
+        'cormacrelf/tap/dark-notify',
     ]
     brew install @(pkgs)
 
@@ -50,9 +51,14 @@ def _install_secretive():
 
 
 def _auto_theme(force=False):
-    if _which("system-color"):
-        $KXH_COLOR_MODE = $(system-color)
-        $AICHAT_LIGHT_THEME = str('light' in $KXH_COLOR_MODE).lower()
+    state = None
+    if _which("theme-apply"):
+        state = str($(theme-apply --print)).strip()
+    elif _which("dark-notify"):
+        state = str($(dark-notify -e)).strip()
+    if state:
+        $KXH_COLOR_MODE = state
+        $AICHAT_LIGHT_THEME = str(state.startswith('light')).lower()
 
 
 @events.on_pre_prompt
@@ -124,6 +130,9 @@ aliases |= {
     'ac': 'aichat',
     't': 'tali-cli',
 }
+
+
+_auto_theme()
 
 
 _install_homebrew()

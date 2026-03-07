@@ -9,6 +9,10 @@
 TMUX_BIN="${TMUX_BIN:-tmux}"
 PREFIX="prewarm_$TERM"
 
+_watcher_session() {
+    echo "${PREFIX}_watcher"
+}
+
 _tmux() {
     config=${XDG_CONFIG_HOME:-~/.config}
     $TMUX_BIN -L __$PREFIX -f $config/tmux/prewarm/default.conf "$@"
@@ -25,7 +29,7 @@ _get_session() {
         else
             # otherwise find an active session that is not attached
             sessions=$(_tmux list-sessions -F "#{?session_attached,,#{session_name}}")
-            session=$(echo "$sessions" | grep -v '^$' | grep -v "^${PREFIX}_reserve$" | head -n 1)
+            session=$(echo "$sessions" | grep -v '^$' | grep -v "^${PREFIX}_reserve$" | grep -v "^$(_watcher_session)$" | head -n 1)
             # generate a new session name if none found
             if [[ -z "$session" ]]; then
                 index=$(_tmux list-sessions | grep -c "^${PREFIX}_active")
@@ -81,6 +85,16 @@ _attach_session() {
     _tmux attach-session -t "$(_get_session "active")"
 }
 
+_start_watcher() {
+    local watcher_session=$(_watcher_session)
+    local config=${XDG_CONFIG_HOME:-~/.config}
+    _tmux set-environment -g KXH_TMUX_SOCKET "__$PREFIX"
+    if _tmux has-session -t "$watcher_session" 2>/dev/null; then
+        return
+    fi
+    _tmux new-session -d -s "$watcher_session" "$config/tmux/prewarm/bin/theme-watch"
+}
+
 invalidate_reserved_windows() {
     local reserve_session=$(_get_session "reserve")
     _tmux kill-session -t "$reserve_session"
@@ -91,6 +105,7 @@ main() {
         "status") _tmux list-sessions ;;
         "dispense") _dispense_window ;;
         "attach") _attach_session ;;
+        "watcher-start") _start_watcher ;;
         "invalidate") invalidate_reserved_windows ;;
         "kill") _tmux kill-server ;;
         *) _tmux "$@" ;;

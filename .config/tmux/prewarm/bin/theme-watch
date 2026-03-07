@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+XDG_CACHE_HOME=${XDG_CACHE_HOME:-$HOME/.cache}
+LOG_DIR="$XDG_CACHE_HOME/tmux"
+LOG_FILE="$LOG_DIR/theme-watch.log"
+
+mkdir -p "$LOG_DIR"
+if [[ -z "${KXH_THEME_WATCH_STDIO:-}" ]]; then
+    exec >> "$LOG_FILE" 2>&1
+fi
+
+echo "[$(date '+%F %T')] theme-watch starting"
+
+if ! command -v theme-apply >/dev/null 2>&1; then
+    echo "theme-watch: theme-apply not found"
+    exit 1
+fi
+
+if ! command -v dark-notify >/dev/null 2>&1; then
+    echo "theme-watch: dark-notify not found"
+    exit 1
+fi
+
+theme-apply -f || true
+
+while true; do
+    dark-notify --only-changes | while read -r mode; do
+        case "$mode" in
+            dark|light)
+                echo "[$(date '+%F %T')] theme-watch: $mode"
+                theme-apply -f "$mode" || true
+                ;;
+        esac
+    done
+    echo "[$(date '+%F %T')] theme-watch: dark-notify exited; restarting"
+    sleep 2
+done

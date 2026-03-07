@@ -1,0 +1,216 @@
+#!/usr/bin/env bash
+
+DEFAULT_DARK_THEME=catppuccin_mocha
+DEFAULT_LIGHT_THEME=catppuccin_latte
+DEFAULT_MODE=auto
+
+XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
+TEMP_FILE="$XDG_CONFIG_HOME/kxh/share/color"
+FORCE=0
+PRINT_ONLY=0
+
+usage() {
+    cat <<'EOF'
+Usage: theme-apply [--print] [-f] [-d|-l] [color]
+  --print: Print the resolved theme state without applying it
+  -f: Force apply even when the cached state is unchanged
+  -d: Resolve as dark mode
+  -l: Resolve as light mode
+  color: Daily color index, random, or #RRGGBB
+EOF
+}
+
+daily_color() {
+    local colors=(
+        "#7dcfff" "#73daca" "#b4f9f8" "#9ece6a" "#ff9e64" "#f7768e" "#bb9af7"
+    )
+    local input="${1:-}"
+    if [[ -z "$input" ]]; then
+        local day_of_week
+        day_of_week=$(date +%u)
+        echo "${colors[$((day_of_week - 1))]}"
+    elif [[ "$input" == "random" ]]; then
+        echo "${colors[$((RANDOM % ${#colors[@]}))]}"
+    elif [[ ${input:0:1} == "#" ]]; then
+        echo "$input"
+    elif [[ "$input" =~ ^[0-9]+$ ]] && (( input >= 0 )) && (( input < ${#colors[@]} )); then
+        echo "${colors[$input]}"
+    fi
+}
+
+color_mode() {
+    local mode="${1:-$DEFAULT_MODE}"
+    if [[ "$mode" == "dark" || "$mode" == "light" ]]; then
+        echo "$mode"
+        return
+    fi
+    if command -v dark-notify >/dev/null 2>&1; then
+        mode=$(dark-notify -e 2>/dev/null | tr -d '\r')
+        if [[ "$mode" == "dark" || "$mode" == "light" ]]; then
+            echo "$mode"
+            return
+        fi
+    fi
+    mode=$(defaults read -g AppleInterfaceStyle 2>/dev/null || true)
+    if [[ -z "$mode" ]]; then
+        echo "light"
+    else
+        echo "dark"
+    fi
+}
+
+theme() {
+    local mode="$1"
+    if [[ "$mode" == "light" ]]; then
+        echo "${LIGHT_THEME:-$DEFAULT_LIGHT_THEME}"
+    else
+        echo "${DARK_THEME:-$DEFAULT_DARK_THEME}"
+    fi
+}
+
+tmux_socket() {
+    if [[ -n "${TMUX:-}" ]]; then
+        printf '%s\n' "$TMUX" | cut -d, -f1 | xargs basename
+    elif [[ -n "${KXH_TMUX_SOCKET:-}" ]]; then
+        echo "$KXH_TMUX_SOCKET"
+    else
+        echo "__prewarm_${TERM:-xterm-kitty}"
+    fi
+}
+
+have_tmux_server() {
+    tmux -L "$(tmux_socket)" list-sessions >/dev/null 2>&1
+}
+
+update_aerc() {
+    local dir="$XDG_CONFIG_HOME/aerc/stylesets"
+    [[ -d "$dir" ]] || return
+    ln -snf "$dir/$1" "$dir/_active_theme"
+    if [[ -S "$HOME/Library/Application Support/aerc.sock" ]] && command -v aerc >/dev/null 2>&1; then
+        aerc ":reload -s _active_theme" >/dev/null 2>&1 || true
+    fi
+}
+
+update_borders() {
+    command -v borders >/dev/null 2>&1 || return
+    borders \
+        style=round \
+        width=8.0 \
+        hidpi=off \
+        inactive_color=0x1a1b261a \
+        active_color="0xff${1:1}" >/dev/null 2>&1 || true
+}
+
+update_tmux_prewarm() {
+    local color="$1"
+    local mode="$2"
+    local state="$3"
+    have_tmux_server || return
+    if [[ "$mode" == "dark" ]]; then
+        tmux -L "$(tmux_socket)" set -sg @catppuccin_flavor "mocha" >/dev/null 2>&1 || true
+    else
+        tmux -L "$(tmux_socket)" set -sg @catppuccin_flavor "latte" >/dev/null 2>&1 || true
+    fi
+    tmux -L "$(tmux_socket)" set -sg @catppuccin_window_current_number_color "$color" >/dev/null 2>&1 || true
+    tmux -L "$(tmux_socket)" set-environment -g KXH_COLOR_MODE "$state" >/dev/null 2>&1 || true
+    tmux -L "$(tmux_socket)" source-file "$XDG_CONFIG_HOME/tmux/prewarm/default.conf" >/dev/null 2>&1 || true
+    tmux -L "$(tmux_socket)" refresh-client -S >/dev/null 2>&1 || true
+}
+
+update_sioyek() {
+    local dir="$XDG_CONFIG_HOME/sioyek"
+    [[ -d "$dir/themes" ]] || return
+    ln -snf "$dir/themes/$1.config" "$dir/themes/_active_theme.config"
+    touch "$dir/prefs_user.config"
+}
+
+update_sketchybar() {
+    local config="$XDG_CONFIG_HOME/sketchybar/sketchybarrc"
+    [[ -e "$config" ]] || return
+    touch "$config"
+}
+
+update_yabai() {
+    command -v yabai >/dev/null 2>&1 || return
+    yabai -m config insert_feedback_color "0xe0${1:2}" >/dev/null 2>&1 || true
+}
+
+update_yazi() {
+    local dir="$XDG_CONFIG_HOME/yazi"
+    [[ -d "$dir" ]] || return
+    printf '[flavor]\nuse = "%s"\n' "$1" > "$dir/theme.toml"
+}
+
+EXPLICIT_MODE=
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --print)
+            PRINT_ONLY=1
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -f)
+            FORCE=1
+            shift
+            ;;
+        -d)
+            EXPLICIT_MODE=dark
+            shift
+            ;;
+        -l)
+            EXPLICIT_MODE=light
+            shift
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            usage >&2
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+if [[ "${1:-}" == "dark" || "${1:-}" == "light" ]]; then
+    EXPLICIT_MODE="$1"
+    shift
+fi
+
+COLOR=$(daily_color "${1:-}")
+MODE=$(color_mode "$EXPLICIT_MODE")
+THEME=$(theme "$MODE")
+
+if [[ -z "$COLOR" ]]; then
+    echo "Error: Invalid color" >&2
+    exit 1
+fi
+
+STATE="$MODE:$COLOR:$THEME"
+
+if [[ $PRINT_ONLY -eq 1 ]]; then
+    printf '%s\n' "$STATE"
+    exit 0
+fi
+
+mkdir -p "$(dirname "$TEMP_FILE")"
+
+if [[ -f "$TEMP_FILE" ]] && [[ $(<"$TEMP_FILE") == "$STATE" ]] && [[ $FORCE -eq 0 ]]; then
+    printf '%s\n' "$STATE"
+    exit 0
+fi
+
+printf '%s\n' "$STATE" | tee "$TEMP_FILE"
+update_aerc "$THEME"
+update_borders "$COLOR"
+update_tmux_prewarm "$COLOR" "$MODE" "$STATE"
+update_sioyek "$THEME"
+update_sketchybar
+update_yabai "$COLOR"
+update_yazi "$THEME"
