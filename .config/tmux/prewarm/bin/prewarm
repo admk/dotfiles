@@ -13,6 +13,53 @@ _watcher_session() {
     echo "${PREFIX}_watcher"
 }
 
+_create_managed_session() {
+    local session="$1"
+    shift
+
+    local previous_destroy
+    previous_destroy="$(_tmux show-options -gqv destroy-unattached 2>/dev/null || echo off)"
+
+    # The server default is destroy-unattached=on
+    # so user-created sessions die when abandoned.
+    # Temporarily relax it while creating our managed detached sessions,
+    # then pin the per-session value and restore the global default.
+    _tmux set-option -g destroy-unattached off >/dev/null
+    if ! _tmux new-session -d -s "$session" "$@"; then
+        local rc=$?
+        _tmux set-option -g destroy-unattached "$previous_destroy" >/dev/null
+        return "$rc"
+    fi
+
+    # Prewarm-owned detached sessions
+    # should survive until we explicitly arm them on attach.
+    _set_destroy_unattached "$session" off
+    _tmux set-option -g destroy-unattached "$previous_destroy" >/dev/null
+}
+
+_set_destroy_unattached() {
+    local session="$1"
+    local value="$2"
+    _tmux set-option -t "$session" destroy-unattached "$value" >/dev/null
+}
+
+_refresh_destroy_unattached() {
+    local session="$1"
+    local kind="$2"
+    if [[ "$kind" == "active" ]]; then
+        # Active sessions should auto-die only once a real client is attached.
+        # Detached active sessions are still part of the prewarm pool.
+        if [[ "$(_tmux display-message -p -t "$session" '#{session_attached}' 2>/dev/null || echo 0)" != "0" ]]; then
+            _set_destroy_unattached "$session" on
+        else
+            _set_destroy_unattached "$session" off
+        fi
+    else
+        # Reserve and watcher sessions are long-lived infrastructure.
+        _set_destroy_unattached "$session" off
+    fi
+}
+
 _tmux() {
     config=${XDG_CONFIG_HOME:-~/.config}
     $TMUX_BIN -L __$PREFIX -f $config/tmux/prewarm/default.conf "$@"
@@ -41,8 +88,9 @@ _get_session() {
         exit 1
     fi
     if ! _tmux has-session -t "$session" 2>/dev/null; then
-        _tmux new-session -d -s "$session"
+        _create_managed_session "$session"
     fi
+    _refresh_destroy_unattached "$session" "$1"
     echo "$session"
 }
 
@@ -82,7 +130,11 @@ _dispense_window() {
 
 _attach_session() {
     _create_reserve_window
-    _tmux attach-session -t "$(_get_session "active")"
+    local active_session=$(_get_session "active")
+    # Keep the chosen active session alive through the attach handshake,
+    # then queue the flip back to destroy-unattached=on once attach succeeds.
+    _set_destroy_unattached "$active_session" off
+    _tmux attach-session -t "$active_session" \; set-option -t "$active_session" destroy-unattached on
 }
 
 _start_watcher() {
@@ -90,9 +142,10 @@ _start_watcher() {
     local config=${XDG_CONFIG_HOME:-~/.config}
     _tmux set-environment -g KXH_TMUX_SOCKET "__$PREFIX"
     if _tmux has-session -t "$watcher_session" 2>/dev/null; then
+        _set_destroy_unattached "$watcher_session" off
         return
     fi
-    _tmux new-session -d -s "$watcher_session" "$config/tmux/prewarm/bin/theme-watch"
+    _create_managed_session "$watcher_session" "$config/tmux/prewarm/bin/theme-watch"
 }
 
 invalidate_reserved_windows() {

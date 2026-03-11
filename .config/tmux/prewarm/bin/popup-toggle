@@ -1,0 +1,217 @@
+#!/bin/bash
+
+set -euo pipefail
+
+usage() {
+    printf 'usage: %s [--client CLIENT] [--name NAME] [--title TITLE] [--width WIDTH] [--height HEIGHT] -- <command...>\n' "$0" >&2
+    exit 1
+}
+
+tmux_cmd() {
+    if [ -n "${KXH_TMUX_SOCKET:-}" ]; then
+        "$tmux_bin" -L "$KXH_TMUX_SOCKET" "$@"
+    else
+        "$tmux_bin" "$@"
+    fi
+}
+
+target_client=""
+inside_popup=0
+popup_attach_mode=0
+popup_attach_socket=""
+popup_attach_state_option=""
+popup_attach_session=""
+
+session_name=""
+popup_title=""
+popup_width="80%"
+popup_height="60%"
+tmux_bin="${TMUX_BIN:-$(command -v tmux)}"
+[ -n "$tmux_bin" ] || usage
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --popup-attach)
+            popup_attach_mode=1
+            shift
+            ;;
+        --socket)
+            [ "$#" -ge 2 ] || usage
+            popup_attach_socket="$2"
+            shift 2
+            ;;
+        --state-option)
+            [ "$#" -ge 2 ] || usage
+            popup_attach_state_option="$2"
+            shift 2
+            ;;
+        --session)
+            [ "$#" -ge 2 ] || usage
+            popup_attach_session="$2"
+            shift 2
+            ;;
+        --client)
+            [ "$#" -ge 2 ] || usage
+            target_client="$2"
+            shift 2
+            ;;
+        --name)
+            [ "$#" -ge 2 ] || usage
+            session_name="$2"
+            shift 2
+            ;;
+        --title)
+            [ "$#" -ge 2 ] || usage
+            popup_title="$2"
+            shift 2
+            ;;
+        --width)
+            [ "$#" -ge 2 ] || usage
+            popup_width="$2"
+            shift 2
+            ;;
+        --height)
+            [ "$#" -ge 2 ] || usage
+            popup_height="$2"
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+[ "$popup_attach_mode" -eq 0 ] || {
+    [ -n "$popup_attach_socket" ] || usage
+    [ -n "$popup_attach_state_option" ] || usage
+    [ -n "$popup_attach_session" ] || usage
+
+    cleanup() {
+        "$tmux_bin" -L "$popup_attach_socket" set-option -gu "$popup_attach_state_option" >/dev/null 2>&1 || true
+    }
+
+    if env TMUX= "$tmux_bin" -L "$popup_attach_socket" attach-session -t "=$popup_attach_session"; then
+        rc=0
+    else
+        rc=$?
+    fi
+    cleanup
+    case "$rc" in
+        129|130|143)
+            exit 0
+            ;;
+        *)
+            exit "$rc"
+            ;;
+    esac
+}
+
+[ "$#" -gt 0 ] || usage
+
+command_name="$(basename "$1")"
+command_string="$(printf '%q ' "$@")"
+command_string="${command_string% }"
+command_key="$(printf '%s' "$command_string" | cksum | awk '{print $1}')"
+[ -n "$session_name" ] || session_name="popup-${command_name}-${command_key}"
+[ -n "$popup_title" ] || popup_title="$command_name"
+
+current_session="$(tmux_cmd display-message -p '#{session_name}' 2>/dev/null || true)"
+if [ "$current_session" = "$session_name" ]; then
+    inside_popup=1
+    target_client="$(tmux_cmd show-options -qv -t "$session_name" @popup_toggle_client 2>/dev/null || true)"
+fi
+
+if [ -z "$target_client" ]; then
+    target_client="$(tmux_cmd display-message -p '#{client_name}' 2>/dev/null || true)"
+fi
+[ -n "$target_client" ] || usage
+
+tmux_socket="${KXH_TMUX_SOCKET:-$(basename "$(tmux_cmd display-message -p '#{socket_path}')")}"
+safe_client="$(printf '%s' "$target_client" | tr -c 'A-Za-z0-9._-' '_')"
+state_option="@popup_toggle_visible_${safe_client}_${command_key}"
+opening_option="@popup_toggle_opening_${safe_client}_${command_key}"
+
+clear_visible() {
+    tmux_cmd set-option -gu "$state_option" >/dev/null 2>&1 || true
+    tmux_cmd set-option -gu "$opening_option" >/dev/null 2>&1 || true
+}
+
+create_detached_session() {
+    local previous_destroy
+    previous_destroy="$(tmux_cmd show-options -gqv destroy-unattached 2>/dev/null || echo off)"
+
+    tmux_cmd set-option -g destroy-unattached off >/dev/null
+    if ! tmux_cmd new-session -d -s "$session_name" -n "$popup_title" "$command_string"; then
+        local rc=$?
+        tmux_cmd set-option -g destroy-unattached "$previous_destroy" >/dev/null
+        return "$rc"
+    fi
+
+    tmux_cmd set-option -t "$session_name" destroy-unattached off >/dev/null
+    tmux_cmd set-option -g destroy-unattached "$previous_destroy" >/dev/null
+}
+
+ensure_session() {
+    if ! tmux_cmd has-session -t "$session_name" 2>/dev/null; then
+        create_detached_session
+    fi
+
+    tmux_cmd set-option -t "$session_name" @popup_toggle_persistent 1 >/dev/null
+    tmux_cmd set-option -t "$session_name" @popup_toggle_client "$target_client" >/dev/null
+    tmux_cmd set-option -t "$session_name" destroy-unattached off >/dev/null
+    tmux_cmd set-option -t "$session_name" status off >/dev/null
+
+    pane_id="$(tmux_cmd list-panes -t "$session_name" -F '#{pane_id}' | head -n 1)"
+    if [ "$(tmux_cmd display-message -p -t "$pane_id" '#{pane_dead}')" = "1" ]; then
+        tmux_cmd respawn-pane -k -t "$pane_id" "$command_string"
+    fi
+}
+
+toggle_popup() {
+    popup_is_open="$(tmux_cmd show-options -gqv "$state_option" 2>/dev/null || true)"
+    popup_is_opening="$(tmux_cmd show-options -gqv "$opening_option" 2>/dev/null || true)"
+    if [ "$inside_popup" -eq 1 ] && [ "$popup_is_opening" = "1" ]; then
+        exit 0
+    fi
+    if [ "$popup_is_open" = "$session_name" ]; then
+        clear_visible
+        tmux_cmd display-popup -c "$target_client" -C
+        exit 0
+    fi
+
+    tmux_cmd set-option -gq "$state_option" "$session_name"
+    tmux_cmd set-option -gq "$opening_option" 1
+    tmux_cmd run-shell -b "sleep 0.75; \"$tmux_bin\" -L \"$tmux_socket\" set-option -gu \"$opening_option\" >/dev/null 2>&1 || true"
+    local rc
+    if tmux_cmd display-popup \
+        -c "$target_client" \
+        -E \
+        -T "$popup_title" \
+        -w "$popup_width" \
+        -h "$popup_height" \
+        "$0" \
+        --popup-attach \
+        --socket "$tmux_socket" \
+        --state-option "$state_option" \
+        --session "$session_name"; then
+        rc=0
+    else
+        rc=$?
+    fi
+    case "$rc" in
+        0|129|130|143)
+            return 0
+            ;;
+        *)
+            clear_visible
+            return "$rc"
+            ;;
+    esac
+}
+
+ensure_session
+toggle_popup

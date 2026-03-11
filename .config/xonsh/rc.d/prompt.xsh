@@ -8,6 +8,7 @@ $COMMAND_ICON_MAP = {
     'bpytop': '󰄩 ',
     'brew': ' ',
     'btop': '󰄩 ',
+    'cliamp': '󰧔 ',
     'fzf': ' ',
     'gP': ' ',
     'gl': ' ',
