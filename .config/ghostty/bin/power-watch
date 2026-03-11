@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
+CONFIG_DIR="$XDG_CONFIG_HOME/ghostty"
+POLL_INTERVAL="${GHOSTTY_POWER_POLL_INTERVAL:-10}"
+STATE_SYNC="$CONFIG_DIR/bin/state-sync"
+
+current_power_mode() {
+    local source
+    source=$(pmset -g batt 2>/dev/null | sed -n '1p')
+    case "$source" in
+        *"AC Power"*) echo "ac" ;;
+        *"Battery Power"*) echo "battery" ;;
+        *) echo "battery" ;;
+    esac
+}
+
+reload_ghostty_if_safe() {
+    if [[ -x "$STATE_SYNC" ]]; then
+        "$STATE_SYNC" --reload
+    else
+        echo "[$(date '+%F %T')] ghostty-power-watch: state sync helper not found, reload skipped"
+    fi
+}
+
+sync_once() {
+    local mode
+
+    mode=$(current_power_mode)
+    if [[ "${LAST_POWER_MODE:-}" != "$mode" ]]; then
+        LAST_POWER_MODE="$mode"
+        echo "[$(date '+%F %T')] ghostty-power-watch: switched to $mode"
+        reload_ghostty_if_safe
+    fi
+}
+
+main() {
+    LAST_POWER_MODE=$(current_power_mode)
+    if [[ "${1:-}" == "--once" || "${2:-}" == "--once" ]]; then
+        return 0
+    fi
+
+    while true; do
+        sleep "$POLL_INTERVAL"
+        sync_once
+    done
+}
+
+main "$@"

@@ -148,6 +148,14 @@ _start_watcher() {
     _create_managed_session "$watcher_session" "$config/tmux/prewarm/bin/theme-watch"
 }
 
+_restart_watcher() {
+    local watcher_session=$(_watcher_session)
+    if _tmux has-session -t "$watcher_session" 2>/dev/null; then
+        _tmux kill-session -t "$watcher_session"
+    fi
+    _start_watcher
+}
+
 invalidate_reserved_windows() {
     local reserve_session=$(_get_session "reserve")
     _tmux kill-session -t "$reserve_session"
@@ -159,6 +167,7 @@ main() {
         "dispense") _dispense_window ;;
         "attach") _attach_session ;;
         "watcher-start") _start_watcher ;;
+        "watcher-restart") _restart_watcher ;;
         "invalidate") invalidate_reserved_windows ;;
         "kill") _tmux kill-server ;;
         *) _tmux "$@" ;;

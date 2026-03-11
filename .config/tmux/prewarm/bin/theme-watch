@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 XDG_CACHE_HOME=${XDG_CACHE_HOME:-$HOME/.cache}
+XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
 LOG_DIR="$XDG_CACHE_HOME/tmux"
 LOG_FILE="$LOG_DIR/theme-watch.log"
 
@@ -11,14 +12,36 @@ fi
 
 echo "[$(date '+%F %T')] theme-watch starting"
 
-if ! command -v theme-apply >/dev/null 2>&1; then
-    echo "theme-watch: theme-apply not found"
-    exit 1
+GHOSTTY_POWER_WATCH="$XDG_CONFIG_HOME/ghostty/bin/power-watch"
+GHOSTTY_STATE_SYNC="$XDG_CONFIG_HOME/ghostty/bin/state-sync"
+ghostty_power_pid=""
+
+cleanup() {
+    if [[ -n "$ghostty_power_pid" ]]; then
+        kill "$ghostty_power_pid" 2>/dev/null || true
+    fi
+}
+
+trap cleanup EXIT INT TERM
+
+if [[ -x "$GHOSTTY_POWER_WATCH" ]]; then
+    "$GHOSTTY_POWER_WATCH" &
+    ghostty_power_pid=$!
+else
+    echo "theme-watch: ghostty power watcher not found at $GHOSTTY_POWER_WATCH"
 fi
 
-if ! command -v dark-notify >/dev/null 2>&1; then
-    echo "theme-watch: dark-notify not found"
-    exit 1
+if [[ -x "$GHOSTTY_STATE_SYNC" ]]; then
+    "$GHOSTTY_STATE_SYNC" --reload || true
+else
+    echo "theme-watch: ghostty state sync not found at $GHOSTTY_STATE_SYNC"
+fi
+
+if ! command -v theme-apply >/dev/null 2>&1 || ! command -v dark-notify >/dev/null 2>&1; then
+    echo "theme-watch: theme watcher disabled (missing theme-apply or dark-notify)"
+    while true; do
+        sleep 3600
+    done
 fi
 
 theme-apply -f || true
@@ -29,6 +52,9 @@ while true; do
             dark|light)
                 echo "[$(date '+%F %T')] theme-watch: $mode"
                 theme-apply -f "$mode" || true
+                if [[ -x "$GHOSTTY_STATE_SYNC" ]]; then
+                    "$GHOSTTY_STATE_SYNC" "$mode" --reload || true
+                fi
                 ;;
         esac
     done
