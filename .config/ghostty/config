@@ -36,7 +36,6 @@ clipboard-read = allow
 clipboard-write = allow
 link-url = true
 link-previews = true
-# https://example.com
 
 # key mappings
 macos-option-as-alt = true

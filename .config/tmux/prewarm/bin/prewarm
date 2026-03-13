@@ -17,6 +17,19 @@ _create_managed_session() {
     local session="$1"
     shift
 
+    if ! _tmux list-sessions >/dev/null 2>&1; then
+        # Bootstrap the first detached session in a single tmux command so it
+        # survives the server's default destroy-unattached=on setting.
+        if [[ $# -gt 0 ]]; then
+            _tmux new-session -d -s "$session" "$@" \; \
+                set-option -t "$session" destroy-unattached off >/dev/null
+        else
+            _tmux new-session -d -s "$session" \; \
+                set-option -t "$session" destroy-unattached off >/dev/null
+        fi
+        return
+    fi
+
     local previous_destroy
     previous_destroy="$(_tmux show-options -gqv destroy-unattached 2>/dev/null || echo off)"
 
