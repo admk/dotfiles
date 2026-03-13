@@ -209,6 +209,10 @@ ssh_pid=""
 ssh_log=""
 ssh_ctl_dir=""
 ssh_ctl_path=""
+ssh_supervisor_pid=""
+ssh_check_interval=2
+ssh_reconnect_initial_delay=1
+ssh_reconnect_max_delay=30
 
 print_ssh_log() {
   if [ -n "${ssh_log}" ] && [ -s "${ssh_log}" ]; then
@@ -217,25 +221,159 @@ print_ssh_log() {
   fi
 }
 
-cleanup() {
-  if [ -n "${ssh_ctl_path}" ]; then
-    ssh -S "${ssh_ctl_path}" -O exit "${ssh_target}" >/dev/null 2>&1 || true
-  elif [ -n "${ssh_pid}" ] && kill -0 "${ssh_pid}" >/dev/null 2>&1; then
-    kill "${ssh_pid}" >/dev/null 2>&1 || true
-    wait "${ssh_pid}" 2>/dev/null || true
+ssh_control() {
+  local op=$1
+  local -a ssh_cmd
+
+  [ -n "${ssh_ctl_path}" ] || return 1
+
+  ssh_cmd=(
+    ssh
+    -F /dev/null
+  )
+
+  if [ -n "${ssh_port}" ]; then
+    ssh_cmd+=(-p "${ssh_port}")
   fi
+
+  if [ -n "${ssh_user}" ]; then
+    ssh_cmd+=(-l "${ssh_user}")
+  fi
+
+  ssh_cmd+=(
+    -S "${ssh_ctl_path}"
+    -O "${op}"
+    "${ssh_host:-${ssh_target}}"
+  )
+
+  "${ssh_cmd[@]}" >/dev/null 2>&1
+}
+
+cleanup_ssh_artifacts() {
   if [ -n "${ssh_ctl_dir}" ] && [ -d "${ssh_ctl_dir}" ]; then
     rm -rf "${ssh_ctl_dir}" >/dev/null 2>&1 || true
   fi
   if [ -n "${ssh_log}" ] && [ -f "${ssh_log}" ]; then
     rm -f "${ssh_log}" >/dev/null 2>&1 || true
   fi
+  ssh_ctl_dir=""
+  ssh_ctl_path=""
+  ssh_log=""
+}
+
+stop_ssh_tunnel() {
+  if [ -n "${ssh_ctl_path}" ]; then
+    ssh_control exit || true
+  elif [ -n "${ssh_pid}" ] && kill -0 "${ssh_pid}" >/dev/null 2>&1; then
+    kill "${ssh_pid}" >/dev/null 2>&1 || true
+    wait "${ssh_pid}" 2>/dev/null || true
+  fi
+  ssh_pid=""
+  cleanup_ssh_artifacts
+}
+
+health_check_tunnel() {
+  if command -v curl >/dev/null 2>&1; then
+    curl --silent --show-error --fail --max-time 3 "http://127.0.0.1:${local_port}/health" >/dev/null
+    return $?
+  fi
+  return 0
+}
+
+start_ssh_tunnel() {
+  local ssh_status
+  local -a ssh_cmd
+
+  stop_ssh_tunnel
+
+  ssh_ctl_dir=$(mktemp -d /tmp/ocssh.XXXXXX)
+  ssh_ctl_path="${ssh_ctl_dir}/mux"
+  ssh_log=$(mktemp /tmp/openclaw-remote.XXXXXX.log)
+
+  ssh_cmd=(
+    "${ssh_base_cmd[@]}"
+    -S "${ssh_ctl_path}"
+    -N
+    -L "${local_port}:127.0.0.1:${remote_port}"
+    "${ssh_host:-${ssh_target}}"
+  )
+
+  if "${ssh_cmd[@]}" </dev/null > /dev/null 2>"${ssh_log}"; then
+    :
+  else
+    ssh_status=$?
+    if [ -n "${ssh_ctl_path}" ]; then
+      ssh_control exit || true
+    fi
+    if [ -n "${ssh_ctl_dir}" ] && [ -d "${ssh_ctl_dir}" ]; then
+      rm -rf "${ssh_ctl_dir}" >/dev/null 2>&1 || true
+    fi
+    ssh_pid=""
+    ssh_ctl_dir=""
+    ssh_ctl_path=""
+    echo "openclaw-remote: failed to start ssh tunnel (status ${ssh_status})" >&2
+    return 1
+  fi
+
+  if ! health_check_tunnel; then
+    if [ -n "${ssh_ctl_path}" ]; then
+      ssh_control exit || true
+    fi
+    if [ -n "${ssh_ctl_dir}" ] && [ -d "${ssh_ctl_dir}" ]; then
+      rm -rf "${ssh_ctl_dir}" >/dev/null 2>&1 || true
+    fi
+    ssh_pid=""
+    ssh_ctl_dir=""
+    ssh_ctl_path=""
+    echo "openclaw-remote: tunnel is up, but the remote gateway health check failed on http://127.0.0.1:${local_port}/health" >&2
+    return 1
+  fi
+
+  return 0
+}
+
+monitor_ssh_tunnel() {
+  local reconnect_delay
+
+  reconnect_delay=${ssh_reconnect_initial_delay}
+
+  while :; do
+    if ssh_control check; then
+      reconnect_delay=${ssh_reconnect_initial_delay}
+      sleep "${ssh_check_interval}"
+      continue
+    fi
+
+    echo "openclaw-remote: ssh tunnel disconnected; reconnecting..." >&2
+
+    while :; do
+      if start_ssh_tunnel; then
+        reconnect_delay=${ssh_reconnect_initial_delay}
+        echo "openclaw-remote: ssh tunnel reconnected" >&2
+        break
+      fi
+
+      echo "openclaw-remote: reconnect failed; retrying in ${reconnect_delay}s" >&2
+      sleep "${reconnect_delay}"
+      if [ "${reconnect_delay}" -lt "${ssh_reconnect_max_delay}" ]; then
+        reconnect_delay=$((reconnect_delay * 2))
+        if [ "${reconnect_delay}" -gt "${ssh_reconnect_max_delay}" ]; then
+          reconnect_delay=${ssh_reconnect_max_delay}
+        fi
+      fi
+    done
+  done
+}
+
+cleanup() {
+  if [ -n "${ssh_supervisor_pid}" ] && kill -0 "${ssh_supervisor_pid}" >/dev/null 2>&1; then
+    kill "${ssh_supervisor_pid}" >/dev/null 2>&1 || true
+    wait "${ssh_supervisor_pid}" 2>/dev/null || true
+  fi
+  stop_ssh_tunnel
 }
 
 trap cleanup EXIT INT TERM
-
-ssh_ctl_dir=$(mktemp -d /tmp/ocssh.XXXXXX)
-ssh_ctl_path="${ssh_ctl_dir}/mux"
 
 # Resolve the user's SSH alias first, then rebuild a clean tunnel command from
 # the resolved transport settings. This keeps useful routing like ProxyJump
@@ -252,7 +390,7 @@ if ssh_config_dump=$(ssh -G "${ssh_target}" 2>/dev/null); then
   ssh_proxy_command=$(resolve_ssh_value proxycommand "${ssh_config_dump}")
 fi
 
-ssh_cmd=(
+ssh_base_cmd=(
   ssh
   # Start from an empty ssh config and re-add only the settings we need.
   # This avoids leaking LocalForward/RemoteForward directives from the alias.
@@ -268,66 +406,43 @@ ssh_cmd=(
 )
 
 if [ -n "${ssh_port}" ]; then
-  ssh_cmd+=(-p "${ssh_port}")
+  ssh_base_cmd+=(-p "${ssh_port}")
 fi
 
 if [ -n "${ssh_user}" ]; then
-  ssh_cmd+=(-l "${ssh_user}")
+  ssh_base_cmd+=(-l "${ssh_user}")
 fi
 
 if [ -n "${ssh_identity_agent}" ] && [ "${ssh_identity_agent}" != "none" ]; then
-  ssh_cmd+=(-o "IdentityAgent=${ssh_identity_agent}")
+  ssh_base_cmd+=(-o "IdentityAgent=${ssh_identity_agent}")
 fi
 
 if [ -n "${ssh_identities_only}" ]; then
-  ssh_cmd+=(-o "IdentitiesOnly=${ssh_identities_only}")
+  ssh_base_cmd+=(-o "IdentitiesOnly=${ssh_identities_only}")
 fi
 
 if [ -n "${ssh_proxy_jump}" ] && [ "${ssh_proxy_jump}" != "none" ]; then
-  ssh_cmd+=(-o "ProxyJump=${ssh_proxy_jump}")
+  ssh_base_cmd+=(-o "ProxyJump=${ssh_proxy_jump}")
 fi
 
 if [ -n "${ssh_proxy_command}" ] && [ "${ssh_proxy_command}" != "none" ]; then
-  ssh_cmd+=(-o "ProxyCommand=${ssh_proxy_command}")
+  ssh_base_cmd+=(-o "ProxyCommand=${ssh_proxy_command}")
 fi
 
 if [ -n "${ssh_identity}" ]; then
-  ssh_cmd+=(-i "${ssh_identity}")
+  ssh_base_cmd+=(-i "${ssh_identity}")
 elif [ -n "${ssh_identity_files}" ]; then
   while IFS= read -r identity_file; do
     [ -n "${identity_file}" ] || continue
-    ssh_cmd+=(-i "${identity_file}")
+    ssh_base_cmd+=(-i "${identity_file}")
   done <<EOF
 ${ssh_identity_files}
 EOF
 fi
 
-ssh_cmd+=(
-  -S "${ssh_ctl_path}"
-  -N
-  -L "${local_port}:127.0.0.1:${remote_port}"
-  "${ssh_host:-${ssh_target}}"
-)
-
-ssh_log=$(mktemp /tmp/openclaw-remote.XXXXXX.log)
-if "${ssh_cmd[@]}" </dev/null > /dev/null 2>"${ssh_log}"; then
-  :
-else
-  ssh_status=$?
-  echo "openclaw-remote: failed to start ssh tunnel (status ${ssh_status})" >&2
+if ! start_ssh_tunnel; then
   print_ssh_log
   exit 1
-fi
-
-# Fail before launching OpenClaw if the forwarded endpoint is not the expected
-# gateway. This catches bad tunnels and wrong target ports with a simpler error
-# than a later WebSocket disconnect.
-if command -v curl >/dev/null 2>&1; then
-  if ! curl --silent --show-error --fail --max-time 3 "http://127.0.0.1:${local_port}/health" >/dev/null; then
-    echo "openclaw-remote: tunnel is up, but the remote gateway health check failed on http://127.0.0.1:${local_port}/health" >&2
-    print_ssh_log
-    exit 1
-  fi
 fi
 
 env_cmd=(
@@ -364,20 +479,23 @@ if [ "$#" -gt 0 ] && [ "$1" = "tui" ]; then
   openclaw_cmd+=("$@")
 fi
 
+monitor_ssh_tunnel &
+ssh_supervisor_pid=$!
+
 if "${env_cmd[@]}" "${openclaw_cmd[@]}"; then
   openclaw_status=0
 else
   openclaw_status=$?
 fi
 
+if [ -n "${ssh_supervisor_pid}" ] && kill -0 "${ssh_supervisor_pid}" >/dev/null 2>&1; then
+  kill "${ssh_supervisor_pid}" >/dev/null 2>&1 || true
+  wait "${ssh_supervisor_pid}" 2>/dev/null || true
+fi
+ssh_supervisor_pid=""
+
 if [ "${openclaw_status}" -ne 0 ]; then
   echo "openclaw-remote: openclaw exited with status ${openclaw_status}" >&2
   print_ssh_log
   exit "${openclaw_status}"
-fi
-
-if ! ssh -S "${ssh_ctl_path}" -O check "${ssh_target}" >/dev/null 2>&1; then
-  echo "openclaw-remote: ssh tunnel exited unexpectedly" >&2
-  print_ssh_log
-  exit 1
 fi
