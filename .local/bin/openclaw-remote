@@ -1,0 +1,383 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: openclaw-remote <ssh-server> <openclaw-args...>
+
+Examples:
+  openclaw-remote home-linux tui
+  OPENCLAW_GATEWAY_TOKEN=... openclaw-remote prod-server status
+
+Environment:
+  OPENCLAW_REMOTE_CONFIG_DIR   Config dir (default: $XDG_CONFIG_HOME/openclaw-remote)
+  OPENCLAW_REMOTE_LOCAL_PORT   Force the local forwarded port
+  OPENCLAW_REMOTE_REMOTE_PORT  Remote gateway port (default: 18789)
+  OPENCLAW_GATEWAY_PORT     Fallback remote gateway port
+  OPENCLAW_REMOTE_TARGET       Override the SSH target actually used
+  OPENCLAW_REMOTE_IDENTITY     SSH identity file path
+  OPENCLAW_GATEWAY_TOKEN    Passed through as --token when no token/password arg is set
+  OPENCLAW_GATEWAY_PASSWORD Passed through as --password when no token/password arg is set
+
+Config files:
+  $XDG_CONFIG_HOME/openclaw-remote/config.env
+  $XDG_CONFIG_HOME/openclaw-remote/<ssh-server>.env
+EOF
+}
+
+if [ $# -lt 1 ]; then
+  usage >&2
+  exit 1
+fi
+
+server=$1
+shift
+
+if [ "${server}" = "-h" ] || [ "${server}" = "--help" ]; then
+  usage
+  exit 0
+fi
+
+if [ $# -lt 1 ]; then
+  echo "openclaw-remote: missing openclaw arguments" >&2
+  usage >&2
+  exit 1
+fi
+
+if ! command -v ssh >/dev/null 2>&1; then
+  echo "openclaw-remote: ssh is not installed" >&2
+  exit 1
+fi
+
+if ! command -v openclaw >/dev/null 2>&1; then
+  echo "openclaw-remote: openclaw is not installed" >&2
+  exit 1
+fi
+
+has_flag() {
+  local flag=$1
+  shift
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      "$flag"|"$flag="*) return 0 ;;
+    esac
+    shift
+  done
+  return 1
+}
+
+resolve_ssh_value() {
+  local key=$1
+  local data=$2
+  printf '%s\n' "$data" | awk -v wanted="$key" '$1 == wanted { $1=""; sub(/^ /, ""); print; exit }'
+}
+
+resolve_ssh_values() {
+  local key=$1
+  local data=$2
+  printf '%s\n' "$data" | awk -v wanted="$key" '$1 == wanted { $1=""; sub(/^ /, ""); print }'
+}
+
+trim() {
+  local value=$1
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  printf '%s\n' "$value"
+}
+
+unquote() {
+  local value=$1
+  if [ "${#value}" -ge 2 ]; then
+    case "$value" in
+      \"*\") value=${value#\"}; value=${value%\"} ;;
+      \'*\') value=${value#\'}; value=${value%\'} ;;
+    esac
+  fi
+  printf '%s\n' "$value"
+}
+
+load_env_file() {
+  local path=$1
+  local line
+  local key
+  local value
+
+  [ -f "$path" ] || return 0
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    line=$(trim "$line")
+    [ -z "$line" ] && continue
+    case "$line" in
+      \#*) continue ;;
+    esac
+
+    key=$(trim "${line%%=*}")
+    [ "$line" = "$key" ] && continue
+    value=$(trim "${line#*=}")
+    value=$(unquote "$value")
+
+    case "$key" in
+      OPENCLAW_REMOTE_TARGET) OPENCLAW_REMOTE_TARGET=$value ;;
+      OPENCLAW_REMOTE_IDENTITY) OPENCLAW_REMOTE_IDENTITY=$value ;;
+      OPENCLAW_REMOTE_LOCAL_PORT) OPENCLAW_REMOTE_LOCAL_PORT=$value ;;
+      OPENCLAW_REMOTE_REMOTE_PORT) OPENCLAW_REMOTE_REMOTE_PORT=$value ;;
+      OPENCLAW_GATEWAY_TOKEN) OPENCLAW_GATEWAY_TOKEN=$value ;;
+      OPENCLAW_GATEWAY_PASSWORD) OPENCLAW_GATEWAY_PASSWORD=$value ;;
+    esac
+  done < "$path"
+}
+
+is_port_free() {
+  local port=$1
+  ! nc -z 127.0.0.1 "$port" >/dev/null 2>&1
+}
+
+pick_port() {
+  local candidate
+  local attempt
+  for attempt in $(seq 1 40); do
+    candidate=$((43000 + RANDOM % 20000))
+    if is_port_free "$candidate"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+if has_flag --url "$@"; then
+  echo "openclaw-remote: do not pass --url; the wrapper manages the remote target" >&2
+  exit 1
+fi
+
+config_dir=${OPENCLAW_REMOTE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/openclaw-remote}
+global_env_path=${config_dir}/config.env
+host_env_path=${config_dir}/${server}.env
+
+had_ssh_target=0
+had_ssh_identity=0
+had_local_port=0
+had_remote_port=0
+had_gateway_token=0
+had_gateway_password=0
+
+if [ "${OPENCLAW_REMOTE_TARGET+x}" = x ]; then had_ssh_target=1; env_ssh_target=$OPENCLAW_REMOTE_TARGET; fi
+if [ "${OPENCLAW_REMOTE_IDENTITY+x}" = x ]; then had_ssh_identity=1; env_ssh_identity=$OPENCLAW_REMOTE_IDENTITY; fi
+if [ "${OPENCLAW_REMOTE_LOCAL_PORT+x}" = x ]; then had_local_port=1; env_local_port=$OPENCLAW_REMOTE_LOCAL_PORT; fi
+if [ "${OPENCLAW_REMOTE_REMOTE_PORT+x}" = x ]; then had_remote_port=1; env_remote_port=$OPENCLAW_REMOTE_REMOTE_PORT; fi
+if [ "${OPENCLAW_GATEWAY_TOKEN+x}" = x ]; then had_gateway_token=1; env_gateway_token=$OPENCLAW_GATEWAY_TOKEN; fi
+if [ "${OPENCLAW_GATEWAY_PASSWORD+x}" = x ]; then had_gateway_password=1; env_gateway_password=$OPENCLAW_GATEWAY_PASSWORD; fi
+
+load_env_file "$global_env_path"
+load_env_file "$host_env_path"
+
+if [ "$had_ssh_target" -eq 1 ]; then OPENCLAW_REMOTE_TARGET=$env_ssh_target; fi
+if [ "$had_ssh_identity" -eq 1 ]; then OPENCLAW_REMOTE_IDENTITY=$env_ssh_identity; fi
+if [ "$had_local_port" -eq 1 ]; then OPENCLAW_REMOTE_LOCAL_PORT=$env_local_port; fi
+if [ "$had_remote_port" -eq 1 ]; then OPENCLAW_REMOTE_REMOTE_PORT=$env_remote_port; fi
+if [ "$had_gateway_token" -eq 1 ]; then OPENCLAW_GATEWAY_TOKEN=$env_gateway_token; fi
+if [ "$had_gateway_password" -eq 1 ]; then OPENCLAW_GATEWAY_PASSWORD=$env_gateway_password; fi
+
+remote_port=${OPENCLAW_REMOTE_REMOTE_PORT:-${OPENCLAW_GATEWAY_PORT:-18789}}
+local_port=${OPENCLAW_REMOTE_LOCAL_PORT:-}
+ssh_target=${OPENCLAW_REMOTE_TARGET:-$server}
+ssh_identity=${OPENCLAW_REMOTE_IDENTITY:-}
+ssh_config_dump=""
+ssh_host=""
+ssh_user=""
+ssh_port=""
+ssh_identity_agent=""
+ssh_identities_only=""
+ssh_identity_files=""
+ssh_proxy_jump=""
+ssh_proxy_command=""
+
+if [ -n "${local_port}" ]; then
+  if ! is_port_free "${local_port}"; then
+    echo "openclaw-remote: local port ${local_port} is already in use" >&2
+    exit 1
+  fi
+else
+  if ! local_port=$(pick_port); then
+    echo "openclaw-remote: failed to find a free local port" >&2
+    exit 1
+  fi
+fi
+
+ssh_pid=""
+ssh_log=""
+ssh_ctl_dir=""
+ssh_ctl_path=""
+
+print_ssh_log() {
+  if [ -n "${ssh_log}" ] && [ -s "${ssh_log}" ]; then
+    echo "openclaw-remote: recent ssh output:" >&2
+    tail -n 20 "${ssh_log}" >&2
+  fi
+}
+
+cleanup() {
+  if [ -n "${ssh_ctl_path}" ]; then
+    ssh -S "${ssh_ctl_path}" -O exit "${ssh_target}" >/dev/null 2>&1 || true
+  elif [ -n "${ssh_pid}" ] && kill -0 "${ssh_pid}" >/dev/null 2>&1; then
+    kill "${ssh_pid}" >/dev/null 2>&1 || true
+    wait "${ssh_pid}" 2>/dev/null || true
+  fi
+  if [ -n "${ssh_ctl_dir}" ] && [ -d "${ssh_ctl_dir}" ]; then
+    rm -rf "${ssh_ctl_dir}" >/dev/null 2>&1 || true
+  fi
+  if [ -n "${ssh_log}" ] && [ -f "${ssh_log}" ]; then
+    rm -f "${ssh_log}" >/dev/null 2>&1 || true
+  fi
+}
+
+trap cleanup EXIT INT TERM
+
+ssh_ctl_dir=$(mktemp -d /tmp/ocssh.XXXXXX)
+ssh_ctl_path="${ssh_ctl_dir}/mux"
+
+# Resolve the user's SSH alias first, then rebuild a clean tunnel command from
+# the resolved transport settings. This keeps useful routing like ProxyJump
+# while deliberately dropping alias-defined forwards that would interfere with
+# the wrapper's own single local tunnel.
+if ssh_config_dump=$(ssh -G "${ssh_target}" 2>/dev/null); then
+  ssh_host=$(resolve_ssh_value hostname "${ssh_config_dump}")
+  ssh_user=$(resolve_ssh_value user "${ssh_config_dump}")
+  ssh_port=$(resolve_ssh_value port "${ssh_config_dump}")
+  ssh_identity_agent=$(resolve_ssh_value identityagent "${ssh_config_dump}")
+  ssh_identities_only=$(resolve_ssh_value identitiesonly "${ssh_config_dump}")
+  ssh_identity_files=$(resolve_ssh_values identityfile "${ssh_config_dump}")
+  ssh_proxy_jump=$(resolve_ssh_value proxyjump "${ssh_config_dump}")
+  ssh_proxy_command=$(resolve_ssh_value proxycommand "${ssh_config_dump}")
+fi
+
+ssh_cmd=(
+  ssh
+  # Start from an empty ssh config and re-add only the settings we need.
+  # This avoids leaking LocalForward/RemoteForward directives from the alias.
+  -F /dev/null
+  -o ControlMaster=yes
+  -o ControlPersist=no
+  -o ExitOnForwardFailure=yes
+  -o ServerAliveInterval=30
+  -o ServerAliveCountMax=3
+  -T
+  -n
+  -f
+)
+
+if [ -n "${ssh_port}" ]; then
+  ssh_cmd+=(-p "${ssh_port}")
+fi
+
+if [ -n "${ssh_user}" ]; then
+  ssh_cmd+=(-l "${ssh_user}")
+fi
+
+if [ -n "${ssh_identity_agent}" ] && [ "${ssh_identity_agent}" != "none" ]; then
+  ssh_cmd+=(-o "IdentityAgent=${ssh_identity_agent}")
+fi
+
+if [ -n "${ssh_identities_only}" ]; then
+  ssh_cmd+=(-o "IdentitiesOnly=${ssh_identities_only}")
+fi
+
+if [ -n "${ssh_proxy_jump}" ] && [ "${ssh_proxy_jump}" != "none" ]; then
+  ssh_cmd+=(-o "ProxyJump=${ssh_proxy_jump}")
+fi
+
+if [ -n "${ssh_proxy_command}" ] && [ "${ssh_proxy_command}" != "none" ]; then
+  ssh_cmd+=(-o "ProxyCommand=${ssh_proxy_command}")
+fi
+
+if [ -n "${ssh_identity}" ]; then
+  ssh_cmd+=(-i "${ssh_identity}")
+elif [ -n "${ssh_identity_files}" ]; then
+  while IFS= read -r identity_file; do
+    [ -n "${identity_file}" ] || continue
+    ssh_cmd+=(-i "${identity_file}")
+  done <<EOF
+${ssh_identity_files}
+EOF
+fi
+
+ssh_cmd+=(
+  -S "${ssh_ctl_path}"
+  -N
+  -L "${local_port}:127.0.0.1:${remote_port}"
+  "${ssh_host:-${ssh_target}}"
+)
+
+ssh_log=$(mktemp /tmp/openclaw-remote.XXXXXX.log)
+if "${ssh_cmd[@]}" </dev/null > /dev/null 2>"${ssh_log}"; then
+  :
+else
+  ssh_status=$?
+  echo "openclaw-remote: failed to start ssh tunnel (status ${ssh_status})" >&2
+  print_ssh_log
+  exit 1
+fi
+
+# Fail before launching OpenClaw if the forwarded endpoint is not the expected
+# gateway. This catches bad tunnels and wrong target ports with a simpler error
+# than a later WebSocket disconnect.
+if command -v curl >/dev/null 2>&1; then
+  if ! curl --silent --show-error --fail --max-time 3 "http://127.0.0.1:${local_port}/health" >/dev/null; then
+    echo "openclaw-remote: tunnel is up, but the remote gateway health check failed on http://127.0.0.1:${local_port}/health" >&2
+    print_ssh_log
+    exit 1
+  fi
+fi
+
+env_cmd=(
+  env
+  "OPENCLAW_GATEWAY_URL=ws://127.0.0.1:${local_port}"
+)
+
+if [ -n "${OPENCLAW_GATEWAY_TOKEN:-}" ]; then
+  env_cmd+=("OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}")
+fi
+
+if [ -n "${OPENCLAW_GATEWAY_PASSWORD:-}" ]; then
+  env_cmd+=("OPENCLAW_GATEWAY_PASSWORD=${OPENCLAW_GATEWAY_PASSWORD}")
+fi
+
+openclaw_cmd=(openclaw "$@")
+
+if [ "$#" -gt 0 ] && [ "$1" = "tui" ]; then
+  # `openclaw tui` is more reliable in this setup when the forwarded URL and
+  # auth are passed explicitly, matching the known-good manual command.
+  if ! has_flag --token "$@" && ! has_flag --password "$@" && [ -z "${OPENCLAW_GATEWAY_TOKEN:-}" ] && [ -z "${OPENCLAW_GATEWAY_PASSWORD:-}" ]; then
+    echo "openclaw-remote: tui requires a gateway token or password; set it in ${host_env_path}" >&2
+    exit 1
+  fi
+  shift
+  openclaw_cmd=(openclaw tui --url "ws://127.0.0.1:${local_port}")
+  if ! has_flag --token "$@" && ! has_flag --password "$@"; then
+    if [ -n "${OPENCLAW_GATEWAY_TOKEN:-}" ]; then
+      openclaw_cmd+=(--token "${OPENCLAW_GATEWAY_TOKEN}")
+    elif [ -n "${OPENCLAW_GATEWAY_PASSWORD:-}" ]; then
+      openclaw_cmd+=(--password "${OPENCLAW_GATEWAY_PASSWORD}")
+    fi
+  fi
+  openclaw_cmd+=("$@")
+fi
+
+if "${env_cmd[@]}" "${openclaw_cmd[@]}"; then
+  openclaw_status=0
+else
+  openclaw_status=$?
+fi
+
+if [ "${openclaw_status}" -ne 0 ]; then
+  echo "openclaw-remote: openclaw exited with status ${openclaw_status}" >&2
+  print_ssh_log
+  exit "${openclaw_status}"
+fi
+
+if ! ssh -S "${ssh_ctl_path}" -O check "${ssh_target}" >/dev/null 2>&1; then
+  echo "openclaw-remote: ssh tunnel exited unexpectedly" >&2
+  print_ssh_log
+  exit 1
+fi

@@ -185,10 +185,11 @@ toggle_popup() {
 
     tmux_cmd set-option -gq "$state_option" "$session_name"
     tmux_cmd set-option -gq "$opening_option" 1
-    tmux_cmd run-shell -b "sleep 0.75; \"$tmux_bin\" -L \"$tmux_socket\" set-option -gu \"$opening_option\" >/dev/null 2>&1 || true"
+    tmux_cmd run-shell -b "\"$tmux_bin\" -L \"$tmux_socket\" set-option -gu \"$opening_option\" >/dev/null 2>&1 || true"
     local rc
     if tmux_cmd display-popup \
         -c "$target_client" \
+        -b rounded \
         -E \
         -T "$popup_title" \
         -w "$popup_width" \
