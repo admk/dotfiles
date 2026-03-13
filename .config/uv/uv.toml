@@ -1,2 +1,18 @@
-index-url = "http://mirrors.aliyun.com/pypi/simple/"
 python-install-mirror = "https://gh-proxy.com/github.com/indygreg/python-build-standalone/releases/download"
+
+[[index]]
+name = "tsinghua"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
+
+[[index]]
+name = "ustc"
+url = "https://mirrors.ustc.edu.cn/pypi/simple/"
+
+[[index]]
+name = "tencent"
+url = "https://mirrors.cloud.tencent.com/pypi/simple/"
+
+[[index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
