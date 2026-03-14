@@ -20,7 +20,11 @@ inside_popup=0
 popup_attach_mode=0
 popup_attach_socket=""
 popup_attach_state_option=""
+popup_attach_opening_option=""
 popup_attach_session=""
+popup_attach_active_session_option=""
+popup_attach_active_state_option=""
+popup_attach_active_opening_option=""
 
 session_name=""
 popup_title=""
@@ -45,9 +49,29 @@ while [ "$#" -gt 0 ]; do
             popup_attach_state_option="$2"
             shift 2
             ;;
+        --opening-option)
+            [ "$#" -ge 2 ] || usage
+            popup_attach_opening_option="$2"
+            shift 2
+            ;;
         --session)
             [ "$#" -ge 2 ] || usage
             popup_attach_session="$2"
+            shift 2
+            ;;
+        --active-session-option)
+            [ "$#" -ge 2 ] || usage
+            popup_attach_active_session_option="$2"
+            shift 2
+            ;;
+        --active-state-option)
+            [ "$#" -ge 2 ] || usage
+            popup_attach_active_state_option="$2"
+            shift 2
+            ;;
+        --active-opening-option)
+            [ "$#" -ge 2 ] || usage
+            popup_attach_active_opening_option="$2"
             shift 2
             ;;
         --client)
@@ -88,10 +112,22 @@ done
 [ "$popup_attach_mode" -eq 0 ] || {
     [ -n "$popup_attach_socket" ] || usage
     [ -n "$popup_attach_state_option" ] || usage
+    [ -n "$popup_attach_opening_option" ] || usage
     [ -n "$popup_attach_session" ] || usage
+    [ -n "$popup_attach_active_session_option" ] || usage
+    [ -n "$popup_attach_active_state_option" ] || usage
+    [ -n "$popup_attach_active_opening_option" ] || usage
 
     cleanup() {
         "$tmux_bin" -L "$popup_attach_socket" set-option -gu "$popup_attach_state_option" >/dev/null 2>&1 || true
+        "$tmux_bin" -L "$popup_attach_socket" set-option -gu "$popup_attach_opening_option" >/dev/null 2>&1 || true
+
+        active_session="$("$tmux_bin" -L "$popup_attach_socket" show-options -gqv "$popup_attach_active_session_option" 2>/dev/null || true)"
+        if [ "$active_session" = "$popup_attach_session" ]; then
+            "$tmux_bin" -L "$popup_attach_socket" set-option -gu "$popup_attach_active_session_option" >/dev/null 2>&1 || true
+            "$tmux_bin" -L "$popup_attach_socket" set-option -gu "$popup_attach_active_state_option" >/dev/null 2>&1 || true
+            "$tmux_bin" -L "$popup_attach_socket" set-option -gu "$popup_attach_active_opening_option" >/dev/null 2>&1 || true
+        fi
     }
 
     if env TMUX= "$tmux_bin" -L "$popup_attach_socket" attach-session -t "=$popup_attach_session"; then
@@ -120,9 +156,12 @@ command_key="$(printf '%s' "$command_string" | cksum | awk '{print $1}')"
 [ -n "$popup_title" ] || popup_title="$command_name"
 
 current_session="$(tmux_cmd display-message -p '#{session_name}' 2>/dev/null || true)"
-if [ "$current_session" = "$session_name" ]; then
-    inside_popup=1
-    target_client="$(tmux_cmd show-options -qv -t "$session_name" @popup_toggle_client 2>/dev/null || true)"
+if [ -n "$current_session" ]; then
+    popup_parent_client="$(tmux_cmd show-options -qv -t "$current_session" @popup_toggle_client 2>/dev/null || true)"
+    if [ -n "$popup_parent_client" ]; then
+        inside_popup=1
+        target_client="$popup_parent_client"
+    fi
 fi
 
 if [ -z "$target_client" ]; then
@@ -134,10 +173,42 @@ tmux_socket="${KXH_TMUX_SOCKET:-$(basename "$(tmux_cmd display-message -p '#{soc
 safe_client="$(printf '%s' "$target_client" | tr -c 'A-Za-z0-9._-' '_')"
 state_option="@popup_toggle_visible_${safe_client}_${command_key}"
 opening_option="@popup_toggle_opening_${safe_client}_${command_key}"
+active_session_option="@popup_toggle_active_session_${safe_client}"
+active_state_option="@popup_toggle_active_state_${safe_client}"
+active_opening_option="@popup_toggle_active_opening_${safe_client}"
 
 clear_visible() {
     tmux_cmd set-option -gu "$state_option" >/dev/null 2>&1 || true
     tmux_cmd set-option -gu "$opening_option" >/dev/null 2>&1 || true
+
+    active_session="$(tmux_cmd show-options -gqv "$active_session_option" 2>/dev/null || true)"
+    if [ "$active_session" = "$session_name" ]; then
+        tmux_cmd set-option -gu "$active_session_option" >/dev/null 2>&1 || true
+        tmux_cmd set-option -gu "$active_state_option" >/dev/null 2>&1 || true
+        tmux_cmd set-option -gu "$active_opening_option" >/dev/null 2>&1 || true
+    fi
+}
+
+clear_active_popup() {
+    active_state="$(tmux_cmd show-options -gqv "$active_state_option" 2>/dev/null || true)"
+    active_opening="$(tmux_cmd show-options -gqv "$active_opening_option" 2>/dev/null || true)"
+
+    if [ -n "$active_state" ]; then
+        tmux_cmd set-option -gu "$active_state" >/dev/null 2>&1 || true
+    fi
+    if [ -n "$active_opening" ]; then
+        tmux_cmd set-option -gu "$active_opening" >/dev/null 2>&1 || true
+    fi
+
+    tmux_cmd set-option -gu "$active_session_option" >/dev/null 2>&1 || true
+    tmux_cmd set-option -gu "$active_state_option" >/dev/null 2>&1 || true
+    tmux_cmd set-option -gu "$active_opening_option" >/dev/null 2>&1 || true
+}
+
+mark_active_popup() {
+    tmux_cmd set-option -gq "$active_session_option" "$session_name"
+    tmux_cmd set-option -gq "$active_state_option" "$state_option"
+    tmux_cmd set-option -gq "$active_opening_option" "$opening_option"
 }
 
 create_detached_session() {
@@ -174,6 +245,7 @@ ensure_session() {
 toggle_popup() {
     popup_is_open="$(tmux_cmd show-options -gqv "$state_option" 2>/dev/null || true)"
     popup_is_opening="$(tmux_cmd show-options -gqv "$opening_option" 2>/dev/null || true)"
+    active_popup_session="$(tmux_cmd show-options -gqv "$active_session_option" 2>/dev/null || true)"
     if [ "$inside_popup" -eq 1 ] && [ "$popup_is_opening" = "1" ]; then
         exit 0
     fi
@@ -182,9 +254,14 @@ toggle_popup() {
         tmux_cmd display-popup -c "$target_client" -C
         exit 0
     fi
+    if [ -n "$active_popup_session" ] && [ "$active_popup_session" != "$session_name" ]; then
+        clear_active_popup
+        tmux_cmd display-popup -c "$target_client" -C >/dev/null 2>&1 || true
+    fi
 
     tmux_cmd set-option -gq "$state_option" "$session_name"
     tmux_cmd set-option -gq "$opening_option" 1
+    mark_active_popup
     tmux_cmd run-shell -b "\"$tmux_bin\" -L \"$tmux_socket\" set-option -gu \"$opening_option\" >/dev/null 2>&1 || true"
     local rc
     if tmux_cmd display-popup \
@@ -198,7 +275,11 @@ toggle_popup() {
         --popup-attach \
         --socket "$tmux_socket" \
         --state-option "$state_option" \
-        --session "$session_name"; then
+        --opening-option "$opening_option" \
+        --session "$session_name" \
+        --active-session-option "$active_session_option" \
+        --active-state-option "$active_state_option" \
+        --active-opening-option "$active_opening_option"; then
         rc=0
     else
         rc=$?
