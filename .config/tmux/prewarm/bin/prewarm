@@ -13,6 +13,24 @@ _watcher_session() {
     echo "${PREFIX}_watcher"
 }
 
+_is_active_session() {
+    local session="$1"
+    [[ -n "$session" && "$session" == "${PREFIX}_active_"* ]]
+}
+
+_find_detached_active_session() {
+    _tmux list-sessions -F "#{?session_attached,,#{session_name}}" 2>/dev/null \
+        | grep "^${PREFIX}_active_" \
+        | head -n 1 || true
+}
+
+_next_active_session() {
+    local index
+    index=$(_tmux list-sessions -F "#{session_name}" 2>/dev/null \
+        | grep -c "^${PREFIX}_active_" || true)
+    echo "${PREFIX}_active_${index}"
+}
+
 _create_managed_session() {
     local session="$1"
     shift
@@ -84,17 +102,20 @@ _get_session() {
         session="${PREFIX}_reserve"
     elif [[ $1 == "active" ]]; then
         if [[ -n "$TMUX" ]]; then
-            # if we are attached to a tmux session, use the current session
-            session=$(_tmux display-message -p '#S')
+            # Only reuse the current session when it is one of our active tabs.
+            # Popup, reserve, and watcher sessions should not become tab targets.
+            session=$(_tmux display-message -p '#S' 2>/dev/null || true)
+            if ! _is_active_session "$session"; then
+                session=$(_find_detached_active_session)
+            fi
         else
             # otherwise find an active session that is not attached
-            sessions=$(_tmux list-sessions -F "#{?session_attached,,#{session_name}}")
-            session=$(echo "$sessions" | grep -v '^$' | grep -v "^${PREFIX}_reserve$" | grep -v "^$(_watcher_session)$" | head -n 1)
-            # generate a new session name if none found
-            if [[ -z "$session" ]]; then
-                index=$(_tmux list-sessions | grep -c "^${PREFIX}_active")
-                session="${PREFIX}_active_${index}"
-            fi
+            session=$(_find_detached_active_session)
+        fi
+
+        # Generate a fresh active session when none are available.
+        if [[ -z "$session" ]]; then
+            session=$(_next_active_session)
         fi
     else
         echo "Invalid session type: $1"
