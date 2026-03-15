@@ -1,0 +1,22 @@
+#!/bin/bash
+
+host="${@: -1}"
+args="${@:1:$#-1}"
+
+if [ -z "$host" ]; then
+    echo "Usage: $0 <ssh-copy-id args> <host>"
+    exit 1
+fi
+
+echo "ssh-copy-id $args $host"
+ssh-copy-id $args $host
+
+jump_hosts=$(ssh -G "$host" | awk '/^proxyjump / { print $2 }')
+if [ -z "$jump_hosts" ]; then
+    exit 0
+fi
+
+for jump_host in $jump_hosts; do
+    echo "ssh-copy-id $args $jump_host"
+    ssh-copy-id $args $jump_host
+done

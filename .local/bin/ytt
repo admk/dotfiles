@@ -1,0 +1,54 @@
+#!/usr/bin/env kxh_python
+import os
+import sys
+import requests
+import urllib.parse
+
+args = sys.argv[1:]
+if not args:
+    print("Usage: ytt <youtube_url>")
+    sys.exit(1)
+
+# Extract YouTube video ID from URL
+def extract_video_id(url):
+    parsed = urllib.parse.urlparse(url)
+    params = urllib.parse.parse_qs(parsed.query)
+    video_id = params.get('v', [None])[0]
+    if video_id:
+        return f"https://www.youtube.com/watch?v={video_id}"
+    print("Error: Invalid YouTube URL.")
+    sys.exit(1)
+
+youtube_url = extract_video_id(args[0])
+api_url = "https://api.apify.com/v2/acts/starvibe~youtube-video-transcript/run-sync-get-dataset-items"
+token = os.getenv("APIFY_TOKEN")
+if not token:
+    print("Error: APIFY_TOKEN environment variable not set.")
+    sys.exit(1)
+
+# Build the full URL with token
+full_url = f"{api_url}?token={token}"
+
+try:
+    # Send POST request
+    response = requests.post(
+        full_url,
+        json={"youtube_url": youtube_url},
+        headers={'Content-Type': 'application/json'},
+        timeout=30
+    )
+    response.raise_for_status()
+    data = response.json()
+    try:
+        transcript = data[0]['transcript']
+    except (IndexError, KeyError):
+        print("Error: Transcript not found in the response.")
+        print(data)
+        sys.exit(1)
+    print('\n'.join(t.get('text', '') for t in transcript))
+except requests.exceptions.RequestException as e:
+    print(f"Request Error: {e}")
+    sys.exit(1)
+except Exception as e:
+    print(f"Error: {e}")
+    sys.exit(1)

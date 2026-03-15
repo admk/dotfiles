@@ -1,0 +1,18 @@
+#!/bin/bash
+
+_get_battery_status() {
+    local status=$(pmset -g batt | tail -n 1)
+    local current_status=$(echo $status | cut -d';' -f2 | tr -d ' ')
+	local current_capacity=$(echo $status | grep -Eo "\d+%" | cut -d% -f1)
+    local battery_levels=("󰂃" "󰁺" "󰁻" "󰁼" "󰁽" "󰁾" "󰁿" "󰂀" "󰂁" "󰂂" "󰁹")
+    local index=$(( (current_capacity + 5) / 10 ))
+    if [[ "$current_status" == "charged" ]]; then
+        printf " "
+    else
+        printf "${battery_levels[$index]}"
+        if [[ "$current_status" == "charging" ]]; then
+            printf "󱐋"
+        fi
+    fi
+}
+_get_battery_status

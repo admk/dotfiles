@@ -9,15 +9,18 @@ TEMP_FILE="$XDG_CONFIG_HOME/kxh/share/color"
 FORCE=0
 PRINT_ONLY=0
 
+declare -a TMUX_TARGET_SOCKETS=()
+declare -a TMUX_TARGET_CONFIGS=()
+
 usage() {
-    cat <<'EOF'
+    cat <<'EOS'
 Usage: theme-apply [--print] [-f] [-d|-l] [color]
   --print: Print the resolved theme state without applying it
   -f: Force apply even when the cached state is unchanged
   -d: Resolve as dark mode
   -l: Resolve as light mode
   color: Daily color index, random, or #RRGGBB
-EOF
+EOS
 }
 
 daily_color() {
@@ -38,12 +41,52 @@ daily_color() {
     fi
 }
 
+env_color_mode() {
+    local mode="${KXH_COLOR_MODE%%:*}"
+    if [[ "$mode" == "dark" || "$mode" == "light" ]]; then
+        echo "$mode"
+    fi
+}
+
+env_color_value() {
+    local color
+    color=$(printf '%s\n' "${KXH_COLOR_MODE:-}" | cut -d: -f2)
+    if [[ "$color" == \#* ]]; then
+        echo "$color"
+    fi
+}
+
+resolve_color() {
+    local input="${1:-}"
+    if [[ -n "$input" ]]; then
+        daily_color "$input"
+        return
+    fi
+
+    local color
+    color=$(env_color_value)
+    if [[ -n "$color" ]]; then
+        echo "$color"
+        return
+    fi
+
+    daily_color
+}
+
 color_mode() {
     local mode="${1:-$DEFAULT_MODE}"
     if [[ "$mode" == "dark" || "$mode" == "light" ]]; then
         echo "$mode"
         return
     fi
+
+    local inherited_mode
+    inherited_mode=$(env_color_mode)
+    if [[ -n "$inherited_mode" ]]; then
+        echo "$inherited_mode"
+        return
+    fi
+
     if command -v dark-notify >/dev/null 2>&1; then
         mode=$(dark-notify -e 2>/dev/null | tr -d '\r')
         if [[ "$mode" == "dark" || "$mode" == "light" ]]; then
@@ -51,6 +94,7 @@ color_mode() {
             return
         fi
     fi
+
     mode=$(defaults read -g AppleInterfaceStyle 2>/dev/null || true)
     if [[ -z "$mode" ]]; then
         echo "light"
@@ -68,18 +112,68 @@ theme() {
     fi
 }
 
-tmux_socket() {
-    if [[ -n "${TMUX:-}" ]]; then
-        printf '%s\n' "$TMUX" | cut -d, -f1 | xargs basename
-    elif [[ -n "${KXH_TMUX_SOCKET:-}" ]]; then
-        echo "$KXH_TMUX_SOCKET"
+current_tmux_socket() {
+    [[ -n "${TMUX:-}" ]] || return 1
+    printf '%s\n' "$TMUX" | cut -d, -f1 | xargs basename
+}
+
+config_for_socket() {
+    local socket="$1"
+
+    if [[ -n "${KXH_TMUX_SOCKET:-}" && "$socket" == "$KXH_TMUX_SOCKET" && -n "${KXH_TMUX_CONFIG:-}" ]]; then
+        echo "$KXH_TMUX_CONFIG"
+    elif [[ "$socket" == __prewarm_* ]]; then
+        echo "$XDG_CONFIG_HOME/tmux/prewarm/default.conf"
+    elif [[ "$socket" == "__kxh_prewarm" ]]; then
+        echo "$XDG_CONFIG_HOME/tmux/prewarm.conf"
+    elif [[ -n "${TMUX_CONFIG:-}" ]] && [[ -n "${TMUX:-}" ]] && [[ "$socket" == "$(current_tmux_socket)" ]]; then
+        echo "$TMUX_CONFIG"
     else
-        echo "__prewarm_${TERM:-xterm-kitty}"
+        echo "$XDG_CONFIG_HOME/tmux/tmux.conf"
+    fi
+}
+
+add_tmux_target() {
+    local socket="$1"
+    local config="$2"
+    local i
+
+    [[ -n "$socket" ]] || return
+
+    for i in "${!TMUX_TARGET_SOCKETS[@]}"; do
+        if [[ "${TMUX_TARGET_SOCKETS[$i]}" == "$socket" ]]; then
+            if [[ -z "${TMUX_TARGET_CONFIGS[$i]}" && -n "$config" ]]; then
+                TMUX_TARGET_CONFIGS[$i]="$config"
+            fi
+            return
+        fi
+    done
+
+    TMUX_TARGET_SOCKETS+=("$socket")
+    TMUX_TARGET_CONFIGS+=("$config")
+}
+
+discover_tmux_targets() {
+    local socket
+
+    TMUX_TARGET_SOCKETS=()
+    TMUX_TARGET_CONFIGS=()
+
+    if socket=$(current_tmux_socket 2>/dev/null); then
+        add_tmux_target "$socket" "$(config_for_socket "$socket")"
+    fi
+
+    if [[ -n "${KXH_TMUX_SOCKET:-}" ]]; then
+        add_tmux_target "$KXH_TMUX_SOCKET" "$(config_for_socket "$KXH_TMUX_SOCKET")"
+    elif [[ -z "${TMUX:-}" ]]; then
+        socket="__prewarm_${TERM:-xterm-kitty}"
+        add_tmux_target "$socket" "$(config_for_socket "$socket")"
     fi
 }
 
 have_tmux_server() {
-    tmux -L "$(tmux_socket)" list-sessions >/dev/null 2>&1
+    local socket="$1"
+    tmux -L "$socket" list-sessions >/dev/null 2>&1
 }
 
 update_aerc() {
@@ -101,20 +195,41 @@ update_borders() {
         active_color="0xff${1:1}" >/dev/null 2>&1 || true
 }
 
-update_tmux_prewarm() {
+update_tmux_server() {
+    local socket="$1"
+    local config="$2"
+    local color="$3"
+    local mode="$4"
+    local state="$5"
+
+    have_tmux_server "$socket" || return
+
+    if [[ "$mode" == "dark" ]]; then
+        tmux -L "$socket" set -sg @catppuccin_flavor "mocha" >/dev/null 2>&1 || true
+    else
+        tmux -L "$socket" set -sg @catppuccin_flavor "latte" >/dev/null 2>&1 || true
+    fi
+    tmux -L "$socket" set -sg @catppuccin_window_current_number_color "$color" >/dev/null 2>&1 || true
+    tmux -L "$socket" set-environment -g KXH_COLOR_MODE "$state" >/dev/null 2>&1 || true
+    if [[ -n "$config" && -f "$config" ]]; then
+        tmux -L "$socket" source-file "$config" >/dev/null 2>&1 || true
+    fi
+    tmux -L "$socket" refresh-client -S >/dev/null 2>&1 || true
+}
+
+update_tmux_servers() {
     local color="$1"
     local mode="$2"
     local state="$3"
-    have_tmux_server || return
-    if [[ "$mode" == "dark" ]]; then
-        tmux -L "$(tmux_socket)" set -sg @catppuccin_flavor "mocha" >/dev/null 2>&1 || true
-    else
-        tmux -L "$(tmux_socket)" set -sg @catppuccin_flavor "latte" >/dev/null 2>&1 || true
-    fi
-    tmux -L "$(tmux_socket)" set -sg @catppuccin_window_current_number_color "$color" >/dev/null 2>&1 || true
-    tmux -L "$(tmux_socket)" set-environment -g KXH_COLOR_MODE "$state" >/dev/null 2>&1 || true
-    tmux -L "$(tmux_socket)" source-file "$XDG_CONFIG_HOME/tmux/prewarm/default.conf" >/dev/null 2>&1 || true
-    tmux -L "$(tmux_socket)" refresh-client -S >/dev/null 2>&1 || true
+    local i
+
+    discover_tmux_targets
+    for i in "${!TMUX_TARGET_SOCKETS[@]}"; do
+        update_tmux_server \
+            "${TMUX_TARGET_SOCKETS[$i]}" \
+            "${TMUX_TARGET_CONFIGS[$i]}" \
+            "$color" "$mode" "$state"
+    done
 }
 
 update_sioyek() {
@@ -183,7 +298,7 @@ if [[ "${1:-}" == "dark" || "${1:-}" == "light" ]]; then
     shift
 fi
 
-COLOR=$(daily_color "${1:-}")
+COLOR=$(resolve_color "${1:-}")
 MODE=$(color_mode "$EXPLICIT_MODE")
 THEME=$(theme "$MODE")
 
@@ -209,7 +324,7 @@ fi
 printf '%s\n' "$STATE" | tee "$TEMP_FILE"
 update_aerc "$THEME"
 update_borders "$COLOR"
-update_tmux_prewarm "$COLOR" "$MODE" "$STATE"
+update_tmux_servers "$COLOR" "$MODE" "$STATE"
 update_sioyek "$THEME"
 update_sketchybar
 update_yabai "$COLOR"

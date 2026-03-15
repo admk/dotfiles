@@ -1,0 +1,72 @@
+#!/usr/bin/env kxh_python
+import sys
+import argparse
+import subprocess
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='SSH ProxyJump fallbacks.')
+    parser.add_argument('host', help='Host to connect to.')
+    current_user = subprocess.check_output(['id', '-un']).decode().strip()
+    parser.add_argument(
+        '-u', '--user', type=str, default=current_user,
+        help='User to connect as.')
+    parser.add_argument(
+        '-p', '--port', type=int, default=22,
+        help='Port to connect to.')
+    parser.add_argument(
+        '-j', '--jump-hosts', type=str, default='',
+        help='Jump hosts to use, separated by comma.')
+    return parser.parse_args()
+
+
+def netcat(jumphost, host, port):
+    if jumphost:
+        cmd = [
+            'ssh', '-aT',
+            '-J', str(jumphost),
+            '-o', 'BatchMode=yes',
+            f'{host}:{port}', 'true']
+    else:
+        cmd = ['timeout', '0.2', 'nc', '-z', str(host), str(port)]
+    try:
+        p = subprocess.run(cmd, timeout=1)
+    except subprocess.TimeoutExpired:
+        return False
+    if p.returncode != 0:
+        return False
+    cmd = ['ssh', '-avT', '-J', str(jumphost), f'{host}:{port}']
+    p = subprocess.run(cmd, stdin=sys.stdin, stdout=sys.stdout)
+    return p.returncode == 0
+
+
+def get_hostname_port(host):
+    # get jump host from ssh config
+    data = subprocess.check_output(['ssh', '-G', str(host)]).decode()
+    hostname = port = None
+    for line in data.splitlines():
+        if line.startswith('hostname '):
+            hostname = line.split()[1]
+        elif line.startswith('port '):
+            port = line.split()[1]
+    return hostname, port
+
+
+def main():
+    args = parse_args()
+    name = sys.argv[0]
+    if netcat(None, args.host, args.port):
+        return 0
+    for jump_host in args.jump_hosts.split(','):
+        host, port = get_hostname_port(jump_host)
+        if netcat(jump_host, host, port):
+            sys.exit(0)
+        print(
+            f'{name} ==> Jump host {jump_host} is not reachable.',
+            file=sys.stderr)
+    print(f'{name} ==> No working jump hosts found!', file=sys.stderr)
+    sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
