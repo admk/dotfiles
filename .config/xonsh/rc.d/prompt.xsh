@@ -9,6 +9,8 @@ $COMMAND_ICON_MAP = {
     'brew': ' ',
     'btop': '󰄩 ',
     'cliamp': '󰧔 ',
+    'codex': ' ',
+    'claude': ' ',
     'fzf': ' ',
     'gP': ' ',
     'gl': ' ',
