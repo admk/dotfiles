@@ -24,6 +24,18 @@ _find_detached_active_session() {
         | head -n 1 || true
 }
 
+_current_active_session() {
+    local session
+    if [[ -z "$TMUX" ]]; then
+        return
+    fi
+
+    session=$(_tmux display-message -p '#S' 2>/dev/null || true)
+    if _is_active_session "$session"; then
+        echo "$session"
+    fi
+}
+
 _next_active_session() {
     local index
     index=$(_tmux list-sessions -F "#{session_name}" 2>/dev/null \
@@ -96,20 +108,23 @@ _tmux() {
     $TMUX_BIN -L __$PREFIX -f $config/tmux/prewarm/default.conf "$@"
 }
 
+_ensure_session() {
+    local kind="$1"
+    local session="$2"
+    if ! _tmux has-session -t "$session" 2>/dev/null; then
+        _create_managed_session "$session"
+    fi
+    _refresh_destroy_unattached "$session" "$kind"
+    echo "$session"
+}
+
 _get_session() {
     local session
     if [[ $1 == "reserve" ]]; then
         session="${PREFIX}_reserve"
     elif [[ $1 == "active" ]]; then
-        if [[ -n "$TMUX" ]]; then
-            # Only reuse the current session when it is one of our active tabs.
-            # Popup, reserve, and watcher sessions should not become tab targets.
-            session=$(_tmux display-message -p '#S' 2>/dev/null || true)
-            if ! _is_active_session "$session"; then
-                session=$(_find_detached_active_session)
-            fi
-        else
-            # otherwise find an active session that is not attached
+        session=$(_current_active_session)
+        if [[ -z "$session" ]]; then
             session=$(_find_detached_active_session)
         fi
 
@@ -121,11 +136,18 @@ _get_session() {
         echo "Invalid session type: $1"
         exit 1
     fi
-    if ! _tmux has-session -t "$session" 2>/dev/null; then
-        _create_managed_session "$session"
+    _ensure_session "$1" "$session"
+}
+
+_get_attach_session() {
+    local session
+    # Attaching a new client should never mirror the currently attached active
+    # session into a second window. Reuse only detached prewarmed sessions here.
+    session=$(_find_detached_active_session)
+    if [[ -z "$session" ]]; then
+        session=$(_next_active_session)
     fi
-    _refresh_destroy_unattached "$session" "$1"
-    echo "$session"
+    _ensure_session "active" "$session"
 }
 
 _count_windows() {
@@ -164,7 +186,7 @@ _dispense_window() {
 
 _attach_session() {
     _create_reserve_window
-    local active_session=$(_get_session "active")
+    local active_session=$(_get_attach_session)
     # Keep the chosen active session alive through the attach handshake,
     # then queue the flip back to destroy-unattached=on once attach succeeds.
     _set_destroy_unattached "$active_session" off
@@ -208,4 +230,6 @@ main() {
     esac
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi
