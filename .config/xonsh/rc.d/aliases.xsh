@@ -158,9 +158,14 @@ def _tmux(args):
 @aliases.register('tmr')
 @aliases.register('tmux-reattach')
 def _tmux_reattach(args):
+    import os
+
     tm = $(@(_which('which')) 'tmux').strip()
     socket = $(@(tm) -V).strip().replace('tmux ', '')
-    name = args[0] if args else $USER
+    if args:
+        name = args[0]
+    else:
+        name = os.path.basename(${...}.get('PWD') or os.getcwd()) or $USER
     @(tm) -L @(socket) attach-session -d -t @(name) 2>/dev/null || \
         @(tm) -L @(socket) new-session -s @(name)
 
