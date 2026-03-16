@@ -554,6 +554,8 @@ class KXH:
             f'KXH_SKIP_SYNC={int(skip)}',
             f'KXH_PREWARMER={prewarmer}',
         ] + env
+        if color_mode := os.environ.get('KXH_COLOR_MODE'):
+            prefix.append(f'KXH_COLOR_MODE={color_mode}')
         init_script = f"env {' '.join(prefix)} "
         if cmd := self.config['ssh']['command']:
             cmd = " ".join(cmd)

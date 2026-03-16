@@ -2,9 +2,9 @@
 // Licensed under Shadertoy's default since the original creator didn't provide any license. (CC BY NC SA 3.0)
 // Slight modifications were made to give a green-ish effect.
 
-float warp = 0.20; // simulate curvature of CRT monitor
-float scan = 0.50; // simulate darkness between scanlines
-float vignette = 1.0; // strength of vignette effect (0.0 to 1.0)
+float warp = 0.15; // simulate curvature of CRT monitor
+float scan = 0.30; // simulate darkness between scanlines
+float vignette = 0.75; // strength of vignette effect (0.0 to 1.0)
 float vignetteInner = 0.85; // fraction of center-to-corner radius with no vignette (0.0 to 1.0)
 float vignetteSoftness = 0.30; // fraction of center-to-corner radius for transition (smaller = sharper)
 float edgeSoftness = 0.015; // border fade width in UV units (smaller = sharper)

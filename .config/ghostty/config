@@ -40,7 +40,7 @@ link-previews = true
 # key mappings
 macos-option-as-alt = true
 # macos-command-to-pty = true
-keybind = cmd+q=quit
+keybind = cmd+q=unbind
 keybind = cmd+c=copy_to_clipboard
 keybind = cmd+v=paste_from_clipboard
 keybind = cmd+n=new_window
@@ -52,11 +52,11 @@ key-remap = cmd=alt
 keybind = cmd+t=unbind
 keybind = cmd+j=unbind
 keybind = cmd+k=unbind
+keybind = alt+shift+j=esc:J
+keybind = alt+shift+k=esc:K
 keybind = cmd+d=unbind
 keybind = cmd+a=unbind
 keybind = cmd+z=unbind
-# keybind = cmd+shift+j=unbind  # FIXME: does not work
-# keybind = cmd+shift+k=unbind  # FIXME: does not work
 keybind = cmd+w=unbind
 keybind = cmd+,=unbind
 keybind = cmd+1=unbind
