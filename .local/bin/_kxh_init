@@ -104,6 +104,14 @@ if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
     $KXH_CONDA_PREFIX/bin/conda install -y -c conda-forge starship 1>$OUT 2>$ERR
 fi
 
+if [[ -n "${SSH_CONNECTION:-}" && -n "${KXH_COLOR_MODE:-}" ]]; then
+    mkdir -p "$(dirname "$XDG_CONFIG_HOME/kxh/share/color")"
+    printf '%s\n' "$KXH_COLOR_MODE" > "$XDG_CONFIG_HOME/kxh/share/color"
+    if command -v theme-apply >/dev/null 2>&1; then
+        theme-apply -f >/dev/null 2>&1 || true
+    fi
+fi
+
 # xonsh
 sync_list=$XDG_CACHE_HOME/$KXH_NAME/sync
 delete_list=()

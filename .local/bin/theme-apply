@@ -13,14 +13,14 @@ declare -a TMUX_TARGET_SOCKETS=()
 declare -a TMUX_TARGET_CONFIGS=()
 
 usage() {
-    cat <<'EOS'
+    cat <<'EOF'
 Usage: theme-apply [--print] [-f] [-d|-l] [color]
   --print: Print the resolved theme state without applying it
   -f: Force apply even when the cached state is unchanged
   -d: Resolve as dark mode
   -l: Resolve as light mode
   color: Daily color index, random, or #RRGGBB
-EOS
+EOF
 }
 
 daily_color() {
@@ -126,7 +126,7 @@ config_for_socket() {
         echo "$XDG_CONFIG_HOME/tmux/prewarm/default.conf"
     elif [[ "$socket" == "__kxh_prewarm" ]]; then
         echo "$XDG_CONFIG_HOME/tmux/prewarm.conf"
-    elif [[ -n "${TMUX_CONFIG:-}" ]] && [[ -n "${TMUX:-}" ]] && [[ "$socket" == "$(current_tmux_socket)" ]]; then
+    elif [[ -n "${TMUX_CONFIG:-}" && -n "${TMUX:-}" && "$socket" == "$(current_tmux_socket)" ]]; then
         echo "$TMUX_CONFIG"
     else
         echo "$XDG_CONFIG_HOME/tmux/tmux.conf"

@@ -92,6 +92,9 @@ _tmux_prewarm() {
         _tmux new-session -s "${PREFIX}_${rand}_reserve" -d "$@"
     fi
 
+    _tmux set-environment -g KXH_TMUX_SOCKET "__kxh_prewarm" >/dev/null 2>&1 || true
+    _tmux set-environment -g KXH_TMUX_CONFIG "$XDG_CONFIG_HOME/tmux/prewarm.conf" >/dev/null 2>&1 || true
+
     # Clean up any detached sessions in case of orphaned sessions
     _tmux_invalidate "active"
     # Convert reserve session to active session and attach to it
