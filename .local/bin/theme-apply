@@ -80,13 +80,6 @@ color_mode() {
         return
     fi
 
-    local inherited_mode
-    inherited_mode=$(env_color_mode)
-    if [[ -n "$inherited_mode" ]]; then
-        echo "$inherited_mode"
-        return
-    fi
-
     if command -v dark-notify >/dev/null 2>&1; then
         mode=$(dark-notify -e 2>/dev/null | tr -d '\r')
         if [[ "$mode" == "dark" || "$mode" == "light" ]]; then
@@ -95,12 +88,24 @@ color_mode() {
         fi
     fi
 
-    mode=$(defaults read -g AppleInterfaceStyle 2>/dev/null || true)
-    if [[ -z "$mode" ]]; then
-        echo "light"
-    else
-        echo "dark"
+    if command -v defaults >/dev/null 2>&1; then
+        mode=$(defaults read -g AppleInterfaceStyle 2>/dev/null || true)
+        if [[ -z "$mode" ]]; then
+            echo "light"
+        else
+            echo "dark"
+        fi
+        return
     fi
+
+    local inherited_mode
+    inherited_mode=$(env_color_mode)
+    if [[ -n "$inherited_mode" ]]; then
+        echo "$inherited_mode"
+        return
+    fi
+
+    echo "light"
 }
 
 theme() {
@@ -193,6 +198,22 @@ update_borders() {
         hidpi=off \
         inactive_color=0x1a1b261a \
         active_color="0xff${1:1}" >/dev/null 2>&1 || true
+}
+
+reset_terminal_cursor() {
+    local tty
+    local seq
+
+    seq=$(printf '\033]12;#ff0000\007\033]112\007')
+    if [[ -n "${TMUX:-}" ]] && command -v tmux >/dev/null 2>&1; then
+        while IFS= read -r tty; do
+            [[ -n "$tty" && -w "$tty" ]] || continue
+            printf '%s' "$seq" >"$tty"
+        done < <(tmux list-clients -F '#{client_tty}' 2>/dev/null | sort -u)
+        return
+    fi
+
+    printf '%s' "$seq"
 }
 
 update_tmux_server() {
@@ -322,6 +343,7 @@ if [[ -f "$TEMP_FILE" ]] && [[ $(<"$TEMP_FILE") == "$STATE" ]] && [[ $FORCE -eq 
 fi
 
 printf '%s\n' "$STATE" | tee "$TEMP_FILE"
+reset_terminal_cursor
 update_aerc "$THEME"
 update_borders "$COLOR"
 update_tmux_servers "$COLOR" "$MODE" "$STATE"
