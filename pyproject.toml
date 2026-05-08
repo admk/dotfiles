@@ -24,7 +24,7 @@ dependencies = [
     "xontrib-fish-completer",
     "xontrib-fzf-widgets",
     "xontrib-history-encrypt",
-    "xontrib-homebrew ; sys_platform == 'darwin'",
+    "xontrib-homebrew",
     "xontrib-onepath",
     "xontrib-output-search",
     "xontrib-pipeliner",

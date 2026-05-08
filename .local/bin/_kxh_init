@@ -36,13 +36,43 @@ export KXH_PREWARM=$KXH_HOME/.local/bin/_kxh_prewarm
 export KXH_VENV=$KXH_HOME/.venv
 export KXH_PYTHON=$KXH_VENV/bin/python
 export KXH_SHELL=$KXH_VENV/bin/xonsh
-export KXH_UV=$KXH_HOME/.local/bin/uv
-export KXH_STARSHIP=$KXH_HOME/.local/bin/starship
 export KXH_FALLBACK_SHELL=$SHELL
 export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
 export XDG_CACHE_HOME="$KXH_OLD_HOME/.cache"
-export PATH="$KXH_HOME/.local/bin:$KXH_VENV/bin:$PATH"
+
+_artifact_target() {
+    local os arch
+    case "$(uname -s)" in
+        Darwin) os=apple-darwin ;;
+        Linux)
+            if [ -f /etc/alpine-release ] || ldd --version 2>&1 | grep -qi musl; then
+                os=unknown-linux-musl
+            else
+                os=unknown-linux-gnu
+            fi
+            ;;
+        *)
+            echo -e "${RED}kxh server ==> Unsupported OS $(uname -s)${SET}" >&2
+            exec $KXH_FALLBACK_SHELL "$@"
+            ;;
+    esac
+    case "$(uname -m)" in
+        x86_64|amd64) arch=x86_64 ;;
+        arm64|aarch64) arch=aarch64 ;;
+        *)
+            echo -e "${RED}kxh server ==> Unsupported ARCH $(uname -m)${SET}" >&2
+            exec $KXH_FALLBACK_SHELL "$@"
+            ;;
+    esac
+    printf '%s-%s\n' "$arch" "$os"
+}
+
+export KXH_TARGET=$(_artifact_target)
+export KXH_TOOL_BIN=$XDG_CACHE_HOME/$KXH_NAME/bin/$KXH_TARGET
+export KXH_UV=$KXH_TOOL_BIN/uv
+export KXH_STARSHIP=$KXH_TOOL_BIN/starship
+export PATH="$KXH_TOOL_BIN:$KXH_HOME/.local/bin:$KXH_VENV/bin:$PATH"
 if [[ $KXH_DEBUG == '1' ]]; then
     echo
     echo -e "${LIGHTGRAY}kxh server ==> init${SET}"
@@ -57,8 +87,10 @@ if [[ $KXH_DEBUG == '1' ]]; then
     echo -e "${LIGHTGRAY}\$KXH_VENV=$KXH_VENV${SET}"
     echo -e "${LIGHTGRAY}\$KXH_PYTHON=$KXH_PYTHON${SET}"
     echo -e "${LIGHTGRAY}\$KXH_SHELL=$KXH_SHELL${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_TARGET=$KXH_TARGET${SET}"
     echo -e "${LIGHTGRAY}\$KXH_UV=$KXH_UV${SET}"
     echo -e "${LIGHTGRAY}\$KXH_STARSHIP=$KXH_STARSHIP${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_TOOL_BIN=$KXH_TOOL_BIN${SET}"
     echo -e "${LIGHTGRAY}\$KXH_FALLBACK_SHELL=$KXH_FALLBACK_SHELL${SET}"
     echo -e "${LIGHTGRAY}\$XDG_HOME=$XDG_HOME${SET}"
     echo -e "${LIGHTGRAY}\$XDG_CONFIG_HOME=$XDG_CONFIG_HOME${SET}"
@@ -86,53 +118,97 @@ _github_release_url() {
     fi
 }
 
-_artifact_target() {
-    local os arch
-    case "$(uname -s)" in
-        Darwin) os=apple-darwin ;;
-        Linux) os=unknown-linux-gnu ;;
-        *)
-            echo -e "${RED}kxh server ==> Unsupported OS $(uname -s)${SET}" >$ERR
-            exec $KXH_FALLBACK_SHELL "$@"
-            ;;
-    esac
-    case "$(uname -m)" in
-        x86_64|amd64) arch=x86_64 ;;
-        arm64|aarch64) arch=aarch64 ;;
-        *)
-            echo -e "${RED}kxh server ==> Unsupported ARCH $(uname -m)${SET}" >$ERR
-            exec $KXH_FALLBACK_SHELL "$@"
-            ;;
-    esac
-    printf '%s-%s\n' "$arch" "$os"
+_download_archive() {
+    local url=$1
+    local tmp=$2
+    rm -f "$tmp"
+    curl --fail --http1.1 --location --progress-bar \
+        --retry 3 --retry-delay 1 --retry-connrefused \
+        "$url" -o "$tmp" 1>$OUT 2>$ERR
 }
 
-if [ ! -f "$KXH_UV" ]; then
-    UV_TARGET=$(_artifact_target)
-    UV_TMP=$KXH_HOME/uv.tar.gz
-    UV_URL=$(_github_release_url "https://github.com/astral-sh/uv/releases/download/$KXH_UV_VERSION/uv-$UV_TARGET.tar.gz")
-    echo -e "${BLUE}kxh server ==> Downloading uv from $UV_URL...${SET}"
-    curl --progress-bar -L "$UV_URL" -o "$UV_TMP" 1>$OUT 2>$ERR
-    mkdir -p "$KXH_HOME/.local/bin"
-    tar -xzf "$UV_TMP" -C "$KXH_HOME/.local/bin" --strip-components=1 "uv-$UV_TARGET/uv" "uv-$UV_TARGET/uvx" 1>$OUT 2>$ERR
-    rm -f "$UV_TMP"
-fi
+_valid_uv() {
+    [ -x "$KXH_UV" ] && "$KXH_UV" --version 1>$OUT 2>$ERR
+}
 
-if [ ! -f "$KXH_STARSHIP" ]; then
-    STARSHIP_TARGET=$(_artifact_target)
-    if [[ $STARSHIP_TARGET == *-apple-darwin ]]; then
-        STARSHIP_ASSET="starship-$STARSHIP_TARGET.tar.gz"
-    else
-        STARSHIP_ASSET="starship-$STARSHIP_TARGET.tar.gz"
+_valid_starship() {
+    [ -x "$KXH_STARSHIP" ] && "$KXH_STARSHIP" session 1>$OUT 2>$ERR
+}
+
+_install_uv() {
+    local tmp_archive tmp_dir
+    tmp_archive=$KXH_HOME/uv.tar.gz.$$
+    tmp_dir=$KXH_TOOL_BIN/.uv.tmp.$$
+    UV_URL=$(_github_release_url "https://github.com/astral-sh/uv/releases/download/$KXH_UV_VERSION/uv-$KXH_TARGET.tar.gz")
+    echo -e "${BLUE}kxh server ==> Downloading uv from $UV_URL...${SET}"
+    rm -rf "$tmp_dir"
+    mkdir -p "$KXH_TOOL_BIN"
+    if ! _download_archive "$UV_URL" "$tmp_archive"; then
+        rm -f "$tmp_archive"
+        return 1
     fi
-    STARSHIP_TMP=$KXH_HOME/starship.tar.gz
+    mkdir -p "$tmp_dir"
+    if ! tar -xzf "$tmp_archive" -C "$tmp_dir" --strip-components=1 "uv-$KXH_TARGET/uv" "uv-$KXH_TARGET/uvx" 1>$OUT 2>$ERR; then
+        rm -f "$tmp_archive"
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+    chmod +x "$tmp_dir/uv" "$tmp_dir/uvx"
+    if ! "$tmp_dir/uv" --version 1>$OUT 2>$ERR; then
+        rm -f "$tmp_archive"
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+    mv -f "$tmp_dir/uv" "$KXH_UV"
+    mv -f "$tmp_dir/uvx" "$KXH_TOOL_BIN/uvx"
+    rm -f "$tmp_archive"
+    rmdir "$tmp_dir" 2>/dev/null || true
+}
+
+_install_starship() {
+    local tmp_archive tmp_dir
+    tmp_archive=$KXH_HOME/starship.tar.gz.$$
+    tmp_dir=$KXH_TOOL_BIN/.starship.tmp.$$
+    STARSHIP_ASSET="starship-$KXH_TARGET.tar.gz"
     STARSHIP_URL=$(_github_release_url "https://github.com/starship/starship/releases/latest/download/$STARSHIP_ASSET")
     echo -e "${BLUE}kxh server ==> Downloading starship from $STARSHIP_URL...${SET}"
-    curl --progress-bar -L "$STARSHIP_URL" -o "$STARSHIP_TMP" 1>$OUT 2>$ERR
-    mkdir -p "$KXH_HOME/.local/bin"
-    tar -xzf "$STARSHIP_TMP" -C "$KXH_HOME/.local/bin" starship 1>$OUT 2>$ERR
-    chmod +x "$KXH_STARSHIP"
-    rm -f "$STARSHIP_TMP"
+    rm -rf "$tmp_dir"
+    mkdir -p "$KXH_TOOL_BIN"
+    if ! _download_archive "$STARSHIP_URL" "$tmp_archive"; then
+        rm -f "$tmp_archive"
+        return 1
+    fi
+    mkdir -p "$tmp_dir"
+    if ! tar -xzf "$tmp_archive" -C "$tmp_dir" starship 1>$OUT 2>$ERR; then
+        rm -f "$tmp_archive"
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+    chmod +x "$tmp_dir/starship"
+    if ! "$tmp_dir/starship" session 1>$OUT 2>$ERR; then
+        rm -f "$tmp_archive"
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+    mv -f "$tmp_dir/starship" "$KXH_STARSHIP"
+    rm -f "$tmp_archive"
+    rmdir "$tmp_dir" 2>/dev/null || true
+}
+
+if ! _valid_uv; then
+    rm -f "$KXH_UV" "$KXH_TOOL_BIN/uvx"
+    if ! _install_uv; then
+        echo -e "${RED}uv failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
+        exec $KXH_FALLBACK_SHELL "$@"
+    fi
+fi
+
+if ! _valid_starship; then
+    rm -f "$KXH_STARSHIP"
+    if ! _install_starship; then
+        echo -e "${RED}starship failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
+        exec $KXH_FALLBACK_SHELL "$@"
+    fi
 fi
 
 if [[ -n "${SSH_CONNECTION:-}" && -n "${KXH_COLOR_MODE:-}" ]]; then
@@ -190,12 +266,22 @@ if [[ $KXH_DEBUG == '1' ]]; then
     echo -e "${LIGHTGRAY}kxh server ==> init end${SET}"
     echo
 fi
-if [ ! -f $KXH_SHELL ]; then
-    echo -e "${BLUE}kxh server ==> Syncing shell environment...${SET}"
+_uv_sync() {
     PYTHONNOUSERSITE=1 UV_PROJECT_ENVIRONMENT="$KXH_VENV" "$KXH_UV" sync \
         --project "$KXH_HOME" --no-install-project --managed-python \
         --index-strategy unsafe-best-match \
         1>$OUT 2>$ERR
+}
+
+if [ ! -f $KXH_SHELL ]; then
+    echo -e "${BLUE}kxh server ==> Syncing shell environment...${SET}"
+    if ! _uv_sync; then
+        echo -e "${YELLOW}kxh server ==> uv sync failed, reinstalling uv and retrying...${SET}" >$ERR
+        if ! _install_uv || ! _uv_sync; then
+            echo -e "${RED}Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
+            exec $KXH_FALLBACK_SHELL "$@"
+        fi
+    fi
 fi
 if [ ! -f $KXH_OLD_HOME/.local/bin/xh ]; then
     echo -e "${YELLOW}kxh server ==> Creating xh in $KXH_OLD_HOME/.local/bin...${SET}"
