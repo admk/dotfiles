@@ -1,3 +1,4 @@
+model: deepseek-v4-flash
 system: >
   Make the provided text more persuasive, and clear,
   while keeping the tone informal and casual.

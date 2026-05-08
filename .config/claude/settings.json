@@ -1,13 +1,16 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
+    "ENABLE_TOOL_SEARCH": "false",
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
-    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
     "DISABLE_COST_WARNINGS": "1",
     "DISABLE_BUG_COMMAND": "1",
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_TELEMETRY": "1",
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+    "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK": "1"
   },
   "includeCoAuthoredBy": false,
   "permissions": {
@@ -57,7 +60,7 @@
     ],
     "defaultMode": "default"
   },
-  "model": "opus",
+  "model": "opus[1m]",
   "statusLine": {
     "type": "command",
     "command": "node $XDG_CONFIG_HOME/claude/hud/omc-hud.mjs"
@@ -76,5 +79,7 @@
       }
     }
   },
+  "effortLevel": "xhigh",
+  "awaySummaryEnabled": false,
   "skipDangerousModePermissionPrompt": true
 }

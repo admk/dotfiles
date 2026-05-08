@@ -1,3 +1,4 @@
+model: deepseek-v4-flash
 system: >
   Translate the given text into $lang
   while maintaining its original meaning.

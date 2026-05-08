@@ -1,3 +1,4 @@
+model: deepseek-v4-flash
 prompt: |
   # Semantic Line Breaks
   You are a Semantic Line Breaks (SemBr) specialist expert

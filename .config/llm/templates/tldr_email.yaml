@@ -1,4 +1,4 @@
-model: glm-4.7
+model: deepseek-v4-flash
 prompt: |
   <email>
   $input
