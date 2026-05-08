@@ -105,7 +105,201 @@ _refresh_destroy_unattached() {
 
 _tmux() {
     config=${XDG_CONFIG_HOME:-~/.config}
-    $TMUX_BIN -L __$PREFIX -f $config/tmux/prewarm/default.conf "$@"
+    if [[ "${TMUX:-}" == *,* ]]; then
+        $TMUX_BIN -S "${TMUX%%,*}" -f $config/tmux/prewarm/default.conf "$@"
+    elif [[ -n "${KXH_TMUX_SOCKET:-}" ]]; then
+        $TMUX_BIN -L "$KXH_TMUX_SOCKET" -f $config/tmux/prewarm/default.conf "$@"
+    else
+        $TMUX_BIN -L "__$PREFIX" -f $config/tmux/prewarm/default.conf "$@"
+    fi
+}
+
+_current_pane() {
+    if [[ -n "${1:-}" ]]; then
+        echo "$1"
+        return
+    fi
+    if [[ "${TMUX:-}" == *,%* ]]; then
+        echo "${TMUX##*,}"
+        return
+    fi
+    _tmux display-message -p '#{pane_id}' 2>/dev/null || true
+}
+
+_current_client_key() {
+    local client
+    client=$(_tmux display-message -p '#{client_name}' 2>/dev/null || true)
+    if [[ -z "$client" ]]; then
+        client=$(_tmux display-message -p '#{client_tty}' 2>/dev/null || true)
+    fi
+    if [[ -z "$client" ]]; then
+        client="${TMUX:-}"
+    fi
+    [[ -n "$client" ]] || return 0
+    printf '%s' "$client" | tr -c '[:alnum:]' '_'
+}
+
+_tracked_pane_option() {
+    local key
+    key=$(_current_client_key)
+    [[ -n "$key" ]] || return 0
+    printf '@kxh_tracked_pane_%s' "$key"
+}
+
+_save_tracked_pane() {
+    local pane option
+    pane="$1"
+    option=$(_tracked_pane_option)
+    [[ -n "$pane" && -n "$option" ]] || return 0
+    if [[ -z "$(_tmux show-options -gqv "$option" 2>/dev/null || true)" ]]; then
+        _tmux set-option -gq "$option" "$pane" >/dev/null
+    fi
+}
+
+_load_tracked_pane() {
+    local option
+    option=$(_tracked_pane_option)
+    [[ -n "$option" ]] || return 0
+    _tmux show-options -gqv "$option" 2>/dev/null || true
+}
+
+_clear_tracked_pane() {
+    local option
+    option=$(_tracked_pane_option)
+    [[ -n "$option" ]] || return 0
+    _tmux set-option -gu "$option" >/dev/null 2>&1 || true
+}
+
+_tmux_bool() {
+    case "$1" in
+        1|on|yes|true) echo on ;;
+        *) echo off ;;
+    esac
+}
+
+_save_pane_option_once() {
+    local pane option value existing
+    pane="$1"
+    option="$2"
+    value="$3"
+    existing=$(_tmux show-options -qvpt "$pane" "$option" 2>/dev/null || true)
+    [[ -n "$existing" ]] || _tmux set-option -qpt "$pane" "$option" "$value" >/dev/null
+}
+
+_disable_current_pane_title() {
+    local pane host label original passthrough title window allow_rename automatic_rename window_name
+    pane="${1:-$(_load_tracked_pane)}"
+    if [[ -z "$pane" ]]; then
+        pane=$(_current_pane)
+    fi
+    host="${2:-}"
+    [[ -n "$pane" ]] || return 0
+    _save_tracked_pane "$pane"
+
+    original=$(_tmux display-message -p -t "$pane" '#{allow-set-title}' 2>/dev/null || true)
+    if [[ -n "$original" ]]; then
+        _save_pane_option_once "$pane" @kxh_allow_set_title_original "$(_tmux_bool "$original")"
+    fi
+    passthrough=$(_tmux display-message -p -t "$pane" '#{allow-passthrough}' 2>/dev/null || true)
+    if [[ -n "$passthrough" ]]; then
+        _save_pane_option_once "$pane" @kxh_allow_passthrough_original "$passthrough"
+    fi
+    title=$(_tmux display-message -p -t "$pane" '#{pane_title}' 2>/dev/null || true)
+    _save_pane_option_once "$pane" @kxh_pane_title_original "$title"
+    _tmux set-option -qpt "$pane" allow-set-title off >/dev/null
+    _tmux set-option -qpt "$pane" allow-passthrough off >/dev/null
+    if [[ -n "$host" ]]; then
+        label="󰣀 │$host"
+    else
+        label="$title"
+    fi
+    _tmux select-pane -t "$pane" -T "$label" >/dev/null
+
+    window=$(_tmux display-message -p -t "$pane" '#{window_id}' 2>/dev/null || true)
+    [[ -n "$window" ]] || return 0
+    allow_rename=$(_tmux display-message -p -t "$pane" '#{allow-rename}' 2>/dev/null || true)
+    if [[ -n "$allow_rename" ]]; then
+        _save_pane_option_once "$pane" @kxh_allow_rename_original "$(_tmux_bool "$allow_rename")"
+    fi
+    automatic_rename=$(_tmux display-message -p -t "$pane" '#{automatic-rename}' 2>/dev/null || true)
+    if [[ -n "$automatic_rename" ]]; then
+        _save_pane_option_once "$pane" @kxh_automatic_rename_original "$(_tmux_bool "$automatic_rename")"
+    fi
+    window_name=$(_tmux display-message -p -t "$window" '#{window_name}' 2>/dev/null || true)
+    _save_pane_option_once "$pane" @kxh_window_name_original "$window_name"
+    _tmux set-option -qpt "$pane" allow-rename off >/dev/null
+    _tmux set-option -qwt "$window" automatic-rename off >/dev/null
+    _tmux rename-window -t "$window" "$window_name" >/dev/null
+}
+
+_restore_current_pane_title() {
+    local pane original passthrough title window allow_rename automatic_rename window_name
+    pane="${1:-$(_load_tracked_pane)}"
+    if [[ -z "$pane" ]]; then
+        pane=$(_current_pane)
+    fi
+    [[ -n "$pane" ]] || return 0
+
+    original=$(_tmux show-options -qvpt "$pane" @kxh_allow_set_title_original 2>/dev/null || true)
+    if [[ -n "$original" ]]; then
+        _tmux set-option -qpt "$pane" allow-set-title "$original" >/dev/null
+        _tmux set-option -qupt "$pane" @kxh_allow_set_title_original >/dev/null
+    fi
+    passthrough=$(_tmux show-options -qvpt "$pane" @kxh_allow_passthrough_original 2>/dev/null || true)
+    if [[ -n "$passthrough" ]]; then
+        _tmux set-option -qpt "$pane" allow-passthrough "$passthrough" >/dev/null
+        _tmux set-option -qupt "$pane" @kxh_allow_passthrough_original >/dev/null
+    fi
+    title=$(_tmux show-options -qvpt "$pane" @kxh_pane_title_original 2>/dev/null || true)
+    if [[ -n "$title" ]]; then
+        _tmux select-pane -t "$pane" -T "$title" >/dev/null
+        _tmux set-option -qupt "$pane" @kxh_pane_title_original >/dev/null
+    fi
+
+    window=$(_tmux display-message -p -t "$pane" '#{window_id}' 2>/dev/null || true)
+    [[ -n "$window" ]] || return 0
+    allow_rename=$(_tmux show-options -qvpt "$pane" @kxh_allow_rename_original 2>/dev/null || true)
+    if [[ -n "$allow_rename" ]]; then
+        _tmux set-option -qpt "$pane" allow-rename "$allow_rename" >/dev/null
+        _tmux set-option -qupt "$pane" @kxh_allow_rename_original >/dev/null
+    fi
+    window_name=$(_tmux show-options -qvpt "$pane" @kxh_window_name_original 2>/dev/null || true)
+    if [[ -n "$window_name" ]]; then
+        _tmux rename-window -t "$window" "$window_name" >/dev/null
+        _tmux set-option -qupt "$pane" @kxh_window_name_original >/dev/null
+    fi
+    automatic_rename=$(_tmux show-options -qvpt "$pane" @kxh_automatic_rename_original 2>/dev/null || true)
+    if [[ -n "$automatic_rename" ]]; then
+        _tmux set-option -qwt "$window" automatic-rename "$automatic_rename" >/dev/null
+        _tmux set-option -qupt "$pane" @kxh_automatic_rename_original >/dev/null
+    fi
+    _clear_tracked_pane
+}
+
+_sanitize_client_terminal() {
+    local pane session client_tty focus_events
+    pane=$(_current_pane "${1:-}")
+
+    client_tty=$(_tmux display-message -p '#{client_tty}' 2>/dev/null || true)
+    if [[ -z "$client_tty" && -n "$pane" ]]; then
+        session=$(_tmux display-message -p -t "$pane" '#{session_name}' 2>/dev/null || true)
+        if [[ -n "$session" ]]; then
+            client_tty=$(_tmux list-clients -t "$session" -F '#{client_tty}' 2>/dev/null | head -n 1 || true)
+        fi
+    fi
+
+    if [[ -n "$client_tty" && -w "$client_tty" ]]; then
+        # Undo terminal modes that nested tmux/apps may leave enabled when SSH
+        # disappears abruptly. Keep this to mode resets; do not clear/redraw.
+        printf '\033[?1004l\033[?1000l\033[?1001l\033[?1002l\033[?1003l\033[?1005l\033[?1006l\033[?1015l\033[?2004l\033[?25h\033[?1l\033>\033[m' >"$client_tty"
+    fi
+
+    focus_events=$(_tmux show-options -gqv focus-events 2>/dev/null || true)
+    if [[ "$focus_events" == "on" ]]; then
+        # Leave this off after SSH. Re-enabling it immediately can re-request
+        # focus tracking from the terminal and recreate the leaked CSI [ I/O.
+        _tmux set-option -gq focus-events off >/dev/null
+    fi
 }
 
 _ensure_session() {
@@ -224,6 +418,9 @@ main() {
         "attach") _attach_session ;;
         "watcher-start") _start_watcher ;;
         "watcher-restart") _restart_watcher ;;
+        "kxh-title-off") _disable_current_pane_title "${2:-}" "${3:-}" ;;
+        "kxh-title-restore") _restore_current_pane_title "${2:-}" ;;
+        "kxh-terminal-sanitize") _sanitize_client_terminal "${2:-}" ;;
         "invalidate") invalidate_reserved_windows ;;
         "kill") _tmux kill-server ;;
         *) _tmux "$@" ;;
