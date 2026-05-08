@@ -211,7 +211,10 @@ Options:
             if ssh_command is None:
                 print_message('error', 'ssh command not found.')
                 exit(1)
-        command_line = [ssh_command]
+        command_line = shlex.split(ssh_command)
+        if not command_line:
+            print_message('error', 'ssh command not found.')
+            exit(1)
         for option in '46AaCfGgKkMNnqsTtVvXxYy':
             if parsed_args.get(option):
                 command_line.append(f'-{option}')
@@ -255,8 +258,12 @@ class KXH:
         'ssh_command': shutil.which('ssh'),
         'rsh_command': shutil.which('ssh'),
         'prewarmer': 'none',
+        'pre_sync': [],
+        'post_sync': [],
+        'pre_connect': [],
+        'post_connect': [],
+        'exit': [],
     }
-
     def _load_rc(self, config_home, rc):
         """Load the TOML config and fill in default kxh settings."""
         rc = rc or os.path.join(config_home, 'kxh', 'config.toml')
@@ -293,6 +300,8 @@ class KXH:
         for option in kxh_args.option or []:
             k, v = option.split('=')
             config['kxh'][k] = v
+        self.ssh_command_prefix = shlex.split(config['kxh']['ssh_command'])
+        self.rsh_command_prefix = shlex.split(config['kxh']['rsh_command'])
         self.ssh_cmd = parser.unparse_ssh_args(
             config['ssh'], ssh_command=config['kxh']['ssh_command'], dest=False)
         if config['kxh']['verbose']:
@@ -361,6 +370,86 @@ class KXH:
                 raise e
         return p.returncode
 
+    def _run_interactive(
+        self, command, error_message=None, verbose=None, debug=None, **kwargs
+    ):
+        """Run an argv command without a shell for interactive sessions."""
+        verbose = verbose if verbose is not None else self.config['kxh']['verbose']
+        debug = debug if debug is not None else self.config['kxh']['debug']
+        dry = self.config['kxh']['dry']
+        env = {**os.environ, 'SHELL': '/bin/bash', **kwargs.pop('env', {})}
+        if verbose or dry:
+            print_message('verbose', f'run: {shlex.join(command)}')
+        if dry:
+            return 0
+        try:
+            p = subprocess.run(command, env=env, **kwargs)
+        except subprocess.CalledProcessError as e:
+            if error_message is not None:
+                print_message('error', f'{error_message}')
+                exit(1)
+            else:
+                raise e
+        return p.returncode
+
+    def _hook_commands(self, hook_name):
+        """Return the configured shell snippets for a lifecycle hook."""
+        config = self.config['kxh']
+        commands = config.get(hook_name)
+        if commands in (None, ''):
+            commands = config.get(hook_name.replace('_', '-'))
+        if commands in (None, ''):
+            return []
+        if isinstance(commands, str):
+            return [commands]
+        if isinstance(commands, list) and all(isinstance(c, str) for c in commands):
+            return [c for c in commands if c.strip()]
+        print_message(
+            'error',
+            f'kxh.{hook_name} must be a string or list of strings.',
+        )
+        exit(1)
+
+    def _expand_hook_command(self, command):
+        """Expand kxh hook placeholders before shell execution."""
+        dest = self.config['ssh']['destination']
+        port = self.config['ssh'].get('p')
+        host = f'{dest}:{port}' if port else dest
+        return (
+            command
+            .replace('{destination}', dest)
+            .replace('{host}', host)
+            .replace('{port}', str(port or ''))
+        )
+
+    def _run_hooks(self, hook_name):
+        """Run configured lifecycle hooks as local shell snippets."""
+        commands = self._hook_commands(hook_name)
+        if not commands:
+            return
+        for command in commands:
+            command = self._expand_hook_command(command)
+            rv = self._run_shell(
+                command,
+                stdout=sys.stdout,
+                stderr=sys.stderr,
+            )
+            if rv not in (None, 0):
+                print_message(
+                    'error',
+                    f'Failed to run {hook_name.replace("_", "-")} hook.',
+                )
+                exit(rv)
+
+    def _post_connect_local_command(self):
+        """Build the ssh LocalCommand payload for post-connect hooks."""
+        commands = self._hook_commands('post_connect')
+        if not commands:
+            return None
+        commands = [self._expand_hook_command(c) for c in commands]
+        script = 'set -e\n' + '\n'.join(commands)
+        return f'/bin/bash -lc {shlex.quote(script)}'
+
     def _ssh_host_specific_rcs(self):
         """Build encrypted host-specific rc payloads for the target host."""
         key = self.config['kxh']['key']
@@ -400,7 +489,8 @@ class KXH:
         ]
         if is_remote:
             ssh = self.config['kxh']['rsh_command']
-            rsync_cmd.append(f"--rsh {' '.join([ssh] + self.ssh_cmd[1:])!r}")
+            ssh_args = self.ssh_cmd[len(self.ssh_command_prefix):]
+            rsync_cmd.append(f"--rsh {' '.join([ssh] + ssh_args)!r}")
         file_list_file = None
         if file_list is not None:
             file_list_file = tempfile.NamedTemporaryFile(
@@ -559,18 +649,31 @@ class KXH:
         init_script = f"env {' '.join(prefix)} "
         if cmd := self.config['ssh']['command']:
             cmd = " ".join(cmd)
-            command = quote(f'.{name}/.local/bin/_kxh_init -c {cmd!r}')
+            command = f'.{name}/.local/bin/_kxh_init -c {shlex.quote(cmd)}'
         else:
             command = f'.{name}/.local/bin/_kxh_init'
-        init_script += f"/bin/bash --norc -c {command!r}"
+        init_script += f"/bin/bash --norc -c {shlex.quote(command)}"
         ssh_cmd: List[str] = \
             self.ssh_cmd + ['-o', 'RequestTTY=yes', dest, init_script]
+        ssh_prefix_len = len(self.ssh_command_prefix)
         if not sys.stdout.isatty():
-            rsh_cmd = self.config['kxh']['rsh_command']
-            ssh_cmd = [rsh_cmd] + ssh_cmd[1:]
-        self._run_shell(
-            ' '.join(ssh_cmd), 'Failed to load ssh session.',
-            stdout=sys.stdout, stderr=sys.stderr)
+            ssh_cmd = self.rsh_command_prefix + ssh_cmd[len(self.ssh_command_prefix):]
+            ssh_prefix_len = len(self.rsh_command_prefix)
+        self._run_hooks('pre_connect')
+        if local_command := self._post_connect_local_command():
+            ssh_cmd[ssh_prefix_len:ssh_prefix_len] = [
+                '-o', 'PermitLocalCommand=yes',
+                '-o', f'LocalCommand={local_command}',
+            ]
+        try:
+            self._run_interactive(
+                ssh_cmd,
+                'Failed to load ssh session.',
+                stdout=sys.stdout,
+                stderr=sys.stderr,
+            )
+        finally:
+            self._run_hooks('exit')
         # if not cmd and rv == 255:
         #     self._run_shell('reset', 'Failed to reset terminal.')
 
@@ -578,9 +681,11 @@ class KXH:
         """Run the sync phase and optionally launch the remote session."""
         verbose = self.config['kxh']['verbose']
         if not self.config['kxh']['skip_sync']:
+            self._run_hooks('pre_sync')
             if verbose:
                 print_message('verbose', 'Syncing files...')
-            updated_files = self._sync_files() or ''
+            updated_files = self._sync_files() or []
+            self._run_hooks('post_sync')
             if verbose:
                 if updated_files:
                     print_message(
