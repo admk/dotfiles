@@ -10,8 +10,7 @@ aliases.register('alias')(bash_like_alias)
 aliases |= {
     '-': 'cd -',
     'xup':
-        'xpip install -U pip && '
-        'xpip install -U -r $XONSH_CONFIG_DIR/requirements.txt',
+        'uv sync --project $KXH_HOME --no-install-project',
     'xr': 'xonsh-reset',
     'c': 'clear',
     'o': 'open',
@@ -201,7 +200,7 @@ def _pydb(args):
         client = 'nvim'
         # auto-attach to debugpy in nvim
         cmd = f"<c-\\\\>;DapPyAttach {port}<CR>"
-        execx(f'{$KXH_CONDA_PREFIX}/bin/nvr --remote-send "{cmd}"')
+        execx(f'{$KXH_VENV}/bin/nvr --remote-send "{cmd}"')
     else:
         client = 'client'
     print(f'Waiting for {client} to attach to {port}...')

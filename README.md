@@ -14,7 +14,7 @@ The main ideas are:
 - `kxh` syncs this tree to remote SSH hosts
 - Xonsh is the interactive shell on both local and remote setups
 - `.local/bin/_kxh_init` bootstraps the shell runtime
-- Miniconda provides the isolated Python/Xonsh environment
+- uv provides the isolated Python/Xonsh environment
 - Ghostty delegates tab management to `tmux`
 - `tmux/prewarm/bin/prewarm` keeps a warm spare shell ready
 
@@ -38,8 +38,7 @@ before starting the shell.
 ~/.kxh/
 ├── .config/         # main XDG config tree
 ├── .local/bin/      # launchers and helper scripts
-├── .miniconda3/     # hermetic Python + Xonsh runtime
-├── .conda/          # Conda metadata and environment bookkeeping
+├── .venv/           # hermetic Python + Xonsh runtime
 ├── .cache/          # caches shared by local tools
 ├── .private.git/    # private overlay repo synced with the public tree
 ├── .gitconfig       # classic non-XDG Git entrypoint
@@ -83,8 +82,8 @@ It does the heavy lifting:
   and related variables
 - chooses the runtime mode
   (`hermetic`, `semi-hermetic`, or `non-hermetic`)
-- installs Miniconda into `.miniconda3/` if it is missing
-- installs `starship` and the Xonsh requirements
+- installs uv and `starship` if they are missing
+- syncs the Xonsh runtime into `.venv/`
 - creates `~/.local/bin/xh` as a convenient shell entrypoint
 - starts Xonsh directly,
   or routes through the prewarmer when enabled
@@ -93,18 +92,19 @@ In practice,
 this script is the reason a fresh remote host
 can be turned into a usable shell environment quickly.
 
-### Miniconda
+### uv
 
-Miniconda is the bootstrap runtime for shell environments.
+uv is the bootstrap runtime for shell environments.
 This repo uses it as a self-contained Python base
 so that Xonsh and shell-side Python dependencies
 do not need to rely on the remote machine's system Python.
 
-- `.miniconda3/` holds the actual local Miniconda installation
-- `.config/conda/condarc` keeps the user-level Conda defaults
+- `.venv/` holds the actual local Python/Xonsh environment
+- `pyproject.toml` declares the shell runtime dependencies
+- `.config/uv/uv.toml` keeps uv defaults and Python/PyPI mirrors
 - `_kxh_init`
-  downloads the Miniconda installer
-  and installs into `.miniconda3/`
+  downloads uv and `starship`
+  and syncs dependencies into `.venv/`
   on first run
 
 This makes the shell runtime reproducible enough
@@ -128,7 +128,7 @@ Important pieces include:
 
 - `aliases.xsh` for command aliases and wrappers
 - `carapace.xsh` for shell completion integration
-- `conda.xsh` for Conda/Xonsh hook setup
+- `conda.xsh` for lazy external Conda hook setup
 - `envs.xsh` for environment defaults and tracing
 - `prompt.xsh` for prompt and Atuin integration
 - `vimode.xsh` for modal editing behavior

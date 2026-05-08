@@ -1,4 +1,14 @@
 python-install-mirror = "https://gh-proxy.com/github.com/indygreg/python-build-standalone/releases/download"
+index-strategy = "unsafe-best-match"
+
+[[index]]
+name = "sjtu"
+url = "https://mirror.sjtu.edu.cn/pypi/web/simple/"
+exclude-newer = false
+
+[[index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
 
 [[index]]
 name = "tsinghua"
@@ -15,4 +25,3 @@ url = "https://mirrors.cloud.tencent.com/pypi/simple/"
 [[index]]
 name = "aliyun"
 url = "https://mirrors.aliyun.com/pypi/simple/"
-default = true

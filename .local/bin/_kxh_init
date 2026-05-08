@@ -33,14 +33,16 @@ else
 fi
 export KXH_INIT=$KXH_HOME/.local/bin/_kxh_init
 export KXH_PREWARM=$KXH_HOME/.local/bin/_kxh_prewarm
-export KXH_CONDA_PREFIX=$KXH_HOME/.miniconda3
-export KXH_PYTHON=$KXH_CONDA_PREFIX/bin/python
-export KXH_SHELL=$KXH_CONDA_PREFIX/bin/xonsh
+export KXH_VENV=$KXH_HOME/.venv
+export KXH_PYTHON=$KXH_VENV/bin/python
+export KXH_SHELL=$KXH_VENV/bin/xonsh
+export KXH_UV=$KXH_HOME/.local/bin/uv
+export KXH_STARSHIP=$KXH_HOME/.local/bin/starship
 export KXH_FALLBACK_SHELL=$SHELL
 export XDG_CONFIG_HOME="$XDG_HOME/.config"
 export XDG_DATA_HOME="$XDG_HOME/.local/share"
 export XDG_CACHE_HOME="$KXH_OLD_HOME/.cache"
-# export PATH="$KXH_HOME/.local/bin:$KXH_CONDA_PREFIX/bin:$PATH"
+export PATH="$KXH_HOME/.local/bin:$KXH_VENV/bin:$PATH"
 if [[ $KXH_DEBUG == '1' ]]; then
     echo
     echo -e "${LIGHTGRAY}kxh server ==> init${SET}"
@@ -52,9 +54,11 @@ if [[ $KXH_DEBUG == '1' ]]; then
     echo -e "${LIGHTGRAY}\$KXH_INIT=$KXH_INIT${SET}"
     echo -e "${LIGHTGRAY}\$KXH_PREWARM=$KXH_PREWARM${SET}"
     echo -e "${LIGHTGRAY}\$KXH_PREWARMER=$KXH_PREWARMER${SET}"
-    echo -e "${LIGHTGRAY}\$KXH_CONDA_PREFIX=$KXH_CONDA_PREFIX${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_VENV=$KXH_VENV${SET}"
     echo -e "${LIGHTGRAY}\$KXH_PYTHON=$KXH_PYTHON${SET}"
     echo -e "${LIGHTGRAY}\$KXH_SHELL=$KXH_SHELL${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_UV=$KXH_UV${SET}"
+    echo -e "${LIGHTGRAY}\$KXH_STARSHIP=$KXH_STARSHIP${SET}"
     echo -e "${LIGHTGRAY}\$KXH_FALLBACK_SHELL=$KXH_FALLBACK_SHELL${SET}"
     echo -e "${LIGHTGRAY}\$XDG_HOME=$XDG_HOME${SET}"
     echo -e "${LIGHTGRAY}\$XDG_CONFIG_HOME=$XDG_CONFIG_HOME${SET}"
@@ -69,39 +73,66 @@ else
     ERR=/dev/stderr
 fi
 
-# conda
-CONDA_SRC=https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda
-# CONDA_SRC=https://mirrors.aliyun.com/anaconda/miniconda
-# CONDA_SRC=https://repo.anaconda.com/miniconda
-if [ ! -f "$KXH_CONDA_PREFIX/bin/conda" ]; then
-    CONDA_INSTALLER=$KXH_HOME/miniconda3.sh
-    if [[ $(uname) == 'Darwin' ]]; then
-        OS='MacOSX'
-    elif [[ $(uname) == 'Linux' ]]; then
-        OS='Linux'
+# runtime tools
+KXH_GITHUB_RELEASE_PROXY=${KXH_GITHUB_RELEASE_PROXY:-https://gh-proxy.com/}
+KXH_UV_VERSION=${KXH_UV_VERSION:-0.9.26}
+
+_github_release_url() {
+    local url=$1
+    if [[ -n $KXH_GITHUB_RELEASE_PROXY ]]; then
+        printf '%s%s\n' "$KXH_GITHUB_RELEASE_PROXY" "$url"
     else
-        echo 'Unsupported OS $OS' >$ERR
-        exec $KXH_FALLBACK_SHELL "$@"
+        printf '%s\n' "$url"
     fi
-    ARCH=$(uname -m)
-    if [[ $ARCH == 'x86_64' ]]; then
-        ARCH='x86_64'
-    elif [[ $ARCH == 'arm64' ]]; then
-        ARCH='aarch64'
+}
+
+_artifact_target() {
+    local os arch
+    case "$(uname -s)" in
+        Darwin) os=apple-darwin ;;
+        Linux) os=unknown-linux-gnu ;;
+        *)
+            echo -e "${RED}kxh server ==> Unsupported OS $(uname -s)${SET}" >$ERR
+            exec $KXH_FALLBACK_SHELL "$@"
+            ;;
+    esac
+    case "$(uname -m)" in
+        x86_64|amd64) arch=x86_64 ;;
+        arm64|aarch64) arch=aarch64 ;;
+        *)
+            echo -e "${RED}kxh server ==> Unsupported ARCH $(uname -m)${SET}" >$ERR
+            exec $KXH_FALLBACK_SHELL "$@"
+            ;;
+    esac
+    printf '%s-%s\n' "$arch" "$os"
+}
+
+if [ ! -f "$KXH_UV" ]; then
+    UV_TARGET=$(_artifact_target)
+    UV_TMP=$KXH_HOME/uv.tar.gz
+    UV_URL=$(_github_release_url "https://github.com/astral-sh/uv/releases/download/$KXH_UV_VERSION/uv-$UV_TARGET.tar.gz")
+    echo -e "${BLUE}kxh server ==> Downloading uv from $UV_URL...${SET}"
+    curl --progress-bar -L "$UV_URL" -o "$UV_TMP" 1>$OUT 2>$ERR
+    mkdir -p "$KXH_HOME/.local/bin"
+    tar -xzf "$UV_TMP" -C "$KXH_HOME/.local/bin" --strip-components=1 "uv-$UV_TARGET/uv" "uv-$UV_TARGET/uvx" 1>$OUT 2>$ERR
+    rm -f "$UV_TMP"
+fi
+
+if [ ! -f "$KXH_STARSHIP" ]; then
+    STARSHIP_TARGET=$(_artifact_target)
+    if [[ $STARSHIP_TARGET == *-apple-darwin ]]; then
+        STARSHIP_ASSET="starship-$STARSHIP_TARGET.tar.gz"
     else
-        echo -e "${RED}kxh server ==> Unsupported ARCH $ARCH${SET}" >$ERR
-        exec $KXH_FALLBACK_SHELL "$@"
+        STARSHIP_ASSET="starship-$STARSHIP_TARGET.tar.gz"
     fi
-    CONDA_URL=$CONDA_SRC/Miniconda3-py311_24.1.2-0-$OS-$ARCH.sh
-    echo -e "${BLUE}kxh server ==> Downloading miniconda3 from $CONDA_URL to $CONDA_INSTALLER...${SET}"
-    curl --progress-bar -L $CONDA_URL -o $CONDA_INSTALLER 1>$OUT 2>$ERR
-    echo -e "${BLUE}kxh server ==> Installing miniconda3 to $KXH_CONDA_PREFIX...${SET}"
-    sh $CONDA_INSTALLER -u -b -p $KXH_CONDA_PREFIX 1>$OUT 2>$ERR
-    if [ -f $CONDA_INSTALLER ]; then
-        rm $CONDA_INSTALLER
-    fi
-    echo -e "${BLUE}Installing starship...${SET}"
-    $KXH_CONDA_PREFIX/bin/conda install -y -c conda-forge starship 1>$OUT 2>$ERR
+    STARSHIP_TMP=$KXH_HOME/starship.tar.gz
+    STARSHIP_URL=$(_github_release_url "https://github.com/starship/starship/releases/latest/download/$STARSHIP_ASSET")
+    echo -e "${BLUE}kxh server ==> Downloading starship from $STARSHIP_URL...${SET}"
+    curl --progress-bar -L "$STARSHIP_URL" -o "$STARSHIP_TMP" 1>$OUT 2>$ERR
+    mkdir -p "$KXH_HOME/.local/bin"
+    tar -xzf "$STARSHIP_TMP" -C "$KXH_HOME/.local/bin" starship 1>$OUT 2>$ERR
+    chmod +x "$KXH_STARSHIP"
+    rm -f "$STARSHIP_TMP"
 fi
 
 if [[ -n "${SSH_CONNECTION:-}" && -n "${KXH_COLOR_MODE:-}" ]]; then
@@ -153,14 +184,18 @@ if [[ -f $sync_list && ! -z $SSH_CONNECTION ]]; then
 fi
 if [[ $KXH_DEBUG == '1' ]]; then
     echo -e "${LIGHTGRAY}\$KXH_PYTHON=$KXH_PYTHON${SET}"
-    PYTHONNOUSERSITE=1 $KXH_PYTHON -m site
+    if [ -f "$KXH_PYTHON" ]; then
+        PYTHONNOUSERSITE=1 $KXH_PYTHON -m site
+    fi
     echo -e "${LIGHTGRAY}kxh server ==> init end${SET}"
     echo
 fi
 if [ ! -f $KXH_SHELL ]; then
-    echo -e "${BLUE}kxh server ==> Installing xonsh...${SET}"
-    PYTHONNOUSERSITE=1 $KXH_PYTHON -m pip install \
-        -r $XDG_CONFIG_HOME/xonsh/requirements.txt 1>$OUT 2>$ERR
+    echo -e "${BLUE}kxh server ==> Syncing shell environment...${SET}"
+    PYTHONNOUSERSITE=1 UV_PROJECT_ENVIRONMENT="$KXH_VENV" "$KXH_UV" sync \
+        --project "$KXH_HOME" --no-install-project --managed-python \
+        --index-strategy unsafe-best-match \
+        1>$OUT 2>$ERR
 fi
 if [ ! -f $KXH_OLD_HOME/.local/bin/xh ]; then
     echo -e "${YELLOW}kxh server ==> Creating xh in $KXH_OLD_HOME/.local/bin...${SET}"

@@ -83,7 +83,7 @@ def _nvim_shell_integration():
     if not _which('nvim'):
         return
     aliases['_editor'] = [
-        '$KXH_CONDA_PREFIX/bin/nvr',
+        '$KXH_VENV/bin/nvr',
         '--nostart',
         '--remote-tab-wait',
         '+setlocal bufhidden=wipe']

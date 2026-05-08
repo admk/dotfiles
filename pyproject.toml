@@ -1,0 +1,39 @@
+[project]
+name = "kxh-shell"
+version = "0.1.0"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "cryptography < 43.0",
+    "gpustat ; sys_platform == 'linux'",
+    "libtmux",
+    "neovim-remote",
+    "prompt-toolkit",
+    "sioyek ; sys_platform == 'darwin'",
+    "tabulate",
+    "task-spooler-utils",
+    "xonsh-autoxsh",
+    "xonsh[full]",
+    "xontrib-abbrevs",
+    "xontrib-argcomplete",
+    "xontrib-autojump",
+    "xonsh-apt-tabcomplete ; sys_platform == 'linux'",
+    "xontrib-back2dir",
+    "xontrib-clp",
+    "xontrib-cmd-durations",
+    "xontrib-ergopack",
+    "xontrib-fish-completer",
+    "xontrib-fzf-widgets",
+    "xontrib-history-encrypt",
+    "xontrib-homebrew ; sys_platform == 'darwin'",
+    "xontrib-onepath",
+    "xontrib-output-search",
+    "xontrib-pipeliner",
+    "xontrib-prompt-starship",
+    "xontrib-readable-traceback",
+    "xontrib-sh",
+    "xontrib-term-integrations",
+]
+
+[tool.uv]
+package = false
+environments = ["sys_platform == 'darwin'", "sys_platform == 'linux'"]

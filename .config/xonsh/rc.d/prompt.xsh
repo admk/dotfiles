@@ -64,7 +64,8 @@ def _transform_bangbang(cmd, **kwargs):
 _preprompt_linebreak = False
 
 def _starship_main():
-    aliases['starship'] = file = f'{$KXH_CONDA_PREFIX}/bin/starship'
+    aliases['starship'] = file = ${...}.get(
+        'KXH_STARSHIP', f'{$KXH_HOME}/.local/bin/starship')
     if ${...}.get('KXH_DEBUG') == '1':
         print(f'kxh shell ==> starship: using {file!r}')
     # $STARSHIP_CONFIG = f"{$XDG_CONFIG_HOME}/starship.toml"
