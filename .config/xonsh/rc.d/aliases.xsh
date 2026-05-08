@@ -221,6 +221,39 @@ def _hf_env(args):
     }
 
 
+@register_env_alias('cc', cmd='claude')
+def _claude_model(args):
+    model_name = None
+    claude_args = []
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg in ('-m', '--model'):
+            i += 1
+            if i >= len(args):
+                print('Usage: cc [-m|--model <model_name>] [claude args...]')
+                return [], {}
+            model_name = args[i]
+        else:
+            claude_args.append(arg)
+        i += 1
+
+    model_name = model_name or ${...}.get('CLAUDE_CODE_DEFAULT_MODEL')
+    if not model_name:
+        print('Usage: cc [-m|--model <model_name>] [claude args...]')
+        print('Set $CLAUDE_CODE_DEFAULT_MODEL or pass -m/--model.')
+        return [], {}
+
+    return ['--allow-dangerously-skip-permissions', *claude_args], {
+        'ANTHROPIC_MODEL': model_name,
+        'ANTHROPIC_DEFAULT_OPUS_MODEL': model_name,
+        'ANTHROPIC_DEFAULT_SONNET_MODEL': model_name,
+        'ANTHROPIC_DEFAULT_HAIKU_MODEL': model_name,
+        'ANTHROPIC_SMALL_FAST_MODEL': model_name,
+        'CLAUDE_CODE_SUBAGENT_MODEL': model_name,
+    }
+
+
 _BASH_ENV = lambda args: (args, {'SHELL': '/bin/bash'})
 register_env_alias('ssh', cmd='ssh')(_BASH_ENV)
 register_env_alias('sshuttle', cmd='sshuttle')(_BASH_ENV)
