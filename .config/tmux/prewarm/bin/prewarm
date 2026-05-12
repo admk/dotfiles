@@ -207,7 +207,8 @@ _disable_current_pane_title() {
     title=$(_tmux display-message -p -t "$pane" '#{pane_title}' 2>/dev/null || true)
     _save_pane_option_once "$pane" @kxh_pane_title_original "$title"
     _tmux set-option -qpt "$pane" allow-set-title off >/dev/null
-    _tmux set-option -qpt "$pane" allow-passthrough off >/dev/null
+    # Keep passthrough enabled so terminal response probes from remote TUIs work.
+    # _tmux set-option -qpt "$pane" allow-passthrough off >/dev/null
     if [[ -n "$host" ]]; then
         label="󰣀 │$host"
     else
@@ -289,9 +290,9 @@ _sanitize_client_terminal() {
     fi
 
     if [[ -n "$client_tty" && -w "$client_tty" ]]; then
-        # Undo terminal modes that nested tmux/apps may leave enabled when SSH
-        # disappears abruptly. Keep this to mode resets; do not clear/redraw.
-        printf '\033[?1004l\033[?1000l\033[?1001l\033[?1002l\033[?1003l\033[?1005l\033[?1006l\033[?1015l\033[?2004l\033[?25h\033[?1l\033>\033[m' >"$client_tty"
+        # Abort any unterminated remote OSC/DCS/string first; otherwise the
+        # following CSI resets can be swallowed as string payload.
+        printf '\030\033\\\007\033[?1004l\033[?1000l\033[?1001l\033[?1002l\033[?1003l\033[?1005l\033[?1006l\033[?1015l\033[?2004l\033[?25h\033[?1l\033>\033[m' >"$client_tty"
     fi
 
     focus_events=$(_tmux show-options -gqv focus-events 2>/dev/null || true)
@@ -418,9 +419,9 @@ main() {
         "attach") _attach_session ;;
         "watcher-start") _start_watcher ;;
         "watcher-restart") _restart_watcher ;;
-        "kxh-title-off") _disable_current_pane_title "${2:-}" "${3:-}" ;;
-        "kxh-title-restore") _restore_current_pane_title "${2:-}" ;;
-        "kxh-terminal-sanitize") _sanitize_client_terminal "${2:-}" ;;
+        "title-off") _disable_current_pane_title "${2:-}" "${3:-}" ;;
+        "title-restore") _restore_current_pane_title "${2:-}" ;;
+        "terminal-sanitize") _sanitize_client_terminal "${2:-}" ;;
         "invalidate") invalidate_reserved_windows ;;
         "kill") _tmux kill-server ;;
         *) _tmux "$@" ;;
