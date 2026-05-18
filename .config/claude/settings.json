@@ -79,7 +79,7 @@
       }
     }
   },
-  "effortLevel": "xhigh",
+  "effortLevel": "max",
   "awaySummaryEnabled": false,
   "skipDangerousModePermissionPrompt": true
 }
