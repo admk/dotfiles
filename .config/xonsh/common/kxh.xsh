@@ -127,8 +127,16 @@ def user_specific(verbose):
 
 def git_config(config):
     gitconf = str(p'$HOME/.gitconfig')
+    touch @(gitconf)
     for k, v in config.items():
-        ev = $(git config -f @(gitconf) --get @(k)).strip()
+        proc = !(git config -f @(gitconf) --get @(k))
+        if proc.returncode == 0:
+            ev = proc.out.strip()
+        elif proc.returncode == 1:
+            ev = None
+        else:
+            raise RuntimeError(
+                f'git config --get {k!r} failed with exit code {proc.returncode}')
         if ev == v:
             continue
         git config -f @(gitconf) @(k) @(v)
