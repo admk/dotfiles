@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+reload_ghostty() {
+    if pkill -USR2 -x Ghostty 2>/dev/null; then
+        echo "[$(date '+%F %T')] ghostty-reload: reloaded via SIGUSR2 to Ghostty"
+        return 0
+    fi
+
+    if pkill -USR2 -x ghostty 2>/dev/null; then
+        echo "[$(date '+%F %T')] ghostty-reload: reloaded via SIGUSR2 to ghostty"
+        return 0
+    fi
+
+    echo "[$(date '+%F %T')] ghostty-reload: Ghostty process not found, reload skipped"
+}
+
+reload_ghostty
