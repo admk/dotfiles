@@ -108,6 +108,9 @@ fi
 # runtime tools
 KXH_GITHUB_RELEASE_PROXY=${KXH_GITHUB_RELEASE_PROXY:-https://gh-proxy.com/}
 KXH_UV_VERSION=${KXH_UV_VERSION:-0.9.26}
+KXH_UV_INDEX=${KXH_UV_INDEX:-https://mirror.sjtu.edu.cn/pypi/web/simple/}
+KXH_UV_PYTHON_MIRROR=${KXH_UV_PYTHON_MIRROR:-https://gh-proxy.com/github.com/indygreg/python-build-standalone/releases/download}
+KXH_UV_SYNC_ATTEMPTS=${KXH_UV_SYNC_ATTEMPTS:-3}
 
 _github_release_url() {
     local url=$1
@@ -267,21 +270,31 @@ if [[ $KXH_DEBUG == '1' ]]; then
     echo
 fi
 _uv_sync() {
-    PYTHONNOUSERSITE=1 UV_PROJECT_ENVIRONMENT="$KXH_VENV" "$KXH_UV" sync \
-        --project "$KXH_HOME" --no-install-project --managed-python \
+    PYTHONNOUSERSITE=1 \
+    UV_PROJECT_ENVIRONMENT="$KXH_VENV" \
+    UV_DEFAULT_INDEX="$KXH_UV_INDEX" \
+    UV_INDEX="" \
+    UV_PYTHON_INSTALL_MIRROR="$KXH_UV_PYTHON_MIRROR" \
+    "$KXH_UV" sync \
+        --project "$KXH_HOME" --config-file "$XDG_CONFIG_HOME/uv/uv.toml" \
+        --frozen --no-install-project --managed-python \
+        --default-index "$KXH_UV_INDEX" \
         --index-strategy unsafe-best-match \
         1>$OUT 2>$ERR
 }
 
 if [ ! -f $KXH_SHELL ]; then
     echo -e "${BLUE}kxh server ==> Syncing shell environment...${SET}"
-    if ! _uv_sync; then
-        echo -e "${YELLOW}kxh server ==> uv sync failed, reinstalling uv and retrying...${SET}" >$ERR
-        if ! _install_uv || ! _uv_sync; then
+    uv_sync_attempt=1
+    until _uv_sync; do
+        if [[ $uv_sync_attempt -ge $KXH_UV_SYNC_ATTEMPTS ]]; then
             echo -e "${RED}Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
             exec $KXH_FALLBACK_SHELL "$@"
         fi
-    fi
+        uv_sync_attempt=$((uv_sync_attempt + 1))
+        echo -e "${YELLOW}kxh server ==> uv sync failed, retrying with preserved cache and venv ($uv_sync_attempt/$KXH_UV_SYNC_ATTEMPTS)...${SET}" >$ERR
+        sleep 2
+    done
 fi
 if [ ! -f $KXH_OLD_HOME/.local/bin/xh ]; then
     echo -e "${YELLOW}kxh server ==> Creating xh in $KXH_OLD_HOME/.local/bin...${SET}"
