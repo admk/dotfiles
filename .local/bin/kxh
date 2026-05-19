@@ -488,6 +488,26 @@ class KXH:
         script = 'set -e\n' + '\n'.join(commands)
         return f'/bin/bash -lc {shlex.quote(script)}'
 
+    def _expand_env_value(self, value):
+        """Expand configured env passthrough values on the client side."""
+        if value is None:
+            return ''
+        if not isinstance(value, str):
+            return str(value)
+        env = {**os.environ, '_KXH_ENV_VALUE': value}
+        return subprocess.check_output(
+            [
+                '/bin/bash',
+                '-lc',
+                'eval "printf %s \\"$_KXH_ENV_VALUE\\""',
+            ],
+            env=env,
+        ).decode('utf-8')
+
+    def _env_assignment(self, key, value):
+        """Build a shell-safe env assignment for the remote init command."""
+        return f'{key}={shlex.quote(str(value))}'
+
     def _ssh_host_specific_rcs(self):
         """Build encrypted host-specific rc payloads for the target host."""
         key = self.config['kxh']['key']
@@ -663,8 +683,7 @@ class KXH:
         debug = self.config['kxh']['debug']
         skip = self.config['kxh']['skip_sync']
         prewarmer = self.config['kxh']['prewarmer']
-        env = self.config['kxh'].get('env', {})
-        env = [f'{k}={v}' for k, v in env.items()]
+        passthrough_env = self.config['kxh'].get('env', {})
         dest = self.config['ssh']['destination']
         port = self.config['ssh'].get('p')
         host = f'{dest}:{port}' if port else dest
@@ -673,17 +692,21 @@ class KXH:
         if updated_files and prewarmer != 'none':
             prewarmer = f'invalidate:{prewarmer}'
         # TODO: also set prewarmer to "invalidate" when env vars change?
+        env = [
+            self._env_assignment(k, self._expand_env_value(v))
+            for k, v in passthrough_env.items()
+        ]
         prefix = [
-            f'KXH_HOST={host}',
-            f'KXH_NAME={name}',
-            f'KXH_MODE={mode}',
-            f'KXH_VERBOSE={int(verbose)}',
-            f'KXH_DEBUG={int(debug)}',
-            f'KXH_SKIP_SYNC={int(skip)}',
-            f'KXH_PREWARMER={prewarmer}',
+            self._env_assignment('KXH_HOST', host),
+            self._env_assignment('KXH_NAME', name),
+            self._env_assignment('KXH_MODE', mode),
+            self._env_assignment('KXH_VERBOSE', int(verbose)),
+            self._env_assignment('KXH_DEBUG', int(debug)),
+            self._env_assignment('KXH_SKIP_SYNC', int(skip)),
+            self._env_assignment('KXH_PREWARMER', prewarmer),
         ] + env
         if color_mode := os.environ.get('KXH_COLOR_MODE'):
-            prefix.append(f'KXH_COLOR_MODE={color_mode}')
+            prefix.append(self._env_assignment('KXH_COLOR_MODE', color_mode))
         init_script = f"env {' '.join(prefix)} "
         if cmd := self.config['ssh']['command']:
             cmd = " ".join(cmd)
