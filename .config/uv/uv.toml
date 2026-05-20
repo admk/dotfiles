@@ -1,14 +1,12 @@
 python-install-mirror = "https://gh-proxy.com/github.com/indygreg/python-build-standalone/releases/download"
 index-strategy = "unsafe-best-match"
+# FIXME: we cant relaibly use exclude-newer with mirrors
+# as they often dont have the time metadata
+# exclude-newer = "7 days"
 
 [[index]]
 name = "sjtu"
 url = "https://mirror.sjtu.edu.cn/pypi/web/simple/"
-exclude-newer = false
-
-[[index]]
-name = "pypi"
-url = "https://pypi.org/simple/"
 
 [[index]]
 name = "tsinghua"
@@ -25,3 +23,7 @@ url = "https://mirrors.cloud.tencent.com/pypi/simple/"
 [[index]]
 name = "aliyun"
 url = "https://mirrors.aliyun.com/pypi/simple/"
+
+[[index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
