@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
+CONFIG_DIR="$XDG_CONFIG_HOME/ghostty"
+POLL_INTERVAL="${GHOSTTY_STATE_POLL_INTERVAL:-10}"
+STATE_SYNC="$CONFIG_DIR/bin/state-sync"
+
+current_power_mode() {
+    local source
+    source=$(pmset -g batt 2>/dev/null | sed -n '1p')
+    case "$source" in
+        *"AC Power"*) echo "ac" ;;
+        *"Battery Power"*) echo "battery" ;;
+        *) echo "battery" ;;
+    esac
+}
+
+current_screen_geometry() {
+    local geometry
+
+    if command -v yabai >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+        geometry=$(
+            yabai -m query --displays 2>/dev/null |
+                jq -r '
+                    map(.frame | "\(.w | round)x\(.h | round)") |
+                    first // empty
+                ' 2>/dev/null || true
+        )
+        if [[ "$geometry" =~ ^[0-9]+x[0-9]+$ ]]; then
+            echo "$geometry"
+            return
+        fi
+    fi
+
+    echo "0x0"
+}
+
+current_state_signature() {
+    printf '%s:%s\n' "$(current_power_mode)" "$(current_screen_geometry)"
+}
+
+reload_ghostty_if_safe() {
+    if [[ -x "$STATE_SYNC" ]]; then
+        "$STATE_SYNC" --reload
+    else
+        echo "[$(date '+%F %T')] ghostty-state-watch: state sync helper not found, reload skipped"
+    fi
+}
+
+sync_once() {
+    local state
+
+    state=$(current_state_signature)
+    if [[ "${LAST_STATE:-}" != "$state" ]]; then
+        LAST_STATE="$state"
+        echo "[$(date '+%F %T')] ghostty-state-watch: switched to $state"
+        reload_ghostty_if_safe
+    fi
+}
+
+main() {
+    if [[ "${1:-}" == "--once" || "${2:-}" == "--once" ]]; then
+        sync_once
+        return 0
+    fi
+
+    LAST_STATE=$(current_state_signature)
+    while true; do
+        sleep "$POLL_INTERVAL"
+        sync_once
+    done
+}
+
+main "$@"

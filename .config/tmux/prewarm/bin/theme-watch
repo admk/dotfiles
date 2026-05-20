@@ -12,23 +12,23 @@ fi
 
 echo "[$(date '+%F %T')] theme-watch starting"
 
-GHOSTTY_POWER_WATCH="$XDG_CONFIG_HOME/ghostty/bin/power-watch"
+GHOSTTY_STATE_WATCH="$XDG_CONFIG_HOME/ghostty/bin/state-watch"
 GHOSTTY_STATE_SYNC="$XDG_CONFIG_HOME/ghostty/bin/state-sync"
-ghostty_power_pid=""
+ghostty_state_pid=""
 
 cleanup() {
-    if [[ -n "$ghostty_power_pid" ]]; then
-        kill "$ghostty_power_pid" 2>/dev/null || true
+    if [[ -n "$ghostty_state_pid" ]]; then
+        kill "$ghostty_state_pid" 2>/dev/null || true
     fi
 }
 
 trap cleanup EXIT INT TERM
 
-if [[ -x "$GHOSTTY_POWER_WATCH" ]]; then
-    "$GHOSTTY_POWER_WATCH" &
-    ghostty_power_pid=$!
+if [[ -x "$GHOSTTY_STATE_WATCH" ]]; then
+    "$GHOSTTY_STATE_WATCH" &
+    ghostty_state_pid=$!
 else
-    echo "theme-watch: ghostty power watcher not found at $GHOSTTY_POWER_WATCH"
+    echo "theme-watch: ghostty state watcher not found at $GHOSTTY_STATE_WATCH"
 fi
 
 if [[ -x "$GHOSTTY_STATE_SYNC" ]]; then
