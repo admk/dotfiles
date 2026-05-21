@@ -1,16 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "cleanupPeriodDays": 720,
   "env": {
-    "ENABLE_TOOL_SEARCH": "false",
-    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
-    "DISABLE_COST_WARNINGS": "1",
-    "DISABLE_BUG_COMMAND": "1",
-    "DISABLE_ERROR_REPORTING": "1",
-    "DISABLE_TELEMETRY": "1",
+    "ENABLE_TOOL_SEARCH": "0",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
-    "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK": "1"
+    "CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK": "1",
+    "DISABLE_INSTALLATION_CHECKS": "1",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1"
   },
   "includeCoAuthoredBy": false,
   "permissions": {
@@ -79,7 +77,6 @@
       }
     }
   },
-  "effortLevel": "max",
   "awaySummaryEnabled": false,
   "skipDangerousModePermissionPrompt": true
 }
