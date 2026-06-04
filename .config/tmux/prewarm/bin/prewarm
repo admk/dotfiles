@@ -292,7 +292,7 @@ _sanitize_client_terminal() {
     if [[ -n "$client_tty" && -w "$client_tty" ]]; then
         # Abort any unterminated remote OSC/DCS/string first; otherwise the
         # following CSI resets can be swallowed as string payload.
-        printf '\030\033\\\007\033[?1004l\033[?1000l\033[?1001l\033[?1002l\033[?1003l\033[?1005l\033[?1006l\033[?1015l\033[?2004l\033[?25h\033[?1l\033>\033[m' >"$client_tty"
+        printf '\030\030\033\\\007\033[<u\033[?1004l\033[?1000l\033[?1001l\033[?1002l\033[?1003l\033[?1005l\033[?1006l\033[?1015l\033[?2004l\033[?25h\033[?1l\033>\033[m' >"$client_tty"
     fi
 
     focus_events=$(_tmux show-options -gqv focus-events 2>/dev/null || true)

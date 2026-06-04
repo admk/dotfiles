@@ -49,9 +49,16 @@ theme-apply -f || true
 while true; do
     dark-notify --only-changes | while read -r mode; do
         case "$mode" in
-            dark|light)
+            dark)
                 echo "[$(date '+%F %T')] theme-watch: $mode"
-                theme-apply -f "$mode" || true
+                theme-apply -f -d || true
+                if [[ -x "$GHOSTTY_STATE_SYNC" ]]; then
+                    "$GHOSTTY_STATE_SYNC" "$mode" --reload || true
+                fi
+                ;;
+            light)
+                echo "[$(date '+%F %T')] theme-watch: $mode"
+                theme-apply -f -l || true
                 if [[ -x "$GHOSTTY_STATE_SYNC" ]]; then
                     "$GHOSTTY_STATE_SYNC" "$mode" --reload || true
                 fi
