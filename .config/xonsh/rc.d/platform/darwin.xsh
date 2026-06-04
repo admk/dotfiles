@@ -77,42 +77,6 @@ def _toggle_dark_mode():
     _auto_theme(True)
 
 
-@aliases.register('proxy-browser-alt')
-def _proxy_browser_alt(args):
-    ssh_options = {
-        'ControlMaster': 'no',
-        # 'ExitOnForwardFailure': 'yes',
-        # 'ClearAllForwardings': 'yes',
-    }
-    ssh_options = ' '.join(f'-o {k}={v}' for k, v in ssh_options.items())
-    args = ' '.join(args)
-    parallel -j2 --halt now,done=1 --ungroup ::: \
-        "'$CHROMIUM' --proxy-server=socks5://localhost:1080 2>/dev/null" \
-        f'ssh -vNT {ssh_options} -D 1080 {args}'
-
-
-@aliases.register('proxy-browser')
-def _proxy_browser(args):
-    ssh_options = {
-        # 'ControlMaster': 'no',
-        'ExitOnForwardFailure': 'yes',
-        'ClearAllForwardings': 'yes',
-    }
-    ssh_options = [f'-o {k}={v}' for k, v in ssh_options.items()]
-    bargs = '_'.join(args).replace(' ', '_').replace('/', '_').replace('@', '_')
-    socket_path = f'/tmp/ssh_proxy_browser_{bargs}'
-    if not !(ssh -vfMNT @(ssh_options) -S @(socket_path) @(args)):
-        echo 'Failed to establish SSH connection'
-        return
-    if not !(ssh @(ssh_options) -S @(socket_path) -O forward -D 1080 @(args)):
-        echo 'Failed to forward SOCKS5 proxy port 1080'
-        return
-    if not !('$CHROMIUM' --proxy-server=socks5://localhost:1080):
-        echo 'Failed to start browser'
-        return
-    ssh -S @(socket_path) -O exit @(args)
-
-
 @aliases.register('osc')
 def _openscad_compile(args):
     if len(args) != 1:

@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$#" -eq 0 ]; then
+    echo "Usage: proxy-browser <ssh-target> [ssh-args ...]" >&2
+    exit 2
+fi
+
+pick_port() {
+    python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()'
+}
+
+chromium="${CHROMIUM:-/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary}"
+port="${PROXY_BROWSER_PORT:-$(pick_port)}"
+browser_app="${PROXY_BROWSER_APP:-${chromium%/Contents/MacOS/*}}"
+browser_open="${PROXY_BROWSER_OPEN:-open}"
+
+if [ ! -x "$chromium" ]; then
+    echo "Chromium executable not found: $chromium" >&2
+    exit 1
+fi
+
+ssh -NT -o ControlMaster=no -D "127.0.0.1:${port}" "$@" &
+ssh_pid=$!
+cleanup() {
+    kill "$ssh_pid" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT INT TERM
+
+sleep 0.5
+if ! kill -0 "$ssh_pid" >/dev/null 2>&1; then
+    wait "$ssh_pid" >/dev/null 2>&1 || true
+    exit 1
+fi
+
+"$browser_open" -W -na "$browser_app" --args --proxy-server=socks5://127.0.0.1:"$port"
+status=$?
+cleanup
+wait "$ssh_pid" >/dev/null 2>&1 || true
+exit "$status"
