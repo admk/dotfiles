@@ -1,2 +1,8 @@
 #!/usr/bin/env sh
-exec $KXH_PYTHON "$@"
+if [ -n "$KXH_PYTHON" ] && [ -x "$KXH_PYTHON" ]; then
+    exec "$KXH_PYTHON" "$@"
+fi
+KXH_NAME=${KXH_NAME:-kxh}
+KXH_OLD_HOME=${KXH_OLD_HOME:-$HOME}
+KXH_HOME=${KXH_HOME:-$KXH_OLD_HOME/.$KXH_NAME}
+exec "$KXH_HOME/.venv/bin/python" "$@"
