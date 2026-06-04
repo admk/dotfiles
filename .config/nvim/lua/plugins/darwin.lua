@@ -1,5 +1,5 @@
 local is_remote = os.getenv("SSH_CLIENT") or os.getenv("SSH_TTY")
-local supports_images = vim.env.KITTY_WINDOW_ID and not vim.g.neovide
+local supports_images = vim.env.KITTY_WINDOW_ID ~= nil and not vim.g.neovide
 if is_remote then
   return {}
 end

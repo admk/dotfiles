@@ -89,7 +89,11 @@ vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.splitkeep = "cursor"
 vim.opt.conceallevel = 2
-vim.lsp.set_log_level("WARN")
+if vim.lsp.log and vim.lsp.log.set_level then
+  vim.lsp.log.set_level("WARN")
+else
+  vim.lsp.set_log_level("WARN")
+end
 -- Spelling
 vim.opt.spelllang = vim.opt.spelllang + "cjk"
 -- Undercurl
