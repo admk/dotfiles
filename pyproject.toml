@@ -8,6 +8,8 @@ dependencies = [
     "libtmux",
     "neovim-remote",
     "prompt-toolkit",
+    "pyyaml",
+    "requests",
     "sioyek ; sys_platform == 'darwin'",
     "tabulate",
     "task-spooler-utils",
