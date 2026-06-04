@@ -145,6 +145,8 @@ def git_config(config):
 def main():
     if 'KXH_OLD_HOME' in ${...}:
         $PATH.insert(0, '$KXH_OLD_HOME/.local/bin')
+    if 'KXH_VENV' in ${...}:
+        $PATH.insert(0, '$KXH_VENV/bin')
     if 'KXH_HOME' in ${...}:
         $PATH.insert(0, '$KXH_HOME/.local/share/bin')
         $PATH.insert(0, '$KXH_HOME/.local/bin')
