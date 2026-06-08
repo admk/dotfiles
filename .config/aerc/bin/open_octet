@@ -1,23 +1,88 @@
-#!/bin/bash
-for cmd in magika jq duti; do
-    if ! command -v $cmd &> /dev/null; then
-        echo "$cmd could not be found" >&2
+#!/usr/bin/env bash
+set -u
+
+if [ "$#" -lt 1 ] || [ -z "${1:-}" ]; then
+    echo "Usage: open_octet FILE" >&2
+    exit 2
+fi
+
+src=$1
+if [ ! -e "$src" ]; then
+    echo "File not found: $src" >&2
+    exit 1
+fi
+
+tmp_root="${TMPDIR:-/tmp}/aerc-open-octet"
+if ! mkdir -p "$tmp_root"; then
+    echo "Could not create temp directory: $tmp_root" >&2
+    exit 1
+fi
+
+tmp_dir=$(mktemp -d "$tmp_root/open.XXXXXX") || exit 1
+base=$(basename "$src")
+copy="$tmp_dir/$base"
+
+if ! cp -p "$src" "$copy"; then
+    echo "Could not copy file for opening: $src" >&2
+    exit 1
+fi
+
+detect_ext() {
+    for cmd in magika jq; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            echo "$cmd could not be found" >&2
+            return 1
+        fi
+    done
+
+    local metadata ext
+    metadata=$(magika --jsonl "$copy" 2>/dev/null) || {
+        echo "Could not identify file: $src" >&2
+        return 1
+    }
+
+    ext=$(printf '%s\n' "$metadata" | jq -r '
+        .result.value.output.extensions[0] //
+        .result.value.dl.extensions[0] //
+        .output.extensions[0] //
+        .dl.extensions[0] //
+        .result.value.output.label //
+        .output.label //
+        .output.ct_label //
+        empty
+    ' | head -n 1)
+
+    case "$ext" in
+        ""|"null"|"unknown"|"other"|"directory")
+            echo "Unrecognized format for $src with metadata $metadata" >&2
+            return 1
+            ;;
+    esac
+
+    printf '%s\n' "$ext"
+}
+
+open_detected_copy() {
+    local ext typed_copy
+    ext=$(detect_ext) || exit 1
+    typed_copy="$copy.$ext"
+
+    if ! cp -p "$copy" "$typed_copy"; then
+        echo "Could not create typed copy for opening: $typed_copy" >&2
         exit 1
     fi
-done
-metadata=$(magika --jsonl -i "$1")
-ext=$(echo $metadata | jq -r ".output.ct_label")
-if [ $ext = "directory" ]; then
-    open $1
-    exit 0
-fi
-if [ $ext = "other" ]; then
-    exho "Unrecognized format for $1 with metadata $metadata" >&2
-    exit 1
-fi
-app=$(duti -x $ext | grep -E ".app$" | head -n 1)
-if [ -z $app ]; then
-    echo "No .app found for $1 with metadata $metadata" >&2
-    exit 1
-fi
-open -a $app $1
+
+    exec /usr/bin/open "$typed_copy"
+}
+
+case "$base" in
+    *.*)
+        if /usr/bin/open "$copy" >/dev/null 2>&1; then
+            exit 0
+        fi
+        open_detected_copy
+        ;;
+    *)
+        open_detected_copy
+        ;;
+esac
