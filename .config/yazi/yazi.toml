@@ -9,6 +9,16 @@ run = '$EDITOR "$@"'
 block = true
 # for = "linux"
 
+[[opener.fx]]
+run = 'fx "$@"'
+block = true
+
+[open]
+prepend_rules = [
+    { url = "*.json", use = "fx" },
+    { url = "*.jsonl", use = "fx" },
+]
+
 [plugin]
 prepend_previewers = [
     { mime = "application/{,g}zip", run = "lsar" },
