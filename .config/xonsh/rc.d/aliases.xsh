@@ -156,17 +156,38 @@ def _tmux(args):
 
 @aliases.register('tmr')
 @aliases.register('tmux-reattach')
+@aliases.return_command
 def _tmux_reattach(args):
     import os
+    import subprocess
 
-    tm = $(@(_which('which')) 'tmux').strip()
-    socket = $(@(tm) -V).strip().replace('tmux ', '')
+    tm = _which('tmux')
+    if not tm:
+        print('tmux not found.')
+        return ['false']
+    socket = subprocess.run(
+        [tm, '-V'], check=True, capture_output=True, text=True,
+    ).stdout.strip().replace('tmux ', '')
     if args:
         name = args[0]
     else:
         name = os.path.basename(${...}.get('PWD') or os.getcwd()) or $USER
-    @(tm) -L @(socket) attach-session -d -t @(name) 2>/dev/null || \
-        @(tm) -L @(socket) new-session -s @(name)
+    # tmux rewrites periods and colons in new session names, but not in
+    # target names. Normalize before looking up a session such as `.kxh`.
+    name = name.replace('.', '_').replace(':', '_')
+    cmd = [tm, '-L', socket]
+    target = f'={name}'
+    if ${...}.get('TMUX'):
+        exists = subprocess.run(
+            [*cmd, 'has-session', '-t', target],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode == 0
+        if not exists:
+            subprocess.run(
+                [*cmd, 'new-session', '-d', '-s', name], check=True)
+        return [*cmd, 'switch-client', '-t', target]
+    return [*cmd, 'new-session', '-A', '-D', '-s', name]
 
 
 @aliases.register('pd')
