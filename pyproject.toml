@@ -14,7 +14,7 @@ dependencies = [
     "tabulate",
     "task-spooler-utils",
     "xonsh-autoxsh",
-    "xonsh[full]",
+    "xonsh[full]==0.23.6",
     "xontrib-abbrevs",
     "xontrib-argcomplete",
     "xontrib-autojump",
