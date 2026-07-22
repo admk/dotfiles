@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# OpenTUI sends a Kitty graphics probe when OpenCode starts. One tmux layer
+# unwraps the probe correctly, but a second tmux layer reads the raw APC as a
+# pane title. Graphics cannot cross both layers with a single tmux wrapper, so
+# skip the probe only when this tmux is nested under the prewarm server.
+if [ -z "${OPENTUI_GRAPHICS+x}" ] &&
+    [ -n "${TMUX:-}" ] &&
+    [ -n "${KXH_TMUX_SOCKET:-}" ]; then
+    opencode_tmux_socket=${TMUX%%,*}
+    opencode_tmux_name=${opencode_tmux_socket##*/}
+    opencode_prewarm_name=${KXH_TMUX_SOCKET##*/}
+    if [ "$opencode_tmux_name" != "$opencode_prewarm_name" ]; then
+        export OPENTUI_GRAPHICS=false
+    fi
+fi
+
+opencode_script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+opencode_kxh_home=${KXH_HOME:-$(CDPATH= cd -- "$opencode_script_dir/../.." && pwd)}
+opencode_bin="$opencode_kxh_home/.local/share/bin/opencode"
+
+if [ ! -x "$opencode_bin" ]; then
+    printf 'opencode: executable not found: %s\n' "$opencode_bin" >&2
+    exit 127
+fi
+
+exec "$opencode_bin" "$@"
