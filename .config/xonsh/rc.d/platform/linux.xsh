@@ -4,6 +4,9 @@ from shutil import which as _which
 from common.aliases import register_env_alias
 
 
+xontrib load homebrew
+
+
 aliases |= {
     'ns': 'nvidia-smi',
     'st': 'gpustat -cup',
