@@ -99,12 +99,15 @@ if [[ $KXH_DEBUG == '1' ]]; then
     echo -e "${LIGHTGRAY}\$XDG_CACHE_HOME=$XDG_CACHE_HOME${SET}"
     echo -e "${LIGHTGRAY}\$PATH=$PATH${SET}"
     echo -e "${LIGHTGRAY}args: $@${SET}"
-    OUT=/dev/stdout
-    ERR=/dev/stderr
-else
-    OUT=/dev/null
-    ERR=/dev/stderr
 fi
+
+_run() {
+    if [[ $KXH_DEBUG == '1' ]]; then
+        "$@"
+        return
+    fi
+    "$@" >/dev/null
+}
 
 # runtime tools
 KXH_GITHUB_RELEASE_PROXY=${KXH_GITHUB_RELEASE_PROXY:-https://gh-proxy.com/}
@@ -126,17 +129,17 @@ _download_archive() {
     local url=$1
     local tmp=$2
     rm -f "$tmp"
-    curl --fail --http1.1 --location --progress-bar \
+    _run curl --fail --http1.1 --location --progress-bar \
         --retry 3 --retry-delay 1 --retry-connrefused \
-        "$url" -o "$tmp" 1>$OUT 2>$ERR
+        "$url" -o "$tmp"
 }
 
 _valid_uv() {
-    [ -x "$KXH_UV" ] && "$KXH_UV" --version 1>$OUT 2>$ERR
+    [ -x "$KXH_UV" ] && _run "$KXH_UV" --version
 }
 
 _valid_starship() {
-    [ -x "$KXH_STARSHIP" ] && "$KXH_STARSHIP" session 1>$OUT 2>$ERR
+    [ -x "$KXH_STARSHIP" ] && _run "$KXH_STARSHIP" session
 }
 
 _install_uv() {
@@ -152,13 +155,13 @@ _install_uv() {
         return 1
     fi
     mkdir -p "$tmp_dir"
-    if ! tar -xzf "$tmp_archive" -C "$tmp_dir" --strip-components=1 "uv-$KXH_TARGET/uv" "uv-$KXH_TARGET/uvx" 1>$OUT 2>$ERR; then
+    if ! _run tar -xzf "$tmp_archive" -C "$tmp_dir" --strip-components=1 "uv-$KXH_TARGET/uv" "uv-$KXH_TARGET/uvx"; then
         rm -f "$tmp_archive"
         rm -rf "$tmp_dir"
         return 1
     fi
     chmod +x "$tmp_dir/uv" "$tmp_dir/uvx"
-    if ! "$tmp_dir/uv" --version 1>$OUT 2>$ERR; then
+    if ! _run "$tmp_dir/uv" --version; then
         rm -f "$tmp_archive"
         rm -rf "$tmp_dir"
         return 1
@@ -183,13 +186,13 @@ _install_starship() {
         return 1
     fi
     mkdir -p "$tmp_dir"
-    if ! tar -xzf "$tmp_archive" -C "$tmp_dir" starship 1>$OUT 2>$ERR; then
+    if ! _run tar -xzf "$tmp_archive" -C "$tmp_dir" starship; then
         rm -f "$tmp_archive"
         rm -rf "$tmp_dir"
         return 1
     fi
     chmod +x "$tmp_dir/starship"
-    if ! "$tmp_dir/starship" session 1>$OUT 2>$ERR; then
+    if ! _run "$tmp_dir/starship" session; then
         rm -f "$tmp_archive"
         rm -rf "$tmp_dir"
         return 1
@@ -202,7 +205,7 @@ _install_starship() {
 if ! _valid_uv; then
     rm -f "$KXH_UV" "$KXH_TOOL_BIN/uvx"
     if ! _install_uv; then
-        echo -e "${RED}uv failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
+        echo -e "${RED}uv failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >&2
         exec $KXH_FALLBACK_SHELL "$@"
     fi
 fi
@@ -210,7 +213,7 @@ fi
 if ! _valid_starship; then
     rm -f "$KXH_STARSHIP"
     if ! _install_starship; then
-        echo -e "${RED}starship failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
+        echo -e "${RED}starship failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >&2
         exec $KXH_FALLBACK_SHELL "$@"
     fi
 fi
@@ -276,12 +279,11 @@ _uv_sync() {
     UV_DEFAULT_INDEX="$KXH_UV_INDEX" \
     UV_INDEX="" \
     UV_PYTHON_INSTALL_MIRROR="$KXH_UV_PYTHON_MIRROR" \
-    "$KXH_UV" sync \
+    _run "$KXH_UV" sync \
         --project "$KXH_HOME" --config-file "$XDG_CONFIG_HOME/uv/uv.toml" \
         --frozen --no-install-project --managed-python \
         --default-index "$KXH_UV_INDEX" \
-        --index-strategy unsafe-best-match \
-        1>$OUT 2>$ERR
+        --index-strategy unsafe-best-match
 }
 
 if [ ! -f $KXH_SHELL ]; then
@@ -289,11 +291,11 @@ if [ ! -f $KXH_SHELL ]; then
     uv_sync_attempt=1
     until _uv_sync; do
         if [[ $uv_sync_attempt -ge $KXH_UV_SYNC_ATTEMPTS ]]; then
-            echo -e "${RED}Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
+            echo -e "${RED}Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >&2
             exec $KXH_FALLBACK_SHELL "$@"
         fi
         uv_sync_attempt=$((uv_sync_attempt + 1))
-        echo -e "${YELLOW}kxh server ==> uv sync failed, retrying with preserved cache and venv ($uv_sync_attempt/$KXH_UV_SYNC_ATTEMPTS)...${SET}" >$ERR
+        echo -e "${YELLOW}kxh server ==> uv sync failed, retrying with preserved cache and venv ($uv_sync_attempt/$KXH_UV_SYNC_ATTEMPTS)...${SET}" >&2
         sleep 2
     done
 fi
@@ -315,7 +317,7 @@ fi
 #     exec $SHELL "$@"
 # fi
 if [ ! -f $KXH_SHELL ]; then
-    echo -e "${RED}Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >$ERR
+    echo -e "${RED}Xonsh failed to install, fall back to $KXH_FALLBACK_SHELL.${SET}" >&2
     exec $KXH_FALLBACK_SHELL "$@"
 elif [ -z "$KXH_PREWARMED" ] && [ ! -z "$KXH_PREWARMER" ] && [ $# -eq 0 ]; then
     SHELL=$KXH_SHELL KXH_PREWARMED=1 exec $KXH_PREWARM
