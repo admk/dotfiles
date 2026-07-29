@@ -177,7 +177,12 @@ def _tmux_reattach(args):
     name = name.replace('.', '_').replace(':', '_')
     cmd = [tm, '-L', socket]
     target = f'={name}'
-    if ${...}.get('TMUX'):
+    current_tmux = ${...}.get('TMUX')
+    current_socket = (
+        os.path.basename(current_tmux.split(',', 1)[0])
+        if current_tmux else None
+    )
+    if current_socket == socket:
         exists = subprocess.run(
             [*cmd, 'has-session', '-t', target],
             stdout=subprocess.DEVNULL,
@@ -187,7 +192,12 @@ def _tmux_reattach(args):
             subprocess.run(
                 [*cmd, 'new-session', '-d', '-s', name], check=True)
         return [*cmd, 'switch-client', '-t', target]
-    return [*cmd, 'new-session', '-A', '-D', '-s', name]
+    # The Ghostty shell runs inside the prewarm server. Clear its client
+    # variables so tmux can attach this terminal to the versioned server.
+    return [
+        'env', 'TMUX=', 'TMUX_PANE=', *cmd,
+        'new-session', '-A', '-D', '-s', name,
+    ]
 
 
 @aliases.register('pd')
