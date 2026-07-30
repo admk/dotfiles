@@ -1,6 +1,26 @@
 #!/bin/bash
-abs_paths=""
-for f in "$@"; do
-    abs_paths="$abs_paths $(realpath "$f")"
+
+if (( $# == 0 )); then
+    echo "Usage: system-copy <file>..." >&2
+    exit 2
+fi
+
+abs_paths=()
+for file in "$@"; do
+    if [[ ! -e "$file" ]]; then
+        printf 'system-copy: file not found: %s\n' "$file" >&2
+        exit 1
+    fi
+
+    abs_paths+=("$(realpath "$file")")
 done
-osascript $(which system-copy.scpt) $abs_paths
+
+script_path=$(command -v system-copy.scpt) || {
+    echo "system-copy: system-copy.scpt not found" >&2
+    exit 1
+}
+
+osascript "$script_path" "${abs_paths[@]}" >/dev/null || exit
+
+printf 'Copied %d item(s) to the clipboard:\n' "${#abs_paths[@]}"
+printf '  %s\n' "${abs_paths[@]}"
