@@ -10,7 +10,8 @@ aliases.register('alias')(bash_like_alias)
 aliases |= {
     '-': 'cd -',
     'xup':
-        'uv sync --project $KXH_HOME --no-install-project',
+        'uv lock --project $KXH_HOME --upgrade && '
+        'uv sync --project $KXH_HOME --locked --no-install-project --inexact',
     'xr': 'xonsh-reset',
     'c': 'clear',
     'o': 'open',
