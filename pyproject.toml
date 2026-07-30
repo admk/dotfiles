@@ -3,7 +3,7 @@ name = "kxh-shell"
 version = "0.1.0"
 requires-python = ">=3.11,<3.12"
 dependencies = [
-    "cryptography < 43.0",
+    "cryptography",
     "gpustat ; sys_platform == 'linux'",
     "libtmux",
     "neovim-remote",

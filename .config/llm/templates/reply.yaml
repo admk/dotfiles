@@ -27,6 +27,6 @@ prompt: |
   - Write the reply in $lang
 
 defaults:
-  tone: polite, informal
-  lang: English
+  tone: kind, informal
+  lang: the language used in email_history
   request: Write the most sensible reply to this email conversation history
