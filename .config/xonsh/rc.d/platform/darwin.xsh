@@ -6,7 +6,6 @@ $PATH = [
     '/opt/homebrew/opt/coreutils/libexec/gnubin',
     '/opt/homebrew/opt/curl/bin',
 ] + $PATH + [
-    '/Applications/Visual Studio Code.app/Contents/Resources/app/bin',
     '$KXH_HOME/.local/bin/darwin',
     '$HOME/.cargo/bin/',
 ]
