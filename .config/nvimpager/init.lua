@@ -103,6 +103,77 @@ keymap.set("n", "<C-c>", ":nohlsearch<Return>", opts)
 keymap.set("n", "`", "%")
 keymap.set("n", "H", "^")
 keymap.set("n", "L", "$")
+-- Links
+local function link_under_cursor()
+    local line = vim.api.nvim_get_current_line():gsub("\27%[[;?]*[0-9.;]*[A-Za-z]", "")
+    local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+    local url_chars = "[A-Za-z0-9%-%._~:/%?#@!%$&'%*%+,;=%%]+"
+    local patterns = {
+        "https://" .. url_chars,
+        "http://" .. url_chars,
+        "ftp://" .. url_chars,
+        "www%." .. url_chars,
+    }
+    local first_url
+
+    for _, pattern in ipairs(patterns) do
+        local init = 1
+        while true do
+            local start_pos, end_pos = line:find(pattern, init)
+            if not start_pos then
+                break
+            end
+            local url = line:sub(start_pos, end_pos):gsub("[,%.%;:%!%?%]%}]+$", "")
+            if url:match("^www%.") then
+                url = "https://" .. url
+            end
+            first_url = first_url or url
+            if start_pos <= col and col <= end_pos then
+                return url
+            end
+            init = end_pos + 1
+        end
+    end
+    return first_url
+end
+
+local function open_link_under_cursor()
+    local url = link_under_cursor()
+    if not url then
+        vim.cmd("normal! +")
+        return
+    end
+    local command
+    if vim.fn.has("macunix") == 1 then
+        command = { "/usr/bin/open", url }
+    elseif vim.fn.has("win32") == 1 then
+        command = { "cmd", "/c", "start", "", url }
+    else
+        command = { "xdg-open", url }
+    end
+
+    local output = vim.fn.system(command)
+    if vim.v.shell_error ~= 0 then
+        local message = output:gsub("%s+$", "")
+        if message == "" then
+            message = "exit " .. vim.v.shell_error
+        end
+        vim.notify("Failed to open link: " .. message, vim.log.levels.ERROR)
+    end
+end
+
+local link_group = vim.api.nvim_create_augroup("NvimpagerOpenLink", { clear = true })
+vim.api.nvim_create_autocmd({ "VimEnter", "BufWinEnter" }, {
+    group = link_group,
+    pattern = "*",
+    callback = function(args)
+        keymap.set("n", "<CR>", open_link_under_cursor, {
+            buffer = args.buf,
+            silent = true,
+            desc = "Open link under cursor",
+        })
+    end,
+})
 -- Commands
 keymap.set("c", "<C-A>", "<Home>", opts)
 keymap.set("c", "<C-E>", "<End>", opts)
