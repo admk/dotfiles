@@ -16,7 +16,9 @@ require("lazy").setup({
     { "LazyVim/LazyVim", import = "lazyvim.plugins", },
     -- { import = "lazyvim.plugins.extras.ui.edgy" },
     { import = "lazyvim.plugins.extras.ui.mini-indentscope" },
-    { import = "lazyvim.plugins.extras.ai.copilot" },
+    -- Copilot is configured locally as manual-only to avoid keeping its
+    -- language server resident in every Neovim session.
+    -- { import = "lazyvim.plugins.extras.ai.copilot" },
     -- { import = "lazyvim.plugins.extras.ai.codeium" },
     { import = "lazyvim.plugins.extras.dap.core" },
     { import = "lazyvim.plugins.extras.test.core" },

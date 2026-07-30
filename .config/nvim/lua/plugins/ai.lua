@@ -1,5 +1,97 @@
 return {
   {
+    "zbirenbaum/copilot.lua",
+    cmd = "Copilot",
+    keys = {
+      {
+        "<M-l>",
+        function()
+          require("copilot.suggestion").accept()
+        end,
+        desc = "Copilot Suggestion",
+        mode = "i",
+      },
+      {
+        "<leader>ae",
+        function()
+          local copilot = require("copilot")
+          local client = require("copilot.client")
+          if not copilot.setup_done or client.is_disabled() or not client.config then
+            vim.cmd("Copilot enable")
+          end
+          vim.cmd("Copilot attach")
+        end,
+        desc = "Enable Copilot",
+      },
+      { "<leader>aE", "<cmd>Copilot disable<cr>", desc = "Disable Copilot" },
+    },
+    init = function()
+      LazyVim.cmp.actions.ai_accept = function()
+        if package.loaded["copilot.suggestion"] and require("copilot.suggestion").is_visible() then
+          LazyVim.create_undo()
+          require("copilot.suggestion").accept()
+          return true
+        end
+      end
+    end,
+    opts = {
+      panel = { enabled = false },
+      filetypes = {
+        markdown = true,
+      },
+      suggestion = {
+        enabled = true,
+        auto_trigger = true,
+        hide_during_completion = true,
+        debounce = 150,
+        keymap = {
+          accept = "<M-l>",
+          accept_word = false,
+          accept_line = false,
+          next = "<M-]>",
+          prev = "<M-[>",
+          dismiss = "<C-]>",
+          toggle_auto_trigger = false,
+        },
+      },
+      should_attach = function(bufnr, bufname)
+        if not vim.bo[bufnr].buflisted or vim.bo[bufnr].buftype ~= "" then
+          return false
+        end
+
+        if vim.api.nvim_buf_line_count(bufnr) > 5000 then
+          return false
+        end
+
+        if bufname and bufname ~= "" then
+          local ok, stat = pcall(vim.uv.fs_stat, bufname)
+          if ok and stat and stat.size > 256 * 1024 then
+            return false
+          end
+        end
+
+        return true
+      end,
+    },
+  },
+  {
+    "nvim-lualine/lualine.nvim",
+    optional = true,
+    opts = function(_, opts)
+      table.insert(
+        opts.sections.lualine_x,
+        2,
+        LazyVim.lualine.status(LazyVim.config.icons.kinds.Copilot, function()
+          local clients = package.loaded["copilot"] and vim.lsp.get_clients({ name = "copilot", bufnr = 0 }) or {}
+          if #clients > 0 then
+            local status = require("copilot.status").data.status
+            return (status == "InProgress" and "pending") or (status == "Warning" and "error") or "ok"
+          end
+        end)
+      )
+    end,
+  },
+  {
     "GeorgesAlkhouri/nvim-aider",
     enabled = false,
     cmd = "Aider",

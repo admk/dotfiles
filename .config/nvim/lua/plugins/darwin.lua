@@ -76,7 +76,13 @@ return {
     end,
   },
   {
-    "admk/tali.nvim",
-    ft = "tali",
+    "admk/tali",
+    lazy = false,
+    init = function(plugin)
+      vim.opt.rtp:append(plugin.dir .. "/vim")
+      vim.filetype.add({
+        extension = { tali = "tali" },
+      })
+    end,
   },
 }
