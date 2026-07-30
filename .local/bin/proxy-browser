@@ -12,29 +12,80 @@ pick_port() {
 
 chromium="${CHROMIUM:-/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary}"
 port="${PROXY_BROWSER_PORT:-$(pick_port)}"
-browser_app="${PROXY_BROWSER_APP:-${chromium%/Contents/MacOS/*}}"
-browser_open="${PROXY_BROWSER_OPEN:-open}"
+browser_url="${PROXY_BROWSER_URL:-about:blank}"
+ssh_target="$1"
 
 if [ ! -x "$chromium" ]; then
     echo "Chromium executable not found: $chromium" >&2
     exit 1
 fi
 
-ssh -NT -o ControlMaster=no -D "127.0.0.1:${port}" "$@" &
-ssh_pid=$!
-cleanup() {
-    kill "$ssh_pid" >/dev/null 2>&1 || true
-}
-trap cleanup EXIT INT TERM
-
-sleep 0.5
-if ! kill -0 "$ssh_pid" >/dev/null 2>&1; then
-    wait "$ssh_pid" >/dev/null 2>&1 || true
+if ! command -v nc >/dev/null 2>&1; then
+    echo "proxy-browser requires nc to check the local SOCKS port." >&2
     exit 1
 fi
 
-"$browser_open" -W -na "$browser_app" --args --proxy-server=socks5://127.0.0.1:"$port"
-status=$?
-cleanup
-wait "$ssh_pid" >/dev/null 2>&1 || true
+ssh_args=("$@")
+control_root="${PROXY_BROWSER_CONTROL_ROOT:-/tmp}"
+control_dir="$(mktemp -d "${control_root%/}/proxy-browser.XXXXXX")"
+control_path="${control_dir}/control"
+profile_key="$(printf '%s' "$ssh_target" | tr -cs 'A-Za-z0-9._@%+-' '_')"
+profile_root="${PROXY_BROWSER_PROFILE_ROOT:-${HOME}/Library/Application Support/proxy-browser}"
+profile_dir="${PROXY_BROWSER_PROFILE:-${profile_root%/}/${profile_key}}"
+
+cleanup() {
+    ssh -S "$control_path" -O exit "${ssh_args[@]}" >/dev/null 2>&1 || true
+    rm -rf "$control_dir"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+if nc -z 127.0.0.1 "$port" >/dev/null 2>&1; then
+    echo "Local port is already in use: 127.0.0.1:${port}" >&2
+    exit 1
+fi
+
+mkdir -p "$profile_dir" || {
+    status=$?
+    echo "Failed to create browser profile directory: $profile_dir" >&2
+    exit "$status"
+}
+
+ssh -fNT \
+    -M \
+    -S "$control_path" \
+    -o ControlMaster=yes \
+    -o ControlPath="$control_path" \
+    -o ControlPersist=no \
+    -D "127.0.0.1:${port}" \
+    "${ssh_args[@]}" || {
+        status=$?
+        echo "Failed to start SSH SOCKS proxy for ${ssh_target} on 127.0.0.1:${port}" >&2
+        exit "$status"
+    }
+
+for _ in {1..50}; do
+    if nc -z 127.0.0.1 "$port" >/dev/null 2>&1; then
+        break
+    fi
+    sleep 0.1
+done
+
+if ! nc -z 127.0.0.1 "$port" >/dev/null 2>&1; then
+    echo "SOCKS proxy did not start on 127.0.0.1:${port}" >&2
+    exit 1
+fi
+
+status=0
+"$chromium" \
+    --proxy-server=socks5://127.0.0.1:"$port" \
+    --user-data-dir="$profile_dir" \
+    --no-first-run \
+    --new-window "$browser_url" || {
+        status=$?
+        if [ "$status" -ne 130 ] && [ "$status" -ne 143 ]; then
+            echo "Browser exited with status ${status} using profile: $profile_dir" >&2
+        fi
+    }
 exit "$status"
